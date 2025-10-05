@@ -42,8 +42,8 @@ from typing import List, Dict, Optional, Set, Tuple
 # CONFIGURATION
 # ============================================
 
-# Channels DVR API endpoint
-CHANNELS_DVR_BASE_URL = "https://api.getchannels.com"
+# Channels DVR API endpoint (set via command line argument)
+CHANNELS_DVR_BASE_URL = None
 
 # Database and checkpoint paths
 DB_PATH = Path("channelidentifiarr.db")
@@ -1409,19 +1409,19 @@ def main():
         epilog="""
 Examples:
   # Standard database creation with default 4 workers
-  python3 create_channelidentifiarr_db.py usa_markets.csv
+  python3 create_channelidentifiarr_db.py usa_markets.csv --server http://192.168.1.100:8089
 
   # Use 6 workers for faster processing
-  python3 create_channelidentifiarr_db.py usa_markets.csv --workers 6
+  python3 create_channelidentifiarr_db.py usa_markets.csv --server http://192.168.1.100:8089 --workers 6
 
   # Force refresh all data
-  python3 create_channelidentifiarr_db.py usa_markets.csv --force
+  python3 create_channelidentifiarr_db.py usa_markets.csv --server http://192.168.1.100:8089 --force
 
   # Skip enhancement phase (base data only)
-  python3 create_channelidentifiarr_db.py usa_markets.csv --skip-enhancement
+  python3 create_channelidentifiarr_db.py usa_markets.csv --server http://192.168.1.100:8089 --skip-enhancement
 
   # Run only enhancement phase on existing database
-  python3 create_channelidentifiarr_db.py usa_markets.csv --enhance-only
+  python3 create_channelidentifiarr_db.py usa_markets.csv --server http://192.168.1.100:8089 --enhance-only
 
 This script creates a comprehensive database of TV lineups and stations
 using the Channels DVR public API. The database includes:
@@ -1436,6 +1436,12 @@ using the Channels DVR public API. The database includes:
     parser.add_argument(
         'markets_csv',
         help='Path to CSV file containing markets (country,postal_code)'
+    )
+
+    parser.add_argument(
+        '--server',
+        required=True,
+        help='Channels DVR server address (e.g., http://192.168.1.100:8089)'
     )
 
     parser.add_argument(
@@ -1470,6 +1476,11 @@ using the Channels DVR public API. The database includes:
     )
 
     args = parser.parse_args()
+
+    # Set API base URL from command line argument
+    global CHANNELS_DVR_BASE_URL
+    CHANNELS_DVR_BASE_URL = args.server.rstrip('/')
+    logger.info(f"Using Channels DVR server: {CHANNELS_DVR_BASE_URL}")
 
     # Validate conflicting flags
     if args.skip_enhancement and args.enhance_only:

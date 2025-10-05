@@ -684,7 +684,7 @@
                     <h3>💾 Database Configuration</h3>
                     <div style="margin-top: 15px;">
                         <label style="display: block; margin-bottom: 5px; color: #999;">Database Path:</label>
-                        <input type="text" id="settingsDatabasePath" placeholder="/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db" value="/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db" style="width: 100%;">
+                        <input type="text" id="settingsDatabasePath" placeholder="/data/channelidentifiarr.db" value="/data/channelidentifiarr.db" style="width: 100%;">
                         <p style="color: #666; font-size: 0.85rem; margin-top: 5px;">Path to the channelidentifiarr.db file. Set DATABASE_PATH environment variable and restart backend to apply changes.</p>
                     </div>
                     <div style="margin-top: 15px;">
@@ -2199,9 +2199,9 @@
 
             // Database settings
             if (settings.database) {
-                document.getElementById('settingsDatabasePath').value = settings.database.path || '/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db';
+                document.getElementById('settingsDatabasePath').value = settings.database.path || '/data/channelidentifiarr.db';
             } else {
-                document.getElementById('settingsDatabasePath').value = '/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db';
+                document.getElementById('settingsDatabasePath').value = '/data/channelidentifiarr.db';
             }
 
             // Dispatcharr settings

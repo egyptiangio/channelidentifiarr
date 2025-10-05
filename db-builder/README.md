@@ -25,15 +25,21 @@ pip install requests
 
 ## Usage
 
+### Prerequisites
+
+**IMPORTANT: You must have a local Channels DVR server running.**
+
+This script requires access to your Channels DVR server's API. You'll need to provide your server's IP address and port (default: 8089).
+
 ### Basic Usage
 
 ```bash
-python3 create_channelidentifiarr_db.py markets.csv
+python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089
 ```
 
 This will:
 1. Read markets from the CSV file
-2. Fetch lineup and station data from Channels DVR API
+2. Fetch lineup and station data from your Channels DVR server
 3. Create `channelidentifiarr.db` SQLite database
 4. Build optimized indexes for fast queries
 5. Create a checkpoint file for resumability
@@ -42,19 +48,19 @@ This will:
 
 ```bash
 # Use more workers for faster processing (default: 4, max: 10)
-python3 create_channelidentifiarr_db.py markets.csv --workers 6
+python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --workers 6
 
 # Force refresh all data (ignore existing database)
-python3 create_channelidentifiarr_db.py markets.csv --force
+python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --force
 
 # Skip station enhancement phase (faster but less metadata)
-python3 create_channelidentifiarr_db.py markets.csv --skip-enhancement
+python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --skip-enhancement
 
 # Run only enhancement on existing database
-python3 create_channelidentifiarr_db.py markets.csv --enhance-only
+python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --enhance-only
 
 # Keep checkpoint file after completion
-python3 create_channelidentifiarr_db.py markets.csv --no-cleanup
+python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --no-cleanup
 ```
 
 ## CSV File Format
@@ -302,15 +308,15 @@ python3 create_channelidentifiarr_db.py markets.csv --enhance-only
 
 ## API Information
 
-This script uses the public Channels DVR API:
-- **Base URL**: `https://api.getchannels.com`
+This script uses your local Channels DVR server's API:
+- **Base URL**: Provided via `--server` argument (e.g., `http://192.168.1.100:8089`)
 - **No API key required**
 - **Endpoints used**:
   - `/tms/lineups/{country}/{postal_code}` - Get lineups for a market
   - `/dvr/guide/stations/{lineup_id}` - Get stations in a lineup
   - `/tms/stations/{call_sign}` - Get detailed station metadata
 
-The API is public and free to use. Please be respectful with request rates.
+**Note:** You must have an active Channels DVR server subscription to use this tool.
 
 ## License
 

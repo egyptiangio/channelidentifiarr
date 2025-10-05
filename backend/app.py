@@ -1950,4 +1950,4 @@ if __name__ == '__main__':
         logger.info(f"Using database at {DB_PATH}")
 
     # Run the development server
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
