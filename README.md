@@ -8,7 +8,6 @@ Web-based TV channel lineup search and Emby integration.
 
 - Search TV channels across multiple countries and lineups
 - Smart channel matching with country/resolution detection
-- Dispatcharr and Emby integration for advanced automation
 
 ## Quick Start
 
@@ -38,29 +37,6 @@ docker-compose up -d
 ```
 
 4. Open: http://localhost:9192
-
-## Emby Integration
-
-1. Go to **Emby Settings** tab
-2. Enter server URL, username, password
-3. Test connection and save
-
-### Functions
-- **Scan & Add Missing Listings** - Auto-add channels to Emby
-- **Delete All Channel Logos** - Remove custom logos
-- **Clear All Channel Numbers** - Reset channel numbers
-
-## Configuration
-
-Edit `docker-compose.yml`:
-
-```yaml
-environment:
-  - DATABASE_PATH=/data/channelidentifiarr.db
-  - TZ=America/New_York  # Your timezone
-ports:
-  - "9192:9192"  # Change port if needed
-```
 
 ## License
 
