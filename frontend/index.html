@@ -1,0 +1,2963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Channel Identifiarr - Station Search</title>
+    <style>
+        :root {
+            --bg-primary: #1e1e1e;
+            --bg-secondary: #2a2a2a;
+            --bg-card: #1a1a2e;
+            --bg-input: #2a2a3e;
+            --bg-hover: rgba(255, 255, 255, 0.05);
+            --text-primary: #e0e0e0;
+            --text-secondary: #999;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #667eea;
+            --header-bg: rgba(0, 0, 0, 0.3);
+        }
+
+        body.light-mode {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --bg-input: #f8f9fa;
+            --bg-hover: rgba(0, 0, 0, 0.05);
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --accent-color: #667eea;
+            --header-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: var(--header-bg);
+            padding: 25px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.3s ease;
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .theme-toggle {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .theme-toggle:active {
+            transform: translateY(0);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            margin-top: 8px;
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .search-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .dispatcharr-section, .emby-section {
+            /* No extra styling needed - padding handled by .tab-content */
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            flex: 1;
+        }
+
+        input, select, button {
+            padding: 12px 20px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            font-size: 16px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .results-section {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Table Styles */
+        .results-table-container {
+            overflow-x: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table th {
+            background: rgba(102, 126, 234, 0.2);
+            color: #e0e0e0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .results-table th:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .results-table th.sortable::after {
+            content: ' ↕';
+            opacity: 0.4;
+            font-size: 0.8em;
+        }
+
+        .results-table th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        .results-table th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        .results-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .results-table tr {
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .results-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .results-table .station-logo-small {
+            width: 50px;
+            height: 38px;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 2px;
+            display: block;
+        }
+
+        .results-table .no-logo-cell {
+            color: #999;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .station-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .station-id {
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .station-logo {
+            width: 80px;
+            height: 60px;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 4px;
+        }
+
+        .logo-indicator {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .has-logo {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .no-logo {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+        }
+
+        .result-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            color: #999;
+            font-size: 0.85rem;
+            margin-bottom: 2px;
+        }
+
+        .detail-value {
+            font-weight: 500;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px 6px 0 0;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #2a2a2a;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-button:hover {
+            color: #fff;
+        }
+
+        .station-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .station-detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .station-detail-item {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s;
+        }
+
+        .station-detail-item:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .station-detail-label {
+            color: #999;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .station-detail-value {
+            font-weight: 500;
+            word-break: break-word;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .station-logo-large {
+            max-width: 200px;
+            max-height: 150px;
+            object-fit: contain;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1>🛰️ Channel Identifiarr</h1>
+                <div class="subtitle">Gracenote Station Database Search</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.1-alpha</span>
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+                    <span id="themeIcon">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('search')">🔍 Search</button>
+            <button id="dispatcharrTabButton" class="tab-button" onclick="switchTab('dispatcharr')" style="display: none;">📡 Dispatcharr Integration</button>
+            <button id="embyTabButton" class="tab-button" onclick="switchTab('emby')" style="display: none;">📺 Emby Integration</button>
+            <button class="tab-button" onclick="switchTab('settings')">⚙️ Settings</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Search Tab Content -->
+        <div id="searchTab" class="tab-content active">
+            <!-- Stats Section -->
+            <div class="stats hidden" id="statsSection">
+            <div class="stat-item">
+                <div class="stat-value" id="totalStations">-</div>
+                <div class="stat-label">Total Stations</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalCountries">-</div>
+                <div class="stat-label">Countries</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalMarkets">-</div>
+                <div class="stat-label">Markets</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="totalLineups">-</div>
+                <div class="stat-label">Lineups</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="stationsWithLogos">-</div>
+                <div class="stat-label">With Logos</div>
+            </div>
+        </div>
+
+        <!-- Database Metadata -->
+        <div id="dbMetadata" style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; display: none;">
+            <div style="color: #999; font-size: 0.85rem; margin-bottom: 5px;">Database Information</div>
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;">
+                <span>Version: <strong id="dbVersion">-</strong></span>
+                <span>•</span>
+                <span>Effective Date: <strong id="dbEffectiveDate">-</strong></span>
+                <span>•</span>
+                <span>Schema: <strong id="dbSchema">-</strong></span>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="Search by channel name, call sign, or station ID..." autofocus>
+                <button id="searchBtn" onclick="performSearch()">🔍 Search</button>
+                <button onclick="clearSearch()">Clear</button>
+            </div>
+            <div class="filters">
+                <select id="countryFilter">
+                    <option value="">All Countries</option>
+                    <option value="USA" selected>USA</option>
+                </select>
+                <select id="typeFilter">
+                    <option value="">All Types</option>
+                </select>
+                <select id="qualityFilter">
+                    <option value="">All Qualities</option>
+                </select>
+                <select id="limitFilter">
+                    <option value="20">20 Results</option>
+                    <option value="50">50 Results</option>
+                    <option value="100" selected>100 Results</option>
+                    <option value="200">200 Results</option>
+                    <option value="500">500 Results</option>
+                    <option value="-1">Unlimited</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section hidden" id="resultsSection">
+            <div class="results-header">
+                <div class="results-count" id="resultsCount">0 Results</div>
+                <button onclick="exportResults()">📥 Export</button>
+            </div>
+            <div class="results-table-container">
+                <table class="results-table">
+                    <thead id="resultsTableHead"></thead>
+                    <tbody id="resultsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div class="loading hidden" id="loadingSection">
+            <div class="spinner"></div>
+            <div>Searching database...</div>
+        </div>
+
+            <!-- Error Display -->
+            <div class="error hidden" id="errorSection"></div>
+        </div><!-- End Search Tab -->
+
+        <!-- Channel Matching Tab Content -->
+        <!-- Settings Tab Content -->
+        <div id="settingsTab" class="tab-content" style="display: none;">
+            <div class="settings-section">
+                <h2>⚙️ Settings</h2>
+                <p style="color: #999; margin-bottom: 30px;">Configure your connections and preferences</p>
+
+                <!-- Database Settings -->
+                <div class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3>💾 Database Configuration</h3>
+                    <div style="margin-top: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #999;">Database Path:</label>
+                        <input type="text" id="settingsDatabasePath" placeholder="/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db" value="/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db" style="width: 100%;">
+                        <p style="color: #666; font-size: 0.85rem; margin-top: 5px;">Path to the channelidentifiarr.db file. Set DATABASE_PATH environment variable and restart backend to apply changes.</p>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button onclick="testDatabaseConnection()" class="btn-secondary">🔗 Test Database</button>
+                        <span id="databaseTestResult" style="margin-left: 15px;"></span>
+                    </div>
+                </div>
+
+                <!-- Dispatcharr Settings -->
+                <div class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3>📡 Dispatcharr Settings</h3>
+
+                    <h4 style="margin-top: 20px; margin-bottom: 10px; font-size: 1rem; color: #999;">Connection Settings</h4>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #999;">Server URL:</label>
+                        <input type="text" id="settingsDispatcharrUrl" placeholder="http://192.168.1.100:9191" style="width: 100%;">
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">Include port in URL (default: 9191)</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #999;">Username:</label>
+                            <input type="text" id="settingsDispatcharrUsername" placeholder="admin" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #999;">Password:</label>
+                            <input type="password" id="settingsDispatcharrPassword" placeholder="password" style="width: 100%;">
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button onclick="testDispatcharrSettings()" class="btn-secondary">🔗 Test & Save</button>
+                        <span id="dispatcharrTestResult" style="margin-left: 15px;"></span>
+                    </div>
+
+                    <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+
+                    <h4 style="margin-bottom: 10px; font-size: 1rem; color: #999;">Matching Preferences</h4>
+                    <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">Select which fields to update when applying a match:</p>
+                    <div>
+                        <label style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <input type="checkbox" id="applyStationId" checked style="margin-right: 10px;">
+                            <span>Apply Gracenote Station ID (tvc_guide_stationid)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <input type="checkbox" id="applyChannelName" style="margin-right: 10px;">
+                            <span>Apply channel name</span>
+                        </label>
+                        <label style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <input type="checkbox" id="applyCallSign" style="margin-right: 10px;">
+                            <span>Apply call sign as TVG-ID (tvg_id)</span>
+                        </label>
+                        <label style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <input type="checkbox" id="applyLogo" checked style="margin-right: 10px;">
+                            <span>Apply logo</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Emby Settings -->
+                <div class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3>📺 Emby Settings</h3>
+
+                    <div style="margin-bottom: 15px; margin-top: 20px;">
+                        <label style="display: block; margin-bottom: 5px; color: #999;">Server URL:</label>
+                        <input type="text" id="settingsEmbyUrl" placeholder="http://192.168.1.100:8096" style="width: 100%;">
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">Include port in URL (default: 8096)</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #999;">Username:</label>
+                            <input type="text" id="settingsEmbyUsername" placeholder="admin" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #999;">Password:</label>
+                            <input type="password" id="settingsEmbyPassword" placeholder="password" style="width: 100%;">
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button onclick="testEmbySettings()" class="btn-secondary">🔗 Test & Save</button>
+                        <span id="embyTestResult" style="margin-left: 15px;"></span>
+                    </div>
+                </div>
+
+                <!-- Save Settings -->
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="saveAllSettings()" class="btn-primary" style="padding: 15px 40px; font-size: 1.1rem;">💾 Save All Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dispatcharr Tab Content -->
+        <div id="dispatcharrTab" class="tab-content">
+            <!-- Connection Status Banner -->
+            <div id="dispatcharrConnectionBanner" style="padding: 15px; background: rgba(255, 165, 0, 0.1); border: 1px solid #ffa500; border-radius: 8px; margin-bottom: 20px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="connectionStatusMessage" style="color: #ffa500;">⚠️ Dispatcharr not configured. Please configure settings first.</span>
+                    <button onclick="switchTab('settings')" class="btn-secondary" style="padding: 8px 15px;">⚙️ Go to Settings</button>
+                </div>
+            </div>
+
+            <div class="dispatcharr-section">
+                <h2>📡 Dispatcharr Channels</h2>
+                <div class="dispatcharr-controls" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+                    <button onclick="loadDispatcharrChannels()">🔄 Refresh Channels</button>
+                    <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
+                    <span style="color: #999; font-size: 0.9rem;">Select:</span>
+                    <button onclick="selectAll()" class="btn-secondary" style="padding: 6px 12px;">All</button>
+                    <button onclick="selectMissingGracenote()" class="btn-secondary" style="padding: 6px 12px;">Missing Gracenote ID</button>
+                    <button onclick="selectMissingLogo()" class="btn-secondary" style="padding: 6px 12px;">Missing Logo</button>
+                    <button onclick="selectMissingTvgId()" class="btn-secondary" style="padding: 6px 12px;">Missing TVG-ID</button>
+                    <div style="flex-grow: 1;"></div>
+                    <button onclick="matchSelectedStations()" class="btn-primary" id="matchSelectedBtn" disabled style="padding: 10px 20px; font-weight: bold;">🎯 Match Selected</button>
+                </div>
+
+                <!-- Dispatcharr channels table -->
+                <div class="results-table-container" style="margin-top: 20px;">
+                    <table class="results-table" id="dispatcharrTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"><input type="checkbox" id="selectAllChannels" onclick="toggleSelectAll()" title="Select/Deselect All"></th>
+                                <th>Channel #</th>
+                                <th>Name</th>
+                                <th>Call Sign</th>
+                                <th>Gracenote ID</th>
+                                <th>Group</th>
+                                <th>Logo</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dispatcharrTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 40px;">
+                                    Click "Refresh Channels" to load Dispatcharr channels
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div><!-- End Dispatcharr Tab -->
+
+        <!-- Emby Tab Content -->
+        <div id="embyTab" class="tab-content" style="display: none;">
+            <!-- Connection Status Banner -->
+            <div id="embyConnectionBanner" style="padding: 15px; background: rgba(255, 165, 0, 0.1); border: 1px solid #ffa500; border-radius: 8px; margin-bottom: 20px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="embyConnectionStatusMessage" style="color: #ffa500;">⚠️ Emby not configured. Please configure settings first.</span>
+                    <button onclick="switchTab('settings')" class="btn-secondary" style="padding: 8px 15px;">⚙️ Go to Settings</button>
+                </div>
+            </div>
+
+            <div class="emby-section">
+                <h2>📺 Emby Server Integration</h2>
+                <p style="color: #999; margin-bottom: 20px;">Manage your Emby Live TV channels and listings</p>
+
+                <!-- Emby Actions -->
+                <div class="card" style="margin-bottom: 20px; max-width: 800px;">
+                    <h3>🎯 Scan & Add Missing Listings</h3>
+                    <p style="color: #999; margin-bottom: 20px;">
+                        Channel Identifiarr will automatically add lineup providers to Emby to cover all channels
+                        that don't currently have guide data assigned.
+                    </p>
+
+                    <div style="background: rgba(0, 100, 255, 0.1); border: 1px solid rgba(0, 100, 255, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; color: #4da6ff;">📍 Location Preferences (Optional)</h4>
+                        <p style="color: #999; font-size: 0.9rem; margin-bottom: 15px;">
+                            When location is provided, lineups from your market will be preferred. Otherwise,
+                            Channel Identifiarr will intelligently select the minimum number of lineups
+                            (preferring OTA, then Cable, then Satellite/Streaming) to ensure all channels receive guide data.
+                        </p>
+
+                        <div style="display: grid; gap: 15px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; color: #ccc;">Country:</label>
+                                <select id="embyCountrySelect" style="width: 100%; padding: 8px; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; color: #fff;">
+                                    <option value="">Any Country</option>
+                                    <option value="USA" selected>USA - United States</option>
+                                    <option value="CAN">CAN - Canada</option>
+                                    <option value="GBR">GBR - United Kingdom</option>
+                                    <option value="AUS">AUS - Australia</option>
+                                    <option value="DEU">DEU - Germany</option>
+                                    <option value="FRA">FRA - France</option>
+                                    <option value="ITA">ITA - Italy</option>
+                                    <option value="ESP">ESP - Spain</option>
+                                    <option value="NLD">NLD - Netherlands</option>
+                                    <option value="BEL">BEL - Belgium</option>
+                                    <option value="CHE">CHE - Switzerland</option>
+                                    <option value="AUT">AUT - Austria</option>
+                                    <option value="SWE">SWE - Sweden</option>
+                                    <option value="NOR">NOR - Norway</option>
+                                    <option value="DNK">DNK - Denmark</option>
+                                    <option value="FIN">FIN - Finland</option>
+                                    <option value="IRL">IRL - Ireland</option>
+                                    <option value="MEX">MEX - Mexico</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display: block; margin-bottom: 5px; color: #ccc;">ZIP/Postal Code:</label>
+                                <input type="text" id="embyZipcode" placeholder="e.g., 90210" style="width: 100%; padding: 8px; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; color: #fff;">
+                                <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">Lineups matching this location will be preferred</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="scanEmbyMissingListings()" class="btn-primary" style="padding: 15px; width: 100%;">
+                        📡 Scan & Add Listing Providers
+                    </button>
+                </div>
+
+                <div class="card" style="margin-bottom: 20px; max-width: 800px;">
+                    <h3>🛠️ Other Channel Tools</h3>
+                    <div style="display: grid; gap: 15px; margin-top: 20px;">
+                        <button onclick="deleteAllEmbyLogos()" class="btn-secondary" style="padding: 15px; text-align: left;">
+                            🗑️ Delete All Channel Logos
+                            <div style="font-size: 0.85rem; color: #999; margin-top: 5px;">Remove all logos from Live TV channels</div>
+                        </button>
+
+                        <button onclick="clearAllEmbyChannelNumbers()" class="btn-secondary" style="padding: 15px; text-align: left;">
+                            🔢 Clear All Channel Numbers
+                            <div style="font-size: 0.85rem; color: #999; margin-top: 5px;">Remove channel numbers from all Live TV channels</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Emby Channels List -->
+                <div class="card" id="embyChannelsList" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>📺 Emby Live TV Channels</h3>
+                        <button onclick="loadEmbyChannels()" class="btn-secondary">🔄 Refresh</button>
+                    </div>
+
+                    <div class="results-table-container">
+                        <table class="results-table" id="embyChannelsTable">
+                            <thead>
+                                <tr>
+                                    <th>Channel #</th>
+                                    <th>Name</th>
+                                    <th>Listings ID</th>
+                                    <th>Management ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="embyChannelsTableBody">
+                                <tr><td colspan="4" style="text-align: center; padding: 40px; color: #666;">No channels loaded. Click Refresh to load channels.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div><!-- End Emby Tab -->
+    </div>
+
+    <!-- Matching Modal Overlay -->
+    <div id="matchingModal" class="modal" style="display: none;">
+        <div class="modal-content" style="width: 90%; max-width: 900px;">
+            <div class="modal-header" style="position: sticky; top: 0; background: #1a1a2e; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-title">🎯 Channel Matching</div>
+                <button class="close-button" onclick="closeMatchingModal()">×</button>
+            </div>
+
+            <div style="padding: 20px;">
+                <!-- Progress Bar -->
+                <div id="matchingProgress" style="margin-bottom: 20px;">
+                    <div style="background: rgba(102, 126, 234, 0.1); border: 1px solid #667eea; padding: 15px; border-radius: 6px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>Progress: <span id="matchProgress">0</span>/<span id="matchTotal">0</span></span>
+                            <span id="matchPercentage">0%</span>
+                        </div>
+                        <div style="background: #333; height: 10px; border-radius: 5px; overflow: hidden;">
+                            <div id="matchProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="matchingInterface">
+                    <!-- Current Channel Being Matched -->
+                    <div class="matching-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <h3>Currently Matching:</h3>
+                        <div style="display: flex; align-items: center; margin-top: 15px;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 1.5rem; font-weight: bold;" id="currentChannelName">-</div>
+                                <div style="color: #999; margin-top: 5px;">
+                                    <span>Channel ID: <span id="currentChannelId">-</span></span> |
+                                    <span>Current Station ID: <span id="currentStationId" style="color: #ff6b6b;">None</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Parsed Info -->
+                        <div id="parsedInfo" style="margin-top: 15px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
+                            <div style="font-size: 0.9rem; color: #999;">Parsed Analysis:</div>
+                            <div style="margin-top: 5px;">
+                                <span>Clean Name: <strong id="parsedCleanName">-</strong></span> |
+                                <span>Country: <strong id="parsedCountry">-</strong></span> |
+                                <span>Resolution: <strong id="parsedResolution">-</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suggested Matches -->
+                    <div class="matching-suggestions">
+                        <h3>Suggested Matches:</h3>
+                        <div id="suggestedMatches" style="margin-top: 15px;">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Manual Search Override -->
+                    <div class="manual-search" style="margin-top: 30px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                        <h3>Manual Search Override</h3>
+                        <p style="color: #999; margin-bottom: 15px;">Can't find the right match? Search manually:</p>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="manualSearchInput" placeholder="Enter station name or call sign..." style="flex: 1;">
+                            <button onclick="performManualSearch()" class="btn-secondary">🔍 Search</button>
+                        </div>
+                        <div id="manualSearchResults" style="margin-top: 15px;">
+                            <!-- Will be populated with manual search results -->
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="matching-actions" style="margin-top: 30px; display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="skipCurrentChannel()" class="btn-secondary">⏭️ Skip</button>
+                        <button onclick="closeMatchingModal()" class="btn-danger">⏹️ Stop Matching</button>
+                    </div>
+                </div>
+
+                <!-- Results Summary -->
+                <div id="matchingResults" style="display: none; margin-top: 30px;">
+                    <h3>Matching Complete!</h3>
+                    <div id="matchingSummary" style="margin-top: 15px;">
+                        <!-- Will be populated with results -->
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="closeMatchingModal()" class="btn-primary">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Edit Modal -->
+    <!-- Batch Edit Modal removed - future feature -->
+
+    <!-- Custom Notification System -->
+    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 400px;"></div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal" style="display: none;">
+        <div class="modal-content" style="width: 90%; max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title">Confirm Action</div>
+            </div>
+            <div style="padding: 20px;">
+                <p id="confirmMessage" style="color: #ccc; margin-bottom: 25px; white-space: pre-line;"></p>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="confirmCancel" class="btn-secondary">Cancel</button>
+                    <button id="confirmOk" class="btn-primary">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = [];
+        let sortColumn = null;
+        let sortDirection = 'asc';
+        let dispatcharrChannels = [];
+        let dispatcharrGroups = [];
+
+        // Channel Matching Variables
+        let matchingQueue = [];
+        let currentMatchIndex = 0;
+        let matchingResults = [];
+        let isMatching = false;
+
+        // Custom Notification System
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+
+            const colors = {
+                success: '#51cf66',
+                error: '#ff6b6b',
+                warning: '#ffd43b',
+                info: '#667eea'
+            };
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            notification.style.cssText = `
+                background: rgba(0, 0, 0, 0.9);
+                border: 1px solid ${colors[type] || colors.info};
+                border-radius: 6px;
+                padding: 15px 20px;
+                color: white;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+
+            notification.innerHTML = `
+                <span style="font-size: 1.2em;">${icons[type] || icons.info}</span>
+                <span style="flex: 1; white-space: pre-line;">${message}</span>
+                <button onclick="this.parentElement.remove()" style="background: none; border: none; color: #999; cursor: pointer; font-size: 1.5em; padding: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;">&times;</button>
+            `;
+
+            container.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // Custom Confirmation Dialog
+        function showConfirm(message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('confirmModal');
+                const messageEl = document.getElementById('confirmMessage');
+                const okBtn = document.getElementById('confirmOk');
+                const cancelBtn = document.getElementById('confirmCancel');
+
+                messageEl.textContent = message;
+                modal.style.display = 'flex';
+
+                const handleOk = () => {
+                    cleanup();
+                    resolve(true);
+                };
+
+                const handleCancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                const cleanup = () => {
+                    modal.style.display = 'none';
+                    okBtn.removeEventListener('click', handleOk);
+                    cancelBtn.removeEventListener('click', handleCancel);
+                };
+
+                okBtn.addEventListener('click', handleOk);
+                cancelBtn.addEventListener('click', handleCancel);
+            });
+        }
+
+        // Add slide animations to CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Tab switching function
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Find and activate the correct button
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(tabName.toLowerCase())) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                content.style.display = 'none';
+            });
+
+            if (tabName === 'search') {
+                document.getElementById('searchTab').classList.add('active');
+                document.getElementById('searchTab').style.display = 'block';
+            } else if (tabName === 'dispatcharr') {
+                document.getElementById('dispatcharrTab').classList.add('active');
+                document.getElementById('dispatcharrTab').style.display = 'block';
+                // Auto-refresh channels when entering tab
+                const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+                if (settings.dispatcharr && settings.dispatcharr.url) {
+                    loadDispatcharrChannels();
+                }
+            } else if (tabName === 'emby') {
+                document.getElementById('embyTab').classList.add('active');
+                document.getElementById('embyTab').style.display = 'block';
+                // Check Emby configuration
+                checkEmbySettings();
+            } else if (tabName === 'settings') {
+                document.getElementById('settingsTab').classList.add('active');
+                document.getElementById('settingsTab').style.display = 'block';
+            }
+        }
+
+        // Dispatcharr Connection Check (uses settings from Settings tab)
+        function checkDispatcharrSettings() {
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                // Show banner if not configured
+                const banner = document.getElementById('dispatcharrConnectionBanner');
+                if (banner) {
+                    banner.style.display = 'block';
+                }
+                return false;
+            }
+
+            // Hide banner if configured
+            const banner = document.getElementById('dispatcharrConnectionBanner');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            return true;
+        }
+
+        // Emby Connection Check
+        function checkEmbySettings() {
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            if (!settings.emby || !settings.emby.url) {
+                // Show banner if not configured
+                const banner = document.getElementById('embyConnectionBanner');
+                if (banner) {
+                    banner.style.display = 'block';
+                }
+                return false;
+            }
+
+            // Hide banner if configured
+            const banner = document.getElementById('embyConnectionBanner');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            return true;
+        }
+
+        // Emby functions
+        async function loadEmbyChannels() {
+            const tableBody = document.getElementById('embyChannelsTableBody');
+
+            if (!checkEmbySettings()) {
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #ff6b6b;">Please configure Emby settings in the Settings tab</td></tr>';
+                return;
+            }
+
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px;">Loading channels from Emby...</td></tr>';
+
+            try {
+                const response = await fetch('/api/emby/channels', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.emby.url,
+                        username: settings.emby.username,
+                        password: settings.emby.password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load channels');
+                }
+
+                if (!data.channels || data.channels.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #666;">No channels found</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                data.channels.forEach(channel => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${channel.ChannelNumber || '-'}</td>
+                        <td>${channel.Name || 'Unknown'}</td>
+                        <td>${channel.ListingsId || '<span style="color: #ff6b6b;">Not Set</span>'}</td>
+                        <td style="font-size: 0.85rem; color: #999;">${channel.ManagementId || '-'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                document.getElementById('embyChannelsList').style.display = 'block';
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 40px; color: #ff6b6b;">Error: ${error.message}</td></tr>`;
+            }
+        }
+
+        async function scanEmbyMissingListings() {
+            if (!checkEmbySettings()) {
+                showNotification('Please configure Emby settings first', 'error');
+                return;
+            }
+
+            // Get location preferences
+            const country = document.getElementById('embyCountrySelect').value;
+            const zipcode = document.getElementById('embyZipcode').value.trim();
+
+            let confirmMessage = 'This will scan Emby channels for missing ListingsId and automatically add listing providers.\n\n';
+            if (country || zipcode) {
+                confirmMessage += `Location preferences:\n`;
+                if (country) confirmMessage += `  • Country: ${country}\n`;
+                if (zipcode) confirmMessage += `  • ZIP/Postal Code: ${zipcode}\n`;
+                confirmMessage += '\n';
+            } else {
+                confirmMessage += 'No location specified - will use intelligent lineup selection.\n\n';
+            }
+            confirmMessage += 'Emby will then map channels to these listings automatically.\n\nContinue?';
+
+            if (!await showConfirm(confirmMessage)) {
+                return;
+            }
+
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            showNotification('📡 Scanning Emby channels and finding optimal lineups...', 'info');
+
+            try {
+                const response = await fetch('/api/emby/scan-missing-listings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.emby.url,
+                        username: settings.emby.username,
+                        password: settings.emby.password,
+                        country: country,
+                        zipcode: zipcode
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.done) {
+                                let successMessage = `✅ Success!\n\n`;
+                                successMessage += `📊 Results:\n`;
+                                successMessage += `  • Listing providers added: ${data.providers_added || 0}\n`;
+                                if (data.providers_failed && data.providers_failed > 0) {
+                                    successMessage += `  • Failed: ${data.providers_failed}\n`;
+                                }
+                                successMessage += `  • Stations covered: ${data.total_stations || 0}\n\n`;
+
+                                if (data.lineups_selected && data.lineups_selected.length > 0) {
+                                    successMessage += `📡 Lineups added:\n`;
+                                    data.lineups_selected.forEach(lineup => {
+                                        successMessage += `  • ${lineup}\n`;
+                                    });
+                                    successMessage += '\n';
+                                }
+
+                                successMessage += `Emby will now automatically map your channels to guide data.`;
+                                showNotification(successMessage, 'success');
+                            } else {
+                                showNotification(`📡 Adding lineup providers...\n\nProcessing: ${data.progress} of ${data.total}\n${data.lineup}\n(${data.lineup_id})`, 'info');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                showNotification(`Failed to scan: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteAllEmbyLogos() {
+            if (!checkEmbySettings()) {
+                showNotification('Please configure Emby settings first', 'error');
+                return;
+            }
+
+            if (!await showConfirm('This will delete ALL channel logos from Emby.\n\nLogos will be re-downloaded when channels are accessed.\n\nContinue?')) {
+                return;
+            }
+
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            // Show initial notification
+            const notificationId = Date.now();
+            showNotification('🗑️ Starting logo deletion...', 'info');
+
+            try {
+                const response = await fetch('/api/emby/delete-logos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.emby.url,
+                        username: settings.emby.username,
+                        password: settings.emby.password
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.done) {
+                                showNotification(`✅ Successfully deleted logos from ${data.channels_processed} channels`, 'success');
+                            } else {
+                                showNotification(`🗑️ Deleting logos...\n\nProcessing: ${data.progress} of ${data.total}\n${data.channel}`, 'info');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                showNotification(`Failed to delete logos: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllEmbyChannelNumbers() {
+            if (!checkEmbySettings()) {
+                showNotification('Please configure Emby settings first', 'error');
+                return;
+            }
+
+            if (!await showConfirm('This will clear ALL channel numbers from Emby Live TV channels.\n\nContinue?')) {
+                return;
+            }
+
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            // Show initial notification
+            showNotification('🔢 Starting channel number clearing...', 'info');
+
+            try {
+                const response = await fetch('/api/emby/clear-channel-numbers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.emby.url,
+                        username: settings.emby.username,
+                        password: settings.emby.password
+                    })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.done) {
+                                showNotification(`✅ Successfully cleared ${data.channels_cleared} channel numbers`, 'success');
+                            } else {
+                                showNotification(`🔢 Clearing channel numbers...\n\nProcessing: ${data.progress} of ${data.total}\n${data.channel}`, 'info');
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                showNotification(`Failed to clear channel numbers: ${error.message}`, 'error');
+            }
+        }
+
+        async function testEmbySettings() {
+            const url = document.getElementById('settingsEmbyUrl').value;
+            const username = document.getElementById('settingsEmbyUsername').value;
+            const password = document.getElementById('settingsEmbyPassword').value;
+
+            const resultSpan = document.getElementById('embyTestResult');
+            resultSpan.innerHTML = '<span style="color: #999;">Testing...</span>';
+
+            if (!url) {
+                resultSpan.innerHTML = '<span style="color: #ff6b6b;">Please enter Emby URL</span>';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/emby/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    resultSpan.innerHTML = `<span style="color: #51cf66;">✅ Connected! (${data.server_name || 'Emby Server'})</span>`;
+                    // Auto-save settings and show tab on successful connection
+                    try {
+                        saveAllSettings();
+                    } catch (e) {
+                        console.error('Error saving settings:', e);
+                    }
+                } else {
+                    resultSpan.innerHTML = `<span style="color: #ff6b6b;">❌ ${data.error || 'Connection failed'}</span>`;
+                }
+            } catch (error) {
+                console.error('Emby test error:', error);
+                resultSpan.innerHTML = `<span style="color: #ff6b6b;">❌ ${error.message}</span>`;
+            }
+        }
+
+        // Dispatcharr functions
+        async function loadDispatcharrGroups() {
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/dispatcharr/groups', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.groups) {
+                    dispatcharrGroups = data.groups;
+                    console.log(`Loaded ${dispatcharrGroups.length} groups`);
+                }
+            } catch (error) {
+                console.error('Error loading groups:', error);
+            }
+        }
+
+        async function loadDispatcharrChannels() {
+            const tableBody = document.getElementById('dispatcharrTableBody');
+
+            // Check if we have settings configured
+            if (!checkDispatcharrSettings()) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #ff6b6b;">Please configure Dispatcharr settings in the Settings tab</td></tr>';
+                return;
+            }
+
+            // Get settings from consolidated storage
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const url = settings.dispatcharr.url;
+            const username = settings.dispatcharr.username;
+            const password = settings.dispatcharr.password;
+
+            tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">Loading channels from Dispatcharr...</td></tr>';
+
+            try {
+                const response = await fetch('/api/dispatcharr/channels', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url, username, password })
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load Dispatcharr channels');
+                }
+
+                dispatcharrChannels = data.channels || [];
+                await loadDispatcharrGroups();  // Load groups for editing
+                displayDispatcharrChannels(dispatcharrChannels);
+
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: #ff6b6b;">Error: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Removed toggleDispatcharrSettings - settings now in Settings tab only
+
+        function displayDispatcharrChannels(channels) {
+            const tableBody = document.getElementById('dispatcharrTableBody');
+
+            if (channels.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No channels found in Dispatcharr</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = '';
+            channels.forEach(channel => {
+                const row = document.createElement('tr');
+
+                const hasLogo = channel.logo_url && channel.logo_url.trim() !== '';
+                const logoCell = hasLogo
+                    ? `<img src="${channel.logo_url}" alt="${channel.name}" class="station-logo-small" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\\'no-logo-cell\\'>No Logo</span>'">`
+                    : '<span class="no-logo-cell">No Logo</span>';
+
+                row.innerHTML = `
+                    <td><input type="checkbox" class="channel-checkbox" data-channel-id="${channel.id}" onchange="updateMatchButtons()"></td>
+                    <td>${channel.channel_number || 'N/A'}</td>
+                    <td>${channel.name || 'N/A'}</td>
+                    <td>${channel.call_sign || 'N/A'}</td>
+                    <td>${channel.gracenote_id || 'Not Set'}</td>
+                    <td>${(() => {
+                        const group = dispatcharrGroups.find(g => g.id === channel.group_id);
+                        return group ? group.name : (channel.group_id ? `Group ${channel.group_id}` : 'Ungrouped');
+                    })()}</td>
+                    <td>${logoCell}</td>
+                    <td>
+                        <button onclick="editDispatcharrChannel(${channel.id})" style="padding: 4px 8px; font-size: 12px; margin-right: 5px;">
+                            ✏️ Manually Edit
+                        </button>
+                        <button onclick="searchAndMatch(${channel.id})" style="padding: 4px 8px; font-size: 12px;">
+                            🔍 Search & Match
+                        </button>
+                    </td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+
+            // Enable/disable action buttons
+            updateMatchButtons();
+        }
+
+        async function smartChannelMatch() {
+            if (!await showConfirm('This will attempt to automatically match all channels without Gracenote IDs. Continue?')) {
+                return;
+            }
+
+            const unmatchedChannels = dispatcharrChannels.filter(ch => !ch.gracenote_id);
+
+            if (unmatchedChannels.length === 0) {
+                showNotification('All channels already have Gracenote IDs!');
+                return;
+            }
+
+            // Switch to matching tab and start the process
+            switchTab('matching');
+            startChannelMatching();
+        }
+
+        function searchForChannel(channelName) {
+            // Switch to search tab
+            document.querySelector('.tab-button').click();
+
+            // Set search query and perform search
+            document.getElementById('searchInput').value = channelName;
+            performSearch();
+        }
+
+        function escapeQuotes(str) {
+            return (str || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
+        function editDispatcharrChannel(channelId) {
+            // Find the channel in the dispatcharrChannels array
+            const channel = dispatcharrChannels.find(ch => ch.id === channelId);
+
+            if (!channel) {
+                showNotification('Channel not found');
+                return;
+            }
+
+            // Create edit modal
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <div class="modal-title">Edit Channel ${channel.channel_number}</div>
+                            <div style="color: #999; margin-top: 5px;">Channel ID: ${channel.id}</div>
+                        </div>
+                        <button class="close-button" onclick="this.closest('.modal').remove()">×</button>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #999;">Channel Name:</label>
+                            <input type="text" id="editChannelName" value="${escapeHtml(channel.name || '')}" style="width: 100%;">
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #999;">TVG-ID:</label>
+                            <input type="text" id="editChannelCallSign" value="${escapeHtml(channel.call_sign || '')}" style="width: 100%;">
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #999;">Gracenote Station ID:</label>
+                            <input type="text" id="editChannelGracenoteId" value="${escapeHtml(channel.gracenote_id || '')}" style="width: 100%;">
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #999;">Channel Number:</label>
+                            <input type="text" id="editChannelNumber" value="${escapeHtml(channel.channel_number || '')}" style="width: 100%;">
+                        </div>
+
+                        <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <button onclick="this.closest('.modal').remove()" class="btn-secondary">Cancel</button>
+                            <button onclick="saveChannelEdits(${channel.id})" class="btn-primary">💾 Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        async function saveChannelEdits(channelId) {
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first!');
+                return;
+            }
+
+            // Get edited values
+            const updateData = {
+                name: document.getElementById('editChannelName').value,
+                call_sign: document.getElementById('editChannelCallSign').value,
+                gracenote_id: document.getElementById('editChannelGracenoteId').value,
+                channel_number: document.getElementById('editChannelNumber').value
+            };
+
+            try {
+                const response = await fetch(`/api/dispatcharr/channels/${channelId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password,
+                        update_data: updateData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('Channel updated successfully!', 'success');
+                    // Close modal
+                    document.querySelector('.modal').remove();
+                    // Reload channels to show updated data
+                    loadDispatcharrChannels();
+                } else {
+                    showNotification('Failed to update channel: ' + (result.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showNotification('Error updating channel: ' + error.message, 'error');
+            }
+        }
+
+        // Batch editing functions removed - future feature
+
+        // Theme toggle function
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('themeIcon');
+            const isLightMode = body.classList.contains('light-mode');
+
+            if (isLightMode) {
+                body.classList.remove('light-mode');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.classList.add('light-mode');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Apply saved theme on page load
+        function applySavedTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                themeIcon.textContent = '☀️';
+            } else {
+                themeIcon.textContent = '🌙';
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            applySavedTheme();
+            loadStats();
+            loadMetadata();
+
+            // Enable search on Enter key
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        });
+
+        async function loadMetadata() {
+            try {
+                const response = await fetch('/api/metadata');
+                const data = await response.json();
+
+                // Populate countries dropdown with USA at top
+                const countrySelect = document.getElementById('countryFilter');
+
+                // Remove the pre-selected USA option first
+                const existingUSA = countrySelect.querySelector('option[value="USA"]');
+                if (existingUSA) {
+                    existingUSA.remove();
+                }
+
+                // Add USA first if it exists
+                if (data.countries.includes('USA')) {
+                    const usaOption = document.createElement('option');
+                    usaOption.value = 'USA';
+                    usaOption.textContent = 'USA';
+                    usaOption.selected = true;  // Set USA as selected
+                    countrySelect.appendChild(usaOption);
+
+                    // Add divider
+                    const divider = document.createElement('option');
+                    divider.disabled = true;
+                    divider.textContent = '──────────';
+                    countrySelect.appendChild(divider);
+                }
+
+                // Add all countries alphabetically
+                data.countries.sort().forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.textContent = country;
+                    countrySelect.appendChild(option);
+                });
+
+                // Populate types dropdown
+                const typeSelect = document.getElementById('typeFilter');
+                data.lineup_types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    typeSelect.appendChild(option);
+                });
+
+                // Populate quality dropdown
+                const qualitySelect = document.getElementById('qualityFilter');
+                if (data.qualities && data.qualities.length > 0) {
+                    data.qualities.forEach(quality => {
+                        const option = document.createElement('option');
+                        option.value = quality;
+
+                        // Display friendly names
+                        if (quality === 'UHDTV/4K') {
+                            option.textContent = 'UHDTV/4K';
+                        } else if (quality === 'HDTV') {
+                            option.textContent = 'HDTV';
+                        } else if (quality === 'SDTV') {
+                            option.textContent = 'SDTV';
+                        } else {
+                            option.textContent = quality;
+                        }
+
+                        qualitySelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load metadata:', error);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const data = await response.json();
+
+                document.getElementById('totalStations').textContent = (data.total_stations || 0).toLocaleString();
+                document.getElementById('totalCountries').textContent = (data.total_countries || 0).toLocaleString();
+                document.getElementById('totalMarkets').textContent = (data.total_markets || 0).toLocaleString();
+                document.getElementById('totalLineups').textContent = (data.total_lineups || 0).toLocaleString();
+                document.getElementById('stationsWithLogos').textContent = (data.stations_with_logos || 0).toLocaleString();
+                document.getElementById('statsSection').classList.remove('hidden');
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            // Hide previous results and errors
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('errorSection').classList.add('hidden');
+
+            // Show loading
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('searchBtn').disabled = true;
+
+            try {
+                const params = new URLSearchParams({
+                    q: query,
+                    country: document.getElementById('countryFilter').value,
+                    type: document.getElementById('typeFilter').value,
+                    quality: document.getElementById('qualityFilter').value,
+                    limit: document.getElementById('limitFilter').value
+                });
+
+                const response = await fetch(`/api/search/stations?${params}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Search failed');
+                }
+
+                currentResults = data.results;
+                displayResults(data.results, query);
+
+            } catch (error) {
+                showError(`Search error: ${error.message}`);
+            } finally {
+                document.getElementById('loadingSection').classList.add('hidden');
+                document.getElementById('searchBtn').disabled = false;
+            }
+        }
+
+        function displayResults(results, query) {
+            const resultsSection = document.getElementById('resultsSection');
+            const tableHead = document.getElementById('resultsTableHead');
+            const tableBody = document.getElementById('resultsTableBody');
+            const resultsCount = document.getElementById('resultsCount');
+
+            resultsCount.textContent = `${results.length} Result${results.length !== 1 ? 's' : ''} for "${query}"`;
+
+            // Clear table
+            tableHead.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            if (results.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">No results found. Try adjusting your search or filters.</td></tr>';
+            } else {
+                // Create header
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = `
+                    <th class="sortable" onclick="sortResults('station_id')">Station ID</th>
+                    <th class="sortable" onclick="sortResults('name')">Name</th>
+                    <th class="sortable" onclick="sortResults('call_sign')">Call Sign</th>
+                    <th class="sortable" onclick="sortResults('type')">Type</th>
+                    <th>Logo</th>
+                    <th>Actions</th>
+                `;
+                tableHead.appendChild(headerRow);
+
+                // Create rows
+                results.forEach(result => {
+                    const row = createResultRow(result);
+                    tableBody.appendChild(row);
+                });
+            }
+
+            resultsSection.classList.remove('hidden');
+        }
+
+        function createResultRow(result) {
+            const row = document.createElement('tr');
+
+            const hasLogo = result.logo_uri && result.logo_uri.trim() !== '';
+            const logoCell = hasLogo
+                ? `<img src="${result.logo_uri}" alt="${result.name}" class="station-logo-small" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'no-logo-cell\'>No Logo</span>'">`
+                : '<span class="no-logo-cell">No Logo</span>';
+
+            row.innerHTML = `
+                <td>${result.station_id}</td>
+                <td>${result.name || 'N/A'}</td>
+                <td>${result.call_sign || 'N/A'}</td>
+                <td>${result.type || 'N/A'}</td>
+                <td>${logoCell}</td>
+                <td><button onclick="event.stopPropagation(); showStationDetails('${result.station_id}')" style="padding: 6px 12px; font-size: 14px;">View Details</button></td>
+            `;
+
+            row.onclick = () => showStationDetails(result.station_id);
+            return row;
+        }
+
+        function sortResults(column) {
+            // Update sort direction
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+
+            // Sort results
+            currentResults.sort((a, b) => {
+                let aVal = a[column] || '';
+                let bVal = b[column] || '';
+
+                // Handle numeric station IDs
+                if (column === 'station_id') {
+                    aVal = parseInt(aVal) || 0;
+                    bVal = parseInt(bVal) || 0;
+                }
+
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            // Update header classes
+            document.querySelectorAll('.results-table th').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+
+            const headers = document.querySelectorAll('.results-table th');
+            const columnIndex = ['station_id', 'name', 'call_sign', 'type'].indexOf(column);
+            if (columnIndex >= 0 && headers[columnIndex]) {
+                headers[columnIndex].classList.add(`sorted-${sortDirection}`);
+            }
+
+            // Re-render table body
+            const tableBody = document.getElementById('resultsTableBody');
+            tableBody.innerHTML = '';
+            currentResults.forEach(result => {
+                const row = createResultRow(result);
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function showStationDetails(stationId) {
+            try {
+                const response = await fetch(`/api/station/${stationId}`);
+                const station = await response.json();
+
+                // Create modal
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.onclick = (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                    }
+                };
+
+                const hasLogo = station.logo_uri && station.logo_uri.trim() !== '';
+                const logoSection = hasLogo
+                    ? `<img src="${station.logo_uri}" alt="${station.name}" class="station-logo-large">`
+                    : '';
+
+                // Format broadcast languages
+                const bcastLangs = station.bcast_langs ?
+                    (typeof station.bcast_langs === 'string' ? station.bcast_langs : JSON.stringify(station.bcast_langs)) : 'N/A';
+
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div>
+                                <div class="modal-title">${station.name || station.call_sign || 'Station Details'}</div>
+                                <div style="color: #999; margin-top: 5px;">Gracenote ID: ${station.station_id}</div>
+                            </div>
+                            <button class="close-button" onclick="this.closest('.modal').remove()">×</button>
+                        </div>
+
+                        ${logoSection}
+
+                        <div class="station-detail-grid">
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Station ID</div>
+                                <div class="station-detail-value">${station.station_id}</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Name</div>
+                                <div class="station-detail-value">${station.name || 'N/A'}</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Call Sign</div>
+                                <div class="station-detail-value">${station.call_sign || 'N/A'}</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Type</div>
+                                <div class="station-detail-value">${station.type || 'N/A'}</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Broadcast Languages</div>
+                                <div class="station-detail-value">${bcastLangs}</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Available In</div>
+                                <div class="station-detail-value">${station.lineup_count || 0} Lineups</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Video Types</div>
+                                <div class="station-detail-value">${station.video_types || 'N/A'}</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Affiliate ID</div>
+                                <div class="station-detail-value">${station.affiliate_id || 'None'}</div>
+                            </div>
+                            <div class="station-detail-item">
+                                <div class="station-detail-label">Affiliate Call Sign</div>
+                                <div class="station-detail-value">${station.affiliate_call_sign || 'None'}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+            } catch (error) {
+                console.error('Failed to load station details:', error);
+                showError('Failed to load station details');
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('errorSection').classList.add('hidden');
+            currentResults = [];
+        }
+
+        function showError(message) {
+            const errorSection = document.getElementById('errorSection');
+            errorSection.textContent = message;
+            errorSection.classList.remove('hidden');
+        }
+
+        function exportResults() {
+            if (currentResults.length === 0) return;
+
+            const csv = [
+                ['Station ID', 'Name', 'Call Sign', 'Type', 'Has Logo'],
+                ...currentResults.map(r => [
+                    r.station_id,
+                    r.name || '',
+                    r.call_sign || '',
+                    r.type || '',
+                    r.logo_uri ? 'Yes' : 'No'
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `channel_search_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+        // Settings Management
+        function loadSettings() {
+            // Load from localStorage
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            // Database settings
+            if (settings.database) {
+                document.getElementById('settingsDatabasePath').value = settings.database.path || '/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db';
+            } else {
+                document.getElementById('settingsDatabasePath').value = '/mnt/nvme/scratch/channelidentifiarr/channelidentifiarr.db';
+            }
+
+            // Dispatcharr settings
+            if (settings.dispatcharr) {
+                document.getElementById('settingsDispatcharrUrl').value = settings.dispatcharr.url || '';
+                document.getElementById('settingsDispatcharrUsername').value = settings.dispatcharr.username || '';
+                document.getElementById('settingsDispatcharrPassword').value = settings.dispatcharr.password || '';
+            }
+
+            // Emby settings
+            if (settings.emby) {
+                document.getElementById('settingsEmbyUrl').value = settings.emby.url || '';
+                document.getElementById('settingsEmbyUsername').value = settings.emby.username || '';
+                document.getElementById('settingsEmbyPassword').value = settings.emby.password || '';
+            }
+
+            // Matching preferences
+            if (settings.matching) {
+                document.getElementById('applyStationId').checked = settings.matching.applyStationId !== false;
+                document.getElementById('applyChannelName').checked = settings.matching.applyChannelName === true;
+                document.getElementById('applyCallSign').checked = settings.matching.applyCallSign === true;
+                document.getElementById('applyLogo').checked = settings.matching.applyLogo !== false;
+            }
+        }
+
+        function saveAllSettings() {
+            const settings = {
+                database: {
+                    path: document.getElementById('settingsDatabasePath').value
+                },
+                dispatcharr: {
+                    url: document.getElementById('settingsDispatcharrUrl').value,
+                    username: document.getElementById('settingsDispatcharrUsername').value,
+                    password: document.getElementById('settingsDispatcharrPassword').value
+                },
+                emby: {
+                    url: document.getElementById('settingsEmbyUrl').value,
+                    username: document.getElementById('settingsEmbyUsername').value,
+                    password: document.getElementById('settingsEmbyPassword').value
+                },
+                matching: {
+                    applyStationId: document.getElementById('applyStationId').checked,
+                    applyChannelName: document.getElementById('applyChannelName').checked,
+                    applyCallSign: document.getElementById('applyCallSign').checked,
+                    applyLogo: document.getElementById('applyLogo').checked
+                }
+            };
+
+            localStorage.setItem('channelIdentifiarrSettings', JSON.stringify(settings));
+
+            // Update tab visibility
+            updateTabVisibility();
+
+            showNotification('Settings saved successfully! Note: Database path changes require backend restart.', 'success');
+        }
+
+        function updateTabVisibility() {
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            console.log('updateTabVisibility - settings:', settings);
+
+            // Show/hide Dispatcharr tab
+            const dispatcharrButton = document.getElementById('dispatcharrTabButton');
+            const hasDispatcharr = settings.dispatcharr && settings.dispatcharr.url && settings.dispatcharr.username && settings.dispatcharr.password;
+            console.log('Dispatcharr check:', hasDispatcharr, settings.dispatcharr);
+
+            if (hasDispatcharr) {
+                dispatcharrButton.style.display = 'inline-block';
+                console.log('Showing Dispatcharr tab');
+            } else {
+                dispatcharrButton.style.display = 'none';
+                console.log('Hiding Dispatcharr tab');
+            }
+
+            // Show/hide Emby tab
+            const embyButton = document.getElementById('embyTabButton');
+            const hasEmby = settings.emby && settings.emby.url && settings.emby.username && settings.emby.password;
+            console.log('Emby check:', hasEmby, settings.emby);
+
+            if (hasEmby) {
+                embyButton.style.display = 'inline-block';
+                console.log('Showing Emby tab');
+            } else {
+                embyButton.style.display = 'none';
+                console.log('Hiding Emby tab');
+            }
+        }
+
+        function testDatabaseConnection() {
+            const dbPath = document.getElementById('settingsDatabasePath').value;
+
+            if (!dbPath) {
+                document.getElementById('databaseTestResult').innerHTML = '<span style="color: #ff6b6b;">Please enter a database path</span>';
+                return;
+            }
+
+            document.getElementById('databaseTestResult').innerHTML = '<span style="color: #999;">Testing...</span>';
+
+            fetch('/api/health')
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'healthy') {
+                    document.getElementById('databaseTestResult').innerHTML = `<span style="color: #51cf66;">✅ Connected! (${data.stations_count.toLocaleString()} stations)</span>`;
+                } else {
+                    document.getElementById('databaseTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Database error</span>';
+                }
+            })
+            .catch(err => {
+                document.getElementById('databaseTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Connection failed</span>';
+            });
+        }
+
+        function testDispatcharrSettings() {
+            const url = document.getElementById('settingsDispatcharrUrl').value;
+            const username = document.getElementById('settingsDispatcharrUsername').value;
+            const password = document.getElementById('settingsDispatcharrPassword').value;
+
+            if (!url || !username || !password) {
+                document.getElementById('dispatcharrTestResult').innerHTML = '<span style="color: #ff6b6b;">Please fill in all fields</span>';
+                return;
+            }
+
+            document.getElementById('dispatcharrTestResult').innerHTML = '<span style="color: #999;">Testing...</span>';
+
+            fetch('/api/dispatcharr/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, username, password })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('dispatcharrTestResult').innerHTML = '<span style="color: #51cf66;">✅ Connection successful!</span>';
+                    // Auto-save settings and show tab on successful connection
+                    try {
+                        saveAllSettings();
+                    } catch (e) {
+                        console.error('Error saving settings:', e);
+                    }
+                } else {
+                    document.getElementById('dispatcharrTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Connection failed</span>';
+                }
+            })
+            .catch(err => {
+                console.error('Dispatcharr test error:', err);
+                document.getElementById('dispatcharrTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Connection error</span>';
+            });
+        }
+
+        // Channel Matching Functions
+        async function startChannelMatching() {
+            // Load Dispatcharr channels first if needed
+            if (dispatcharrChannels.length === 0) {
+                await loadDispatcharrChannels();
+            }
+
+            // Filter unmatched channels
+            matchingQueue = dispatcharrChannels.filter(ch => !ch.gracenote_id);
+
+            if (matchingQueue.length === 0) {
+                showNotification('All channels already have Gracenote IDs!');
+                return;
+            }
+
+            // Initialize matching
+            currentMatchIndex = 0;
+            matchingResults = [];
+            isMatching = true;
+
+            // Update UI
+            document.getElementById('matchingProgress').style.display = 'block';
+            document.getElementById('matchingInterface').style.display = 'block';
+            document.getElementById('matchingResults').style.display = 'none';
+
+            // Start matching process
+            await matchNextChannel();
+        }
+
+        async function matchNextChannel() {
+            if (!isMatching || currentMatchIndex >= matchingQueue.length) {
+                finishMatching();
+                return;
+            }
+
+            const channel = matchingQueue[currentMatchIndex];
+
+            // Update progress
+            updateMatchingProgress();
+
+            // Update current channel display
+            document.getElementById('currentChannelName').textContent = channel.name;
+            document.getElementById('currentChannelId').textContent = channel.id;
+            document.getElementById('currentStationId').textContent = channel.gracenote_id || 'None';
+
+            // Get suggested matches
+            try {
+                // Show loading indicator
+                const container = document.getElementById('suggestedMatches');
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;"><span style="font-size: 2rem;">🔄</span><br/>Searching database for matches...</p>';
+
+                const response = await fetch('/api/match/suggest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channel_name: channel.name,
+                        channel_id: channel.id,
+                        existing_station_id: channel.gracenote_id || null
+                    })
+                });
+
+                const data = await response.json();
+
+                // Update parsed info
+                if (data.parsed) {
+                    document.getElementById('parsedCleanName').textContent = data.parsed.clean_name || '-';
+                    document.getElementById('parsedCountry').textContent = data.parsed.country || 'Not detected';
+                    document.getElementById('parsedResolution').textContent = data.parsed.resolution || 'Not detected';
+                }
+
+                // Display suggested matches - user must manually accept
+                displaySuggestedMatches(data.matches, channel);
+
+            } catch (error) {
+                console.error('Error getting matches:', error);
+                displaySuggestedMatches([], channel);
+            }
+        }
+
+        function displaySuggestedMatches(matches, channel) {
+            const container = document.getElementById('suggestedMatches');
+
+            if (!matches || matches.length === 0) {
+                container.innerHTML = '<p style="color: #999;">No suggested matches found. Try manual search below.</p>';
+                return;
+            }
+
+            let html = '';
+            matches.forEach((match, index) => {
+                const isExisting = match.is_existing === true;
+                const confidence = isExisting ? 'existing' : (match.score > 0.8 ? 'high' : match.score > 0.5 ? 'medium' : 'low');
+                const confColor = isExisting ? '#667eea' : (confidence === 'high' ? '#51cf66' : confidence === 'medium' ? '#ffd93d' : '#ff6b6b');
+
+                const videoTypes = match.station.video_types ? match.station.video_types.split(',').join(', ') : 'Unknown';
+
+                const borderStyle = isExisting ? 'border: 2px solid #667eea;' : '';
+                const bgStyle = isExisting ? 'background: rgba(102, 126, 234, 0.1);' : 'background: rgba(255, 255, 255, 0.05);';
+
+                html += `
+                    <div style="padding: 15px; ${bgStyle} ${borderStyle} border-radius: 8px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="font-weight: bold; font-size: 1.1rem;">${match.station.name}</div>
+                                    ${isExisting ? '<span style="background: #667eea; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">CURRENT MATCH</span>' : ''}
+                                </div>
+                                <div style="color: #999; margin-top: 5px;">
+                                    ${match.station.call_sign ? `Call Sign: ${match.station.call_sign} | ` : ''}
+                                    Station ID: ${match.station.station_id}
+                                    ${match.station.logo_uri ? ' | 🖼️ Has Logo' : ''}
+                                </div>
+                                <div style="color: #999; margin-top: 3px; font-size: 0.9rem;">
+                                    📺 Resolution: ${videoTypes}
+                                </div>
+                                <div style="margin-top: 5px;">
+                                    <span style="background: ${confColor}22; color: ${confColor}; padding: 2px 8px; border-radius: 4px; font-size: 0.9rem;">
+                                        ${isExisting ? '✓ Current Station' : Math.round(match.score * 100) + '% Match'}
+                                    </span>
+                                </div>
+                            </div>
+                            <button onclick="acceptMatch('${match.station.station_id}', ${JSON.stringify(channel).replace(/"/g, '&quot;')})"
+                                    class="btn-primary" style="padding: 8px 20px;">
+                                ✅ ${isExisting ? 'Keep & Update' : 'Accept Match'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function acceptMatch(stationId, channel) {
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first!');
+                switchTab('settings');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/match/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channel_id: channel.id,
+                        station_id: stationId,
+                        dispatcharr_config: settings.dispatcharr,
+                        apply_options: settings.matching || {
+                            applyStationId: true,
+                            applyChannelName: false,
+                            applyCallSign: false,
+                            applyLogo: true
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Record result
+                    matchingResults.push({
+                        channel: channel,
+                        station: result.station,
+                        status: 'matched'
+                    });
+
+                    // Move to next channel
+                    currentMatchIndex++;
+                    await matchNextChannel();
+                } else {
+                    showNotification('Failed to apply match: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                showNotification('Error applying match: ' + error.message);
+            }
+        }
+
+        function skipCurrentChannel() {
+            const channel = matchingQueue[currentMatchIndex];
+            matchingResults.push({
+                channel: channel,
+                status: 'skipped'
+            });
+
+            currentMatchIndex++;
+            matchNextChannel();
+        }
+
+        async function stopMatching() {
+            if (await showConfirm('Are you sure you want to stop the matching process?')) {
+                isMatching = false;
+                finishMatching();
+            }
+        }
+
+        function updateMatchingProgress() {
+            const progress = currentMatchIndex + 1;
+            const total = matchingQueue.length;
+            const percentage = Math.round((progress / total) * 100);
+
+            document.getElementById('matchProgress').textContent = progress;
+            document.getElementById('matchTotal').textContent = total;
+            document.getElementById('matchPercentage').textContent = percentage + '%';
+            document.getElementById('matchProgressBar').style.width = percentage + '%';
+        }
+
+        function finishMatching() {
+            isMatching = false;
+
+            // Hide interface, show results
+            document.getElementById('matchingInterface').style.display = 'none';
+            document.getElementById('matchingResults').style.display = 'block';
+
+            // Display summary
+            const matched = matchingResults.filter(r => r.status === 'matched').length;
+            const skipped = matchingResults.filter(r => r.status === 'skipped').length;
+
+            const summaryHtml = `
+                <div style="padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                    <h4>Matching Complete!</h4>
+                    <div style="margin-top: 15px;">
+                        <p>✅ Matched: ${matched} channels</p>
+                        <p>⏭️ Skipped: ${skipped} channels</p>
+                        <p>📊 Total Processed: ${matchingResults.length} channels</p>
+                    </div>
+                    ${matched > 0 ? '<p style="color: #51cf66; margin-top: 15px;">Channels have been updated in Dispatcharr!</p>' : ''}
+                    <div style="margin-top: 20px;">
+                        <button onclick="switchTab('dispatcharr')" class="btn-primary">📡 View Dispatcharr Channels</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('matchingSummary').innerHTML = summaryHtml;
+
+            // Auto-refresh Dispatcharr channels in background if any were matched
+            if (matched > 0) {
+                loadDispatcharrChannels();
+            }
+        }
+
+        async function performManualSearch() {
+            const query = document.getElementById('manualSearchInput').value;
+            if (!query) return;
+
+            try {
+                const response = await fetch(`/api/search/stations?q=${encodeURIComponent(query)}&limit=10`);
+                const data = await response.json();
+
+                const container = document.getElementById('manualSearchResults');
+
+                if (!data.results || data.results.length === 0) {
+                    container.innerHTML = '<p style="color: #999;">No results found</p>';
+                    return;
+                }
+
+                let html = '<div style="max-height: 300px; overflow-y: auto;">';
+                data.results.forEach(station => {
+                    html += `
+                        <div style="padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: bold;">${station.name}</div>
+                                    <div style="color: #999; font-size: 0.9rem;">
+                                        ${station.call_sign || 'No call sign'} | ID: ${station.station_id}
+                                    </div>
+                                </div>
+                                <button onclick="acceptMatch('${station.station_id}', ${JSON.stringify(matchingQueue[currentMatchIndex]).replace(/"/g, '&quot;')})"
+                                        class="btn-secondary" style="padding: 5px 15px; font-size: 0.9rem;">
+                                    Select
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                container.innerHTML = html;
+            } catch (error) {
+                document.getElementById('manualSearchResults').innerHTML = '<p style="color: #ff6b6b;">Search failed</p>';
+            }
+        }
+
+        async function startBulkMatching() {
+            if (!await showConfirm('This will suggest matches for all channels. You will review before applying. Continue?')) {
+                return;
+            }
+
+            // Load channels if needed
+            if (dispatcharrChannels.length === 0) {
+                await loadDispatcharrChannels();
+            }
+
+            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first!');
+                switchTab('settings');
+                return;
+            }
+
+            // Get unmatched channels
+            const unmatchedChannels = dispatcharrChannels.filter(ch => !ch.gracenote_id);
+
+            if (unmatchedChannels.length === 0) {
+                showNotification('All channels already have Gracenote IDs!');
+                return;
+            }
+
+            // Show progress
+            document.getElementById('matchingProgress').style.display = 'block';
+
+            try {
+                const response = await fetch('/api/match/batch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        channels: unmatchedChannels.map(ch => ({
+                            id: ch.id,
+                            name: ch.name
+                        }))
+                    })
+                });
+
+                const results = await response.json();
+
+                // Display bulk results
+                document.getElementById('matchingResults').style.display = 'block';
+                document.getElementById('matchingSummary').innerHTML = `
+                    <div style="padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                        <h4>Bulk Matching Results</h4>
+                        <div style="margin-top: 15px;">
+                            <p>✅ High Confidence: ${results.matched} channels</p>
+                            <p>⚠️ Medium Confidence: ${results.review_needed} channels</p>
+                            <p>❌ No Match Found: ${results.no_match} channels</p>
+                            <p>🚫 Errors: ${results.errors} channels</p>
+                        </div>
+                        <p style="margin-top: 15px; color: #999; font-size: 0.9rem;">
+                            💡 All matches require your review before being applied
+                        </p>
+                        <button onclick="reviewBulkMatches(${JSON.stringify(results.results).replace(/"/g, '&quot;')})"
+                                class="btn-primary" style="margin-top: 15px;">
+                            Review & Apply Matches
+                        </button>
+                    </div>
+                `;
+
+            } catch (error) {
+                showNotification('Bulk matching failed: ' + error.message);
+            } finally {
+                document.getElementById('matchingProgress').style.display = 'none';
+            }
+        }
+
+        function reviewBulkMatches(results) {
+            // Filter for review
+            matchingQueue = results.filter(r => r.status === 'review_needed' || r.status === 'no_match')
+                .map(r => r.channel);
+
+            if (matchingQueue.length === 0) {
+                showNotification('No channels need review!');
+                return;
+            }
+
+            // Start matching process for review
+            currentMatchIndex = 0;
+            matchingResults = [];
+            isMatching = true;
+
+            document.getElementById('matchingInterface').style.display = 'block';
+            document.getElementById('matchingResults').style.display = 'none';
+
+            matchNextChannel();
+        }
+
+        // New multi-select and matching functions
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllChannels');
+            const checkboxes = document.querySelectorAll('.channel-checkbox');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            updateMatchButtons();
+        }
+
+        function updateMatchButtons() {
+            const selectedChannels = document.querySelectorAll('.channel-checkbox:checked').length;
+            const matchBtn = document.getElementById('matchSelectedBtn');
+            if (matchBtn) {
+                matchBtn.disabled = selectedChannels === 0;
+            }
+        }
+
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('.channel-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+            document.getElementById('selectAllChannels').checked = true;
+            updateMatchButtons();
+        }
+
+        function selectMissingGracenote() {
+            // Deselect all first
+            document.querySelectorAll('.channel-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllChannels').checked = false;
+
+            // Select channels missing gracenote_id
+            dispatcharrChannels.forEach(channel => {
+                if (!channel.gracenote_id || channel.gracenote_id === 'Not Set') {
+                    const checkbox = document.querySelector(`.channel-checkbox[data-channel-id="${channel.id}"]`);
+                    if (checkbox) checkbox.checked = true;
+                }
+            });
+            updateMatchButtons();
+        }
+
+        function selectMissingLogo() {
+            // Deselect all first
+            document.querySelectorAll('.channel-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllChannels').checked = false;
+
+            // Select channels missing logo
+            dispatcharrChannels.forEach(channel => {
+                if (!channel.logo_url || channel.logo_url.trim() === '') {
+                    const checkbox = document.querySelector(`.channel-checkbox[data-channel-id="${channel.id}"]`);
+                    if (checkbox) checkbox.checked = true;
+                }
+            });
+            updateMatchButtons();
+        }
+
+        function selectMissingTvgId() {
+            // Deselect all first
+            document.querySelectorAll('.channel-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('selectAllChannels').checked = false;
+
+            // Select channels missing tvg_id (call_sign)
+            dispatcharrChannels.forEach(channel => {
+                if (!channel.call_sign || channel.call_sign === 'N/A' || channel.call_sign.trim() === '') {
+                    const checkbox = document.querySelector(`.channel-checkbox[data-channel-id="${channel.id}"]`);
+                    if (checkbox) checkbox.checked = true;
+                }
+            });
+            updateMatchButtons();
+        }
+
+        async function matchSelectedStations() {
+            const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
+                .map(cb => parseInt(cb.dataset.channelId));
+
+            const selectedChannels = dispatcharrChannels.filter(ch => selectedIds.includes(ch.id));
+
+            if (selectedChannels.length === 0) {
+                showNotification('No channels selected!');
+                return;
+            }
+
+            if (!await showConfirm(`Match ${selectedChannels.length} selected channel(s)?\n\nYou will review each match before it is applied.`)) {
+                return;
+            }
+
+            startMatchingWorkflow(selectedChannels);
+        }
+
+        function searchAndMatch(channelId) {
+            const channel = dispatcharrChannels.find(ch => ch.id === channelId);
+            if (!channel) {
+                showNotification('Channel not found');
+                return;
+            }
+
+            startMatchingWorkflow([channel]);
+        }
+
+        function startMatchingWorkflow(channels) {
+            // Set up matching queue
+            matchingQueue = channels;
+            currentMatchIndex = 0;
+            matchingResults = [];
+            isMatching = true;
+
+            // Show matching modal
+            document.getElementById('matchingModal').style.display = 'flex';
+            document.getElementById('matchingInterface').style.display = 'block';
+            document.getElementById('matchingResults').style.display = 'none';
+
+            matchNextChannel();
+        }
+
+        function closeMatchingModal() {
+            document.getElementById('matchingModal').style.display = 'none';
+            isMatching = false;
+            matchingQueue = [];
+            currentMatchIndex = 0;
+        }
+
+        // Load database metadata
+        async function loadDatabaseMetadata() {
+            try {
+                const response = await fetch('/api/database/metadata');
+                const data = await response.json();
+
+                if (data.version !== 'Unknown') {
+                    document.getElementById('dbVersion').textContent = data.version;
+                    document.getElementById('dbEffectiveDate').textContent = data.effective_date;
+                    document.getElementById('dbSchema').textContent = data.schema_version;
+                    document.getElementById('dbMetadata').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load database metadata:', error);
+            }
+        }
+
+        // Populate Emby country dropdown from database
+        async function populateEmbyCountries() {
+            try {
+                const response = await fetch('/api/metadata');
+                const data = await response.json();
+
+                const embyCountrySelect = document.getElementById('embyCountrySelect');
+
+                // Clear existing options except "Any Country"
+                while (embyCountrySelect.options.length > 1) {
+                    embyCountrySelect.remove(1);
+                }
+
+                // Add USA first if it exists
+                if (data.countries.includes('USA')) {
+                    const usaOption = document.createElement('option');
+                    usaOption.value = 'USA';
+                    usaOption.textContent = 'USA - United States';
+                    usaOption.selected = true;  // Set USA as default
+                    embyCountrySelect.appendChild(usaOption);
+
+                    // Add divider
+                    const divider = document.createElement('option');
+                    divider.disabled = true;
+                    divider.textContent = '──────────';
+                    embyCountrySelect.appendChild(divider);
+                }
+
+                // Country name mappings
+                const countryNames = {
+                    'AIA': 'Anguilla',
+                    'ARG': 'Argentina',
+                    'AUS': 'Australia',
+                    'AUT': 'Austria',
+                    'BEL': 'Belgium',
+                    'BLZ': 'Belize',
+                    'BMU': 'Bermuda',
+                    'BRA': 'Brazil',
+                    'BRB': 'Barbados',
+                    'CAN': 'Canada',
+                    'CHE': 'Switzerland',
+                    'CHL': 'Chile',
+                    'COL': 'Colombia',
+                    'CRI': 'Costa Rica',
+                    'CYM': 'Cayman Islands',
+                    'DEU': 'Germany',
+                    'DNK': 'Denmark',
+                    'DOM': 'Dominican Republic',
+                    'ECU': 'Ecuador',
+                    'ESP': 'Spain',
+                    'FIN': 'Finland',
+                    'FRA': 'France',
+                    'GBR': 'United Kingdom',
+                    'GRC': 'Greece',
+                    'HND': 'Honduras',
+                    'IRL': 'Ireland',
+                    'ISL': 'Iceland',
+                    'ITA': 'Italy',
+                    'JAM': 'Jamaica',
+                    'LUX': 'Luxembourg',
+                    'MEX': 'Mexico',
+                    'NLD': 'Netherlands',
+                    'NOR': 'Norway',
+                    'NZL': 'New Zealand',
+                    'PAN': 'Panama',
+                    'PER': 'Peru',
+                    'PRT': 'Portugal',
+                    'SWE': 'Sweden',
+                    'TCA': 'Turks and Caicos',
+                    'TTO': 'Trinidad and Tobago',
+                    'URY': 'Uruguay',
+                    'VEN': 'Venezuela'
+                };
+
+                // Add all countries alphabetically (excluding USA since it's already added)
+                data.countries.sort().forEach(country => {
+                    if (country !== 'USA') {
+                        const option = document.createElement('option');
+                        option.value = country;
+                        const countryName = countryNames[country] || country;
+                        option.textContent = `${country} - ${countryName}`;
+                        embyCountrySelect.appendChild(option);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Failed to populate Emby countries:', error);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSettings();
+            loadDatabaseMetadata();
+            populateEmbyCountries();
+            updateTabVisibility();
+        });
+    </script>
+</body>
+</html>

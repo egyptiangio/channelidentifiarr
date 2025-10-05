@@ -1,0 +1,14 @@
+services:
+  channelidentifiarr:
+    image: ghcr.io/egyptiangio/channelidentifiarr:latest
+    container_name: channelidentifiarr
+    restart: unless-stopped
+    ports:
+      - "9192:9192"
+    volumes:
+      # Mount the database (REQUIRED)
+      # Update this path to point to your channelidentifiarr.db file
+      - /path/to/channelidentifiarr.db:/data/channelidentifiarr.db:ro
+    environment:
+      - DATABASE_PATH=/data/channelidentifiarr.db
+      - TZ=America/New_York
