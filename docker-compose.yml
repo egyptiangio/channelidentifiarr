@@ -6,9 +6,6 @@ services:
     ports:
       - "9192:9192"
     volumes:
-      # Mount the database (REQUIRED)
-      # Update this path to point to your channelidentifiarr.db file
-      - /path/to/channelidentifiarr.db:/data/channelidentifiarr.db:ro
+      - ./data:/data
     environment:
-      - DATABASE_PATH=/data/channelidentifiarr.db
       - TZ=America/New_York

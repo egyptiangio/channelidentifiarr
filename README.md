@@ -25,10 +25,10 @@ Web-based TV channel lineup search and Emby integration.
 wget https://raw.githubusercontent.com/egyptiangio/channelidentifiarr/main/docker-compose.yml
 ```
 
-2. Edit `docker-compose.yml` and update the database path:
-```yaml
-volumes:
-  - /path/to/channelidentifiarr.db:/data/channelidentifiarr.db:ro
+2. Create a `data` directory and place your `channelidentifiarr.db` file in it:
+```bash
+mkdir data
+cp /path/to/channelidentifiarr.db data/
 ```
 
 3. Start:
@@ -37,6 +37,8 @@ docker-compose up -d
 ```
 
 4. Open: http://localhost:9192
+
+The database path can be configured in the Settings tab (defaults to `/data/channelidentifiarr.db`).
 
 ## License
 
