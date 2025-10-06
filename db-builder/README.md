@@ -31,7 +31,9 @@ pip install requests
 
 This script requires access to your Channels DVR server's API. You'll need to provide your server's IP address and port (default: 8089).
 
-### Basic Usage
+### Standard Usage (Recommended)
+
+**This is the command you should use in almost all cases:**
 
 ```bash
 python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089
@@ -40,26 +42,34 @@ python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.10
 This will:
 1. Read markets from the CSV file
 2. Fetch lineup and station data from your Channels DVR server
-3. Create `channelidentifiarr.db` SQLite database
+3. Create `channelidentifiarr.db` SQLite database with full metadata
 4. Build optimized indexes for fast queries
-5. Create a checkpoint file for resumability
+5. Create a checkpoint file for automatic resumption if interrupted
 
-### Command-Line Options
+**The script is already optimized with ideal settings. You should not need to change any options unless you have a specific reason.**
+
+### Optional Flags
+
+**Force refresh** - Only use this if you want to rebuild the database from scratch:
+```bash
+python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --force
+```
+
+### Advanced Options (Not Recommended)
+
+**⚠️ WARNING: These options are for advanced users only. The default settings are optimized for best performance and results.**
 
 ```bash
-# Use more workers for faster processing (default: 4, max: 10)
+# Change worker count (default: 4, optimized for most systems)
 python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --workers 6
 
-# Force refresh all data (ignore existing database)
-python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --force
-
-# Skip station enhancement phase (faster but less metadata)
+# Skip station enhancement (results in incomplete metadata - not recommended)
 python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --skip-enhancement
 
-# Run only enhancement on existing database
+# Run only enhancement phase on existing database
 python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --enhance-only
 
-# Keep checkpoint file after completion
+# Keep checkpoint file after completion (for debugging)
 python3 create_channelidentifiarr_db.py markets.csv --server http://192.168.1.100:8089 --no-cleanup
 ```
 
@@ -79,14 +89,17 @@ GBR,SW1A
 ### Important Notes:
 
 1. **No header row**: The CSV should contain only data rows (country, postal code)
-2. **Country codes**: Use ISO 3166-1 alpha-3 codes:
-   - `USA` - United States
-   - `CAN` - Canada
-   - `GBR` - United Kingdom
+2. **Country codes**: Use ISO 3166-1 alpha-3 codes (see supported countries below)
 3. **Postal codes**:
    - **USA**: 5-digit ZIP codes (e.g., `90210`)
    - **Canada**: First 3 characters of postal code (e.g., `M5H`)
    - **UK**: Outward code only (e.g., `SW1A`)
+
+### Supported Countries
+
+The following countries have known lineups in Channels DVR:
+
+AIA, ARG, AUS, AUT, BEL, BLZ, BMU, BRA, BRB, CAN, CHE, CHL, COL, CRI, CYM, DEU, DNK, DOM, ECU, ESP, FIN, FRA, GBR, GTM, GUY, HND, IRL, ITA, JAM, KNA, LCA, MAF, MEX, NLD, NOR, PER, POL, PRI, SWE, TCA, TTO, URY, USA, VCT, VEN
 
 ### Example CSV Files
 
