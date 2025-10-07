@@ -997,10 +997,29 @@ def get_dispatcharr_channels():
         if not all([url, username, password]):
             return jsonify({'error': 'Missing credentials'}), 400
 
-        # Get channels
-        channels_data, error = dispatcharr_api_request(url, username, password, 'GET', '/api/channels/channels/')
-        if error:
-            return jsonify({'error': error}), 500
+        # Get all channels (handle pagination)
+        channels_data = []
+        channels_url = '/api/channels/channels/'
+        while channels_url:
+            data, error = dispatcharr_api_request(url, username, password, 'GET', channels_url)
+            if error:
+                return jsonify({'error': error}), 500
+
+            # Handle both paginated and non-paginated responses
+            if isinstance(data, dict) and 'results' in data:
+                channels_data.extend(data['results'])
+                next_url = data.get('next')
+                if next_url:
+                    import urllib.parse
+                    parsed = urllib.parse.urlparse(next_url)
+                    channels_url = f"{parsed.path}?{parsed.query}" if parsed.query else parsed.path
+                else:
+                    channels_url = None
+            elif isinstance(data, list):
+                channels_data.extend(data)
+                channels_url = None
+            else:
+                channels_url = None
 
         # Get groups for mapping
         groups_data, _ = dispatcharr_api_request(url, username, password, 'GET', '/api/channels/groups/')
@@ -1010,22 +1029,19 @@ def get_dispatcharr_channels():
                 groups_map[group.get('id')] = group.get('name', 'Unknown')
 
         # Get only logos assigned to channels (prevents timeout with 100k+ logo libraries)
+        logo_ids = set()
+        for ch in channels_data:
+            logo_id = ch.get('logo_id')
+            if logo_id:
+                logo_ids.add(logo_id)
+
+        logger.info(f"Fetching {len(logo_ids)} logos for {len(channels_data)} channels")
+
         logos_map = {}
-        if channels_data and isinstance(channels_data, list):
-            # Collect unique logo IDs from channels
-            logo_ids = set()
-            for ch in channels_data:
-                logo_id = ch.get('logo_id')
-                if logo_id:
-                    logo_ids.add(logo_id)
-
-            logger.info(f"Fetching {len(logo_ids)} logos for {len(channels_data)} channels")
-
-            # Fetch each logo individually
-            for logo_id in logo_ids:
-                logo_data, _ = dispatcharr_api_request(url, username, password, 'GET', f'/api/channels/logos/{logo_id}/')
-                if logo_data:
-                    logos_map[logo_id] = logo_data.get('url', '')
+        for logo_id in logo_ids:
+            logo_data, _ = dispatcharr_api_request(url, username, password, 'GET', f'/api/channels/logos/{logo_id}/')
+            if logo_data:
+                logos_map[logo_id] = logo_data.get('url', '')
 
         # Process channels
         channels = []
