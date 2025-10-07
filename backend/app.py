@@ -443,9 +443,11 @@ def serve_setup_page():
             <div class="steps">
                 <ol>
                     <li>Obtain a <code>channelidentifiarr.db</code> file from the Dispatcharr community</li>
-                    <li>Place the database file in a location accessible to the Docker container</li>
-                    <li>Update your <code>docker-compose.yml</code> to mount the database:
-                        <div class="code-block">volumes:<br>  - /path/to/channelidentifiarr.db:/data/channelidentifiarr.db:ro</div>
+                    <li>Create a data directory and place the database file inside:
+                        <div class="code-block">mkdir -p /path/to/data<br>mv channelidentifiarr.db /path/to/data/</div>
+                    </li>
+                    <li>Update your <code>docker-compose.yml</code> to mount the data folder:
+                        <div class="code-block">volumes:<br>  - /path/to/data:/data</div>
                     </li>
                     <li>Restart the container:
                         <div class="code-block">docker-compose restart</div>
@@ -1007,28 +1009,23 @@ def get_dispatcharr_channels():
             for group in groups_data:
                 groups_map[group.get('id')] = group.get('name', 'Unknown')
 
-        # Get all logos (handle pagination)
+        # Get only logos assigned to channels (prevents timeout with 100k+ logo libraries)
         logos_map = {}
-        logos_url = '/api/channels/logos/'
+        if channels_data and isinstance(channels_data, list):
+            # Collect unique logo IDs from channels
+            logo_ids = set()
+            for ch in channels_data:
+                logo_id = ch.get('logo_id')
+                if logo_id:
+                    logo_ids.add(logo_id)
 
-        while logos_url:
-            logos_data, _ = dispatcharr_api_request(url, username, password, 'GET', logos_url)
+            logger.info(f"Fetching {len(logo_ids)} logos for {len(channels_data)} channels")
 
-            if logos_data and 'results' in logos_data:
-                for logo in logos_data['results']:
-                    logos_map[logo.get('id')] = logo.get('url', '')
-
-                # Get next page URL if it exists
-                next_url = logos_data.get('next')
-                if next_url:
-                    # Extract just the path from the full URL
-                    import urllib.parse
-                    parsed = urllib.parse.urlparse(next_url)
-                    logos_url = f"{parsed.path}?{parsed.query}" if parsed.query else parsed.path
-                else:
-                    logos_url = None
-            else:
-                logos_url = None
+            # Fetch each logo individually
+            for logo_id in logo_ids:
+                logo_data, _ = dispatcharr_api_request(url, username, password, 'GET', f'/api/channels/logos/{logo_id}/')
+                if logo_data:
+                    logos_map[logo_id] = logo_data.get('url', '')
 
         # Process channels
         channels = []
