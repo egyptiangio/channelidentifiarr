@@ -1,6 +1,6 @@
 # ChannelIdentifiarr
 
-**v0.2.0-alpha**
+**v0.3.1-alpha**
 
 Web-based TV channel lineup search and Emby integration.
 
