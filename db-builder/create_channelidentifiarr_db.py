@@ -183,6 +183,7 @@ class MessageType(Enum):
     MARKET_DATA = "market_data"
     STATION_ENHANCEMENT = "station_enhancement"
     ERROR = "error"
+    COMMIT = "commit"
     SHUTDOWN = "shutdown"
 
 
@@ -877,6 +878,24 @@ class DatabaseWriter(Thread):
                 elif msg.msg_type == MessageType.STATION_ENHANCEMENT:
                     self._process_station_enhancement(msg)
 
+                elif msg.msg_type == MessageType.COMMIT:
+                    # Force commit any pending data
+                    if self.pending_commits > 0:
+                        self.db.commit()
+                        logger.info(f"Force commit: {self.pending_commits} pending market commits")
+                        for cp_info in self.pending_checkpoints:
+                            self.checkpoint.mark_market_processed(cp_info['country'], cp_info['postal_code'], cp_info['market_index'])
+                            self.checkpoint.update_stats(
+                                stations=cp_info['stations'],
+                                lineups=cp_info['lineups'],
+                                relationships=cp_info['relationships'],
+                                markets=1
+                            )
+                            self.stats['markets_processed'] += 1
+                        self.pending_checkpoints = []
+                        self.pending_commits = 0
+                        self.checkpoint.save()
+
                 elif msg.msg_type == MessageType.ERROR:
                     self._process_error(msg)
 
@@ -1155,6 +1174,11 @@ class ChannelIdentifiarrIngester:
         if not self.stop_event.is_set():
             logger.info("Waiting for database writer to finish...")
             self.data_queue.join()
+
+            # Force commit any pending data before enhancement
+            if not skip_enhancement:
+                self.data_queue.put(QueueMessage(msg_type=MessageType.COMMIT, data=None))
+                self.data_queue.join()
         else:
             interrupted_by_user = True
 
