@@ -2,7 +2,7 @@
 
 **v0.3.1-alpha**
 
-Web-based TV channel lineup search and Emby integration.
+Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
 ## Features
 
