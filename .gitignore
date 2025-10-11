@@ -52,6 +52,11 @@ logs/
 
 # Docker
 docker-compose.override.yml
+docker-compose-local.yml
+
+# Testing
+data-test/
+settings.json
 
 # Temporary files
 *.tmp

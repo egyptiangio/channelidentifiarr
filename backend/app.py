@@ -15,6 +15,7 @@ import json
 from datetime import datetime, timedelta
 import re
 from difflib import SequenceMatcher
+from settings_manager import get_settings_manager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -36,6 +37,9 @@ else:
 # Dispatcharr configuration - will be received from frontend
 # Token management per connection
 dispatcharr_sessions = {}
+
+# Settings manager
+settings_manager = get_settings_manager()
 
 def get_db_connection():
     """Create a database connection with row factory"""
@@ -468,7 +472,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.3.1-alpha</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.3.2-alpha</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -1535,7 +1539,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.3.1-alpha"'
+            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.3.2-alpha"'
         }
         auth_data = {
             'Username': username,
@@ -1939,7 +1943,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.3.1-alpha&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.3.2-alpha&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:
@@ -1953,6 +1957,143 @@ def clear_emby_channel_numbers():
     except Exception as e:
         logger.error(f"Error clearing Emby channel numbers: {e}")
         return jsonify({'error': str(e)}), 500
+
+# ============================================================================
+# SETTINGS API ENDPOINTS
+# ============================================================================
+
+@app.route('/api/settings', methods=['GET'])
+def get_settings():
+    """Get all application settings (without sensitive values in logs)"""
+    try:
+        settings = settings_manager.load_settings()
+        return jsonify(settings)
+    except Exception as e:
+        logger.error(f"Error loading settings: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/settings', methods=['POST'])
+def save_settings():
+    """Save application settings"""
+    try:
+        new_settings = request.json
+
+        if not new_settings:
+            return jsonify({'error': 'No settings provided'}), 400
+
+        success = settings_manager.save_settings(new_settings)
+
+        if success:
+            return jsonify({'success': True, 'message': 'Settings saved successfully'})
+        else:
+            return jsonify({'error': 'Failed to save settings'}), 500
+
+    except Exception as e:
+        logger.error(f"Error saving settings: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/settings', methods=['PATCH'])
+def update_settings():
+    """Update specific settings without overwriting all"""
+    try:
+        updates = request.json
+
+        if not updates:
+            return jsonify({'error': 'No updates provided'}), 400
+
+        success = settings_manager.update_settings(updates)
+
+        if success:
+            return jsonify({'success': True, 'message': 'Settings updated successfully'})
+        else:
+            return jsonify({'error': 'Failed to update settings'}), 500
+
+    except Exception as e:
+        logger.error(f"Error updating settings: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/settings/test-dispatcharr', methods=['POST'])
+def test_dispatcharr_settings():
+    """Test Dispatcharr connection with provided or saved settings"""
+    try:
+        # Use provided settings or load from storage
+        data = request.json or {}
+
+        if data.get('url'):
+            # Test with provided settings
+            url = data.get('url')
+            username = data.get('username')
+            password = data.get('password')
+        else:
+            # Test with saved settings
+            settings = settings_manager.load_settings()
+            if not settings.get('dispatcharr'):
+                return jsonify({'success': False, 'error': 'No Dispatcharr settings found'}), 400
+
+            url = settings['dispatcharr'].get('url')
+            username = settings['dispatcharr'].get('username')
+            password = settings['dispatcharr'].get('password')
+
+        if not all([url, username, password]):
+            return jsonify({'success': False, 'error': 'Missing credentials'}), 400
+
+        # Try to authenticate
+        token = get_dispatcharr_token(url, username, password)
+        if token:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Authentication failed'}), 401
+
+    except Exception as e:
+        logger.error(f"Connection test error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/settings/test-emby', methods=['POST'])
+def test_emby_settings():
+    """Test Emby connection with provided or saved settings"""
+    try:
+        # Use provided settings or load from storage
+        data = request.json or {}
+
+        if data.get('url'):
+            # Test with provided settings
+            url = data.get('url', '').rstrip('/')
+            username = data.get('username')
+            password = data.get('password')
+        else:
+            # Test with saved settings
+            settings = settings_manager.load_settings()
+            if not settings.get('emby'):
+                return jsonify({'success': False, 'error': 'No Emby settings found'}), 400
+
+            url = settings['emby'].get('url', '').rstrip('/')
+            username = settings['emby'].get('username')
+            password = settings['emby'].get('password')
+
+        if not url:
+            return jsonify({'success': False, 'error': 'URL required'}), 400
+
+        # Try to authenticate
+        token, user_id = emby_authenticate(url, username, password)
+
+        if not token:
+            return jsonify({'success': False, 'error': 'Authentication failed'}), 401
+
+        # Get server info
+        result, error = emby_api_request(url, token, 'GET', '/emby/System/Info')
+
+        if result:
+            return jsonify({
+                'success': True,
+                'server_name': result.get('ServerName', 'Emby Server'),
+                'version': result.get('Version', 'Unknown')
+            })
+        else:
+            return jsonify({'success': False, 'error': error or 'Connection failed'}), 500
+
+    except Exception as e:
+        logger.error(f"Emby connection test error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
     # Check if database exists

@@ -562,7 +562,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.3.1-alpha</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.3.2-alpha</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1166,7 +1166,7 @@
         document.head.appendChild(style);
 
         // Tab switching function
-        function switchTab(tabName) {
+        async function switchTab(tabName) {
             // Update tab buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
@@ -1193,7 +1193,7 @@
                 document.getElementById('dispatcharrTab').classList.add('active');
                 document.getElementById('dispatcharrTab').style.display = 'block';
                 // Auto-refresh channels when entering tab
-                const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+                const settings = await getSettings();
                 if (settings.dispatcharr && settings.dispatcharr.url) {
                     loadDispatcharrChannels();
                 }
@@ -1209,8 +1209,8 @@
         }
 
         // Dispatcharr Connection Check (uses settings from Settings tab)
-        function checkDispatcharrSettings() {
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+        async function checkDispatcharrSettings() {
+            const settings = await getSettings();
 
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
                 // Show banner if not configured
@@ -1230,8 +1230,8 @@
         }
 
         // Emby Connection Check
-        function checkEmbySettings() {
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+        async function checkEmbySettings() {
+            const settings = await getSettings();
 
             if (!settings.emby || !settings.emby.url) {
                 // Show banner if not configured
@@ -1254,12 +1254,12 @@
         async function loadEmbyChannels() {
             const tableBody = document.getElementById('embyChannelsTableBody');
 
-            if (!checkEmbySettings()) {
+            if (!await checkEmbySettings()) {
                 tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #ff6b6b;">Please configure Emby settings in the Settings tab</td></tr>';
                 return;
             }
 
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px;">Loading channels from Emby...</td></tr>';
 
@@ -1328,7 +1328,7 @@
                 return;
             }
 
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             showNotification('📡 Scanning Emby channels and finding optimal lineups...', 'info');
 
@@ -1399,7 +1399,7 @@
                 return;
             }
 
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             // Show initial notification
             const notificationId = Date.now();
@@ -1453,7 +1453,7 @@
                 return;
             }
 
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             // Show initial notification
             showNotification('🔢 Starting channel number clearing...', 'info');
@@ -1537,7 +1537,7 @@
 
         // Dispatcharr functions
         async function loadDispatcharrGroups() {
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
                 return;
@@ -1577,7 +1577,7 @@
             }
 
             // Get settings from consolidated storage
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
             const url = settings.dispatcharr.url;
             const username = settings.dispatcharr.username;
             const password = settings.dispatcharr.password;
@@ -1751,7 +1751,7 @@
         }
 
         async function saveChannelEdits(channelId) {
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
                 showNotification('Please configure Dispatcharr settings first!');
@@ -2193,41 +2193,95 @@
             a.click();
         }
         // Settings Management
-        function loadSettings() {
-            // Load from localStorage
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
-
-            // Database settings
-            if (settings.database) {
-                document.getElementById('settingsDatabasePath').value = settings.database.path || '/data/channelidentifiarr.db';
-            } else {
-                document.getElementById('settingsDatabasePath').value = '/data/channelidentifiarr.db';
-            }
-
-            // Dispatcharr settings
-            if (settings.dispatcharr) {
-                document.getElementById('settingsDispatcharrUrl').value = settings.dispatcharr.url || '';
-                document.getElementById('settingsDispatcharrUsername').value = settings.dispatcharr.username || '';
-                document.getElementById('settingsDispatcharrPassword').value = settings.dispatcharr.password || '';
-            }
-
-            // Emby settings
-            if (settings.emby) {
-                document.getElementById('settingsEmbyUrl').value = settings.emby.url || '';
-                document.getElementById('settingsEmbyUsername').value = settings.emby.username || '';
-                document.getElementById('settingsEmbyPassword').value = settings.emby.password || '';
-            }
-
-            // Matching preferences
-            if (settings.matching) {
-                document.getElementById('applyStationId').checked = settings.matching.applyStationId !== false;
-                document.getElementById('applyChannelName').checked = settings.matching.applyChannelName === true;
-                document.getElementById('applyCallSign').checked = settings.matching.applyCallSign === true;
-                document.getElementById('applyLogo').checked = settings.matching.applyLogo !== false;
+        // Helper function to get settings from backend
+        async function getSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    return await response.json();
+                }
+                return {};
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+                return {};
             }
         }
 
-        function saveAllSettings() {
+        async function loadSettings() {
+            try {
+                // Load from backend
+                const response = await fetch('/api/settings');
+                let settings = {};
+
+                if (response.ok) {
+                    settings = await response.json();
+                } else {
+                    // Try localStorage migration on first load
+                    const localSettings = localStorage.getItem('channelIdentifiarrSettings');
+                    if (localSettings) {
+                        settings = JSON.parse(localSettings);
+                        // Migrate to backend
+                        await migrateSettingsToBackend(settings);
+                        showNotification('Settings migrated to persistent storage', 'info');
+                    }
+                }
+
+                // Database settings
+                if (settings.database) {
+                    document.getElementById('settingsDatabasePath').value = settings.database.path || '/data/channelidentifiarr.db';
+                } else {
+                    document.getElementById('settingsDatabasePath').value = '/data/channelidentifiarr.db';
+                }
+
+                // Dispatcharr settings
+                if (settings.dispatcharr) {
+                    document.getElementById('settingsDispatcharrUrl').value = settings.dispatcharr.url || '';
+                    document.getElementById('settingsDispatcharrUsername').value = settings.dispatcharr.username || '';
+                    document.getElementById('settingsDispatcharrPassword').value = settings.dispatcharr.password || '';
+                }
+
+                // Emby settings
+                if (settings.emby) {
+                    document.getElementById('settingsEmbyUrl').value = settings.emby.url || '';
+                    document.getElementById('settingsEmbyUsername').value = settings.emby.username || '';
+                    document.getElementById('settingsEmbyPassword').value = settings.emby.password || '';
+                }
+
+                // Matching preferences
+                if (settings.matching) {
+                    document.getElementById('applyStationId').checked = settings.matching.applyStationId !== false;
+                    document.getElementById('applyChannelName').checked = settings.matching.applyChannelName === true;
+                    document.getElementById('applyCallSign').checked = settings.matching.applyCallSign === true;
+                    document.getElementById('applyLogo').checked = settings.matching.applyLogo !== false;
+                }
+
+                // Update tab visibility
+                await updateTabVisibility();
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                showNotification('Error loading settings: ' + error.message, 'error');
+            }
+        }
+
+        async function migrateSettingsToBackend(settings) {
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    // Clear localStorage after successful migration
+                    localStorage.removeItem('channelIdentifiarrSettings');
+                    console.log('Settings migrated successfully');
+                }
+            } catch (error) {
+                console.error('Error migrating settings:', error);
+            }
+        }
+
+        async function saveAllSettings() {
             const settings = {
                 database: {
                     path: document.getElementById('settingsDatabasePath').value
@@ -2250,17 +2304,32 @@
                 }
             };
 
-            localStorage.setItem('channelIdentifiarrSettings', JSON.stringify(settings));
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
 
-            // Update tab visibility
-            updateTabVisibility();
-
-            showNotification('Settings saved successfully! Note: Database path changes require backend restart.', 'success');
+                if (response.ok) {
+                    // Update tab visibility
+                    await updateTabVisibility();
+                    showNotification('Settings saved successfully! Note: Database path changes require backend restart.', 'success');
+                } else {
+                    const error = await response.json();
+                    showNotification('Error saving settings: ' + (error.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showNotification('Error saving settings: ' + error.message, 'error');
+            }
         }
 
-        function updateTabVisibility() {
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
-            console.log('updateTabVisibility - settings:', settings);
+        async function updateTabVisibility() {
+            try {
+                const response = await fetch('/api/settings');
+                const settings = response.ok ? await response.json() : {};
+                console.log('updateTabVisibility - settings:', settings);
 
             // Show/hide Dispatcharr tab
             const dispatcharrButton = document.getElementById('dispatcharrTabButton');
@@ -2286,6 +2355,9 @@
             } else {
                 embyButton.style.display = 'none';
                 console.log('Hiding Emby tab');
+            }
+            } catch (error) {
+                console.error('Error updating tab visibility:', error);
             }
         }
 
@@ -2483,7 +2555,7 @@
         }
 
         async function acceptMatch(stationId, channel) {
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
                 showNotification('Please configure Dispatcharr settings first!');
@@ -2644,7 +2716,7 @@
                 await loadDispatcharrChannels();
             }
 
-            const settings = JSON.parse(localStorage.getItem('channelIdentifiarrSettings') || '{}');
+            const settings = await getSettings();
 
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
                 showNotification('Please configure Dispatcharr settings first!');
