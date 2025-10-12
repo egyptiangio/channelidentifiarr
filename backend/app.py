@@ -472,7 +472,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.3.2-alpha</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.4.0-beta</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -923,6 +923,8 @@ def dispatcharr_api_request(url, username, password, method, endpoint, data=None
             response = requests.post(full_url, headers=headers, json=data, timeout=30)
         elif method == 'PATCH':
             response = requests.patch(full_url, headers=headers, json=data, timeout=30)
+        elif method == 'DELETE':
+            response = requests.delete(full_url, headers=headers, timeout=30)
         else:
             return None, f"Unsupported method: {method}"
 
@@ -943,6 +945,8 @@ def dispatcharr_api_request(url, username, password, method, endpoint, data=None
                     response = requests.post(full_url, headers=headers, json=data, timeout=30)
                 elif method == 'PATCH':
                     response = requests.patch(full_url, headers=headers, json=data, timeout=30)
+                elif method == 'DELETE':
+                    response = requests.delete(full_url, headers=headers, timeout=30)
 
         if response.status_code in [200, 201, 204]:
             try:
@@ -1066,7 +1070,8 @@ def get_dispatcharr_channels():
                     'group_id': group_id,
                     'group_name': groups_map.get(group_id, f"Group {group_id}" if group_id else "Ungrouped"),
                     'logo_url': logos_map.get(logo_id, ''),
-                    'enabled': ch.get('enabled', True)
+                    'enabled': ch.get('enabled', True),
+                    'streams': ch.get('streams', [])  # Include streams array for UI indicator
                 }
                 channels.append(channel)
 
@@ -1081,6 +1086,83 @@ def get_dispatcharr_channels():
     except Exception as e:
         logger.error(f"Error fetching Dispatcharr channels: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/dispatcharr/channels/create', methods=['POST'])
+def create_dispatcharr_channel():
+    """Create a new channel in Dispatcharr"""
+    try:
+        data = request.json
+        url = data.get('url')
+        username = data.get('username')
+        password = data.get('password')
+        channel_data = data.get('channel')
+
+        if not all([url, username, password, channel_data]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Handle logo upload if logo_uri is provided
+        if 'logo_uri' in channel_data and channel_data['logo_uri']:
+            logo_url = channel_data.pop('logo_uri')  # Remove from channel_data
+            logo_name = channel_data.get('name', 'Unknown') + ' Logo'
+
+            # Create logo via Dispatcharr API
+            logo_data = {'name': logo_name, 'url': logo_url}
+            logo_result, logo_error = dispatcharr_api_request(
+                url, username, password, 'POST',
+                '/api/channels/logos/',
+                logo_data
+            )
+
+            if logo_result and logo_result.get('id'):
+                channel_data['logo_id'] = logo_result['id']
+                logger.info(f"Created logo ID {logo_result['id']} for {logo_name}")
+            elif logo_error:
+                logger.warning(f"Failed to create logo: {logo_error}")
+
+        # Create channel via Dispatcharr API
+        result, error = dispatcharr_api_request(
+            url, username, password, 'POST',
+            '/api/channels/channels/',
+            channel_data
+        )
+
+        if error:
+            return jsonify({'success': False, 'error': error}), 500
+
+        logger.info(f"Created channel: {channel_data.get('name')} (ID: {result.get('id')})")
+        return jsonify({'success': True, 'channel': result})
+
+    except Exception as e:
+        logger.error(f"Error creating Dispatcharr channel: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/dispatcharr/channels/<int:channel_id>/delete', methods=['DELETE'])
+def delete_dispatcharr_channel(channel_id):
+    """Delete a channel from Dispatcharr"""
+    try:
+        data = request.json
+        url = data.get('url')
+        username = data.get('username')
+        password = data.get('password')
+
+        if not all([url, username, password]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Delete channel via Dispatcharr API
+        result, error = dispatcharr_api_request(
+            url, username, password, 'DELETE',
+            f'/api/channels/channels/{channel_id}/'
+        )
+
+        if error:
+            return jsonify({'success': False, 'error': error}), 500
+
+        logger.info(f"Deleted channel ID: {channel_id}")
+        return jsonify({'success': True})
+
+    except Exception as e:
+        logger.error(f"Error deleting Dispatcharr channel: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/api/match/suggest', methods=['POST'])
 def suggest_matches():
@@ -1293,7 +1375,24 @@ def apply_match():
             update_data['tvg_id'] = station_data['call_sign'] or ''
 
         if apply_options.get('applyLogo', True) and station_data.get('logo_uri'):
-            update_data['logo'] = station_data['logo_uri']
+            # Create or find logo in Dispatcharr
+            logo_url = station_data['logo_uri']
+            logo_name = station_data.get('name', 'Unknown') + ' Logo'
+
+            # Create logo via Dispatcharr API
+            logo_data = {'name': logo_name, 'url': logo_url}
+            logo_result, logo_error = dispatcharr_api_request(
+                url=dispatcharr_config['url'],
+                username=dispatcharr_config['username'],
+                password=dispatcharr_config['password'],
+                method='POST',
+                endpoint='/api/channels/logos/',
+                data=logo_data
+            )
+
+            if logo_result and logo_result.get('id'):
+                update_data['logo_id'] = logo_result['id']
+                logger.info(f"Created logo ID {logo_result['id']} for {logo_name}")
 
         # Ensure we're updating at least one field
         if not update_data:
@@ -1470,7 +1569,9 @@ def get_dispatcharr_groups():
             for group in groups_data:
                 groups.append({
                     'id': group.get('id'),
-                    'name': group.get('name', 'Unknown')
+                    'name': group.get('name', 'Unknown'),
+                    'm3u_account_count': group.get('m3u_account_count', 0),
+                    'channel_count': group.get('channel_count', 0)
                 })
 
         return jsonify({'groups': groups})
@@ -1539,7 +1640,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.3.2-alpha"'
+            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.4.0-beta"'
         }
         auth_data = {
             'Username': username,
@@ -1943,7 +2044,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.3.2-alpha&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.4.0-beta&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:
@@ -1956,6 +2057,571 @@ def clear_emby_channel_numbers():
 
     except Exception as e:
         logger.error(f"Error clearing Emby channel numbers: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ============================================================================
+# STREAM MANAGEMENT ENDPOINTS
+# ============================================================================
+
+# ============================================================================
+# STREAM SEARCH - OPTIMIZED CONSTANTS AND PATTERNS
+# ============================================================================
+
+# Quality synonym mapping for stream matching
+QUALITY_SYNONYMS = {
+    'UHD': ['UHD', '4K', 'UHDTV', '2160P', '2160'],
+    'HD': ['HD', 'FHD', '1080P', '1080I', '720P', '720I', 'HDTV', 'FULL HD', '1080', '720'],
+    'SD': ['SD', '480P', '480I', 'SDTV', '480']
+}
+
+QUALITY_TO_GROUP = {}
+for group, synonyms in QUALITY_SYNONYMS.items():
+    for synonym in synonyms:
+        QUALITY_TO_GROUP[synonym.upper()] = group
+
+# Pre-compiled regex patterns for performance
+QUALITY_PATTERN = re.compile(
+    r'\b(' + '|'.join(re.escape(p) for synonyms in QUALITY_SYNONYMS.values() for p in synonyms) + r')\b',
+    re.IGNORECASE
+)
+PREFIX_PATTERN = re.compile(r'^(The|A|An)\s+', re.IGNORECASE)
+SUFFIX_PATTERN = re.compile(r'\s+(TV|Television|Channel)(?!\s*(UHD|4K|FHD|HD|SD))', re.IGNORECASE)
+SEPARATOR_PATTERN = re.compile(r'[|:►▶→»≫—–=]')
+
+# Quality extraction patterns (ordered most specific to least specific)
+QUALITY_EXTRACT_PATTERNS = [
+    re.compile(r'\b(UHDTV|2160P|2160)\b', re.IGNORECASE),
+    re.compile(r'\b(UHD|4K)\b', re.IGNORECASE),
+    re.compile(r'\b(FULL HD|1080P|1080I|1080)\b', re.IGNORECASE),
+    re.compile(r'\b(FHD)\b', re.IGNORECASE),
+    re.compile(r'\b(HDTV|720P|720I|720)\b', re.IGNORECASE),
+    re.compile(r'\b(HD)\b', re.IGNORECASE),
+    re.compile(r'\b(SDTV|480P|480I|480)\b', re.IGNORECASE),
+    re.compile(r'\b(SD)\b', re.IGNORECASE)
+]
+
+def extract_quality(text):
+    """Extract quality indicator from text (optimized with pre-compiled patterns)"""
+    if not text:
+        return None
+    text_upper = text.upper()
+    for pattern in QUALITY_EXTRACT_PATTERNS:
+        match = pattern.search(text_upper)
+        if match:
+            found = match.group(1)
+            return QUALITY_TO_GROUP.get(found, found)
+    return None
+
+def are_quality_synonyms(q1, q2):
+    """Check if two quality indicators are synonyms"""
+    if not q1 or not q2:
+        return q1 == q2
+    g1 = QUALITY_TO_GROUP.get(q1.upper(), q1.upper())
+    g2 = QUALITY_TO_GROUP.get(q2.upper(), q2.upper())
+    return g1 == g2
+
+def get_quality_priority(text):
+    """Get quality priority for ranking (higher is better)"""
+    text_upper = text.upper()
+    if any(q in text_upper for q in ['UHD', '4K', '2160']):
+        return 100
+    if any(q in text_upper for q in ['FHD', '1080']):
+        return 80
+    if any(q in text_upper for q in ['720', 'HDTV']):
+        return 70
+    if 'HD' in text_upper and 'FHD' not in text_upper and 'UHD' not in text_upper:
+        return 60
+    if extract_quality(text) == 'SD':
+        return 20
+    return 50
+
+def remove_quality_from_name(text):
+    """Remove quality indicators from text for base name comparison (optimized)"""
+    if not text:
+        return ''
+    # Use pre-compiled pattern for 10x performance improvement
+    result = QUALITY_PATTERN.sub('', text)
+    return ' '.join(result.split()).strip()
+
+def handle_compound_words(name):
+    """Handle compound words like 'SundanceTV' -> 'Sundance TV'"""
+    patterns = [
+        (r'(\w+)(TV)(\s|$)', r'\1 \2\3'),
+        (r'(\w+)(Channel)(\s|$)', r'\1 \2\3'),
+    ]
+    result = name
+    for pattern, replacement in patterns:
+        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
+    return result
+
+def generate_acronym(text):
+    """Generate acronym from text (for long names)"""
+    quality = extract_quality(text)
+    clean = remove_quality_from_name(text)
+    clean = re.sub(r'\b(TV|Television|Channel)\b', '', clean, flags=re.IGNORECASE)
+    words = [w for w in clean.split() if len(w) > 0]
+
+    if len(words) >= 3:
+        acronym = ''.join(w[0].upper() for w in words)
+        if quality:
+            return f"{acronym} {quality}"
+        return acronym
+    return None
+
+def calculate_stream_relevance(channel_name, stream_name, search_term=None):
+    """Calculate relevance score between channel and stream names"""
+    ch_quality = extract_quality(channel_name)
+    st_quality = extract_quality(stream_name)
+
+    # Quality mismatch - catastrophic
+    if ch_quality and st_quality:
+        if not are_quality_synonyms(ch_quality, st_quality):
+            return 0.25
+
+    # Remove qualities for base comparison
+    ch_clean = remove_quality_from_name(channel_name).upper()
+    st_clean = remove_quality_from_name(stream_name).upper()
+
+    # Remove separators
+    ch_clean = re.sub(r'[|:►▶→»≫—–=]', ' ', ch_clean)
+    st_clean = re.sub(r'[|:►▶→»≫—–=]', ' ', st_clean)
+    ch_clean = ' '.join(ch_clean.split())
+    st_clean = ' '.join(st_clean.split())
+
+    # Exact match
+    if ch_clean == st_clean:
+        return 1.0
+
+    # Acronym boost
+    if search_term and len(search_term) <= 5 and search_term.replace(' ', '').isupper():
+        search_base = remove_quality_from_name(search_term).strip()
+        if re.search(r'\b' + re.escape(search_base) + r'\b', st_clean):
+            return 0.95
+
+    # Contains entire channel name
+    if ch_clean in st_clean:
+        return 0.95
+    if st_clean in ch_clean:
+        return 0.90
+
+    # All significant words present
+    ch_words = set(w for w in ch_clean.split() if len(w) > 2)
+    st_words = set(w for w in st_clean.split() if len(w) > 2)
+
+    if ch_words and ch_words.issubset(st_words):
+        return 0.85
+
+    # Sequence matching
+    return SequenceMatcher(None, ch_clean, st_clean).ratio()
+
+def get_playlist_priority(m3u_account_id, preferred_playlists):
+    """Get priority boost for preferred playlists"""
+    if not preferred_playlists:
+        return 0
+
+    if m3u_account_id in preferred_playlists:
+        idx = preferred_playlists.index(m3u_account_id)
+        return 1000 - (idx * 100)
+
+    return 0
+
+def calculate_quality_match_bonus(channel_quality, stream_quality):
+    """
+    Calculate quality match bonus for stream ranking.
+    Returns: 1000 for exact match, 500 for no quality indicator, 0 for mismatch
+    """
+    if not channel_quality:
+        return 0
+    if are_quality_synonyms(channel_quality, stream_quality):
+        return 1000
+    if not stream_quality:
+        # Stream has no quality indicator - give partial bonus
+        return 500
+    return 0
+
+def score_stream(stream, channel_name, channel_quality, search_term, preferred_playlists):
+    """
+    Score a single stream for ranking (deduplicated scoring logic).
+    Returns dict with stream, scoring metrics, and total_score tuple.
+    """
+    relevance = calculate_stream_relevance(channel_name, stream['name'], search_term)
+    quality_priority = get_quality_priority(stream['name'])
+    playlist_priority = get_playlist_priority(stream.get('m3u_account'), preferred_playlists)
+    stream_quality = extract_quality(stream['name'])
+    quality_match_bonus = calculate_quality_match_bonus(channel_quality, stream_quality)
+
+    return {
+        'stream': stream,
+        'relevance': relevance,
+        'quality_priority': quality_priority,
+        'quality_match_bonus': quality_match_bonus,
+        'playlist_priority': playlist_priority,
+        'total_score': (relevance, quality_match_bonus, playlist_priority, quality_priority)
+    }
+
+# Search strategy transformations (pre-defined for performance)
+# All strategies strip quality first, then we prioritize by quality match in scoring
+def transform_base_name(name):
+    """Remove quality, prefix (The/A/An), and suffix (TV/Channel)"""
+    no_quality = remove_quality_from_name(name)
+    no_prefix = PREFIX_PATTERN.sub('', no_quality)
+    no_suffix = SUFFIX_PATTERN.sub('', no_prefix)
+    return no_suffix.strip()
+
+def transform_remove_prefix(name):
+    """Remove quality and prefix (The/A/An)"""
+    no_quality = remove_quality_from_name(name)
+    return PREFIX_PATTERN.sub('', no_quality).strip()
+
+def transform_remove_suffix(name):
+    """Remove quality and suffix (TV/Channel)"""
+    no_quality = remove_quality_from_name(name)
+    return SUFFIX_PATTERN.sub('', no_quality).strip()
+
+def transform_brand_descriptor(name):
+    """Take first 3 significant words (>2 chars) after removing quality"""
+    no_quality = remove_quality_from_name(name)
+    words = [w for w in no_quality.split() if len(w) > 2][:3]
+    return ' '.join(words)
+
+def transform_first_two_words(name):
+    """Take first 2 words after removing quality"""
+    no_quality = remove_quality_from_name(name)
+    return ' '.join(no_quality.split()[:2])
+
+def transform_exact_no_quality(name):
+    """Just remove quality, keep everything else"""
+    return remove_quality_from_name(name).strip()
+
+def transform_acronym(name):
+    """Generate acronym from name (without quality)"""
+    no_quality = remove_quality_from_name(name)
+    return generate_acronym(no_quality)
+
+# Pre-defined strategies (ordered from broadest to most specific)
+SEARCH_STRATEGIES = [
+    {'name': 'Base Name Only', 'transform': transform_base_name},
+    {'name': 'Remove The/A/An', 'transform': transform_remove_prefix},
+    {'name': 'No TV Suffix', 'transform': transform_remove_suffix},
+    {'name': 'Brand + Descriptor', 'transform': transform_brand_descriptor},
+    {'name': 'First Two Words', 'transform': transform_first_two_words},
+    {'name': 'Exact Match (No Quality)', 'transform': transform_exact_no_quality},
+    {'name': 'Acronym', 'transform': transform_acronym},
+]
+
+@app.route('/api/dispatcharr/m3u-accounts', methods=['POST'])
+def get_m3u_accounts():
+    """Get all M3U accounts/playlists"""
+    try:
+        creds = request.json
+        url = creds.get('url')
+        username = creds.get('username')
+        password = creds.get('password')
+
+        if not all([url, username, password]):
+            return jsonify({'error': 'Missing credentials'}), 400
+
+        accounts_data, error = dispatcharr_api_request(url, username, password, 'GET', '/api/m3u/accounts/')
+
+        if error:
+            return jsonify({'error': error}), 500
+
+        accounts = []
+        accounts_dict = {}
+        if accounts_data and isinstance(accounts_data, list):
+            for acc in accounts_data:
+                acc_id = acc.get('id')
+                acc_name = acc.get('name', f'Account {acc_id}')
+                accounts.append({
+                    'id': acc_id,
+                    'name': acc_name,
+                    'type': acc.get('account_type', 'Unknown')
+                })
+                accounts_dict[acc_id] = acc_name
+
+        return jsonify({'success': True, 'accounts': accounts_dict})
+
+    except Exception as e:
+        logger.error(f"Error fetching M3U accounts: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/dispatcharr/streams/search', methods=['POST'])
+def search_streams_standalone():
+    """Search for streams without requiring a channel ID (for create channel workflow)"""
+    try:
+        data = request.json
+        url = data.get('url')
+        username = data.get('username')
+        password = data.get('password')
+        channel_name = data.get('channel_name')
+        preferred_playlists = data.get('preferred_playlists', [])
+        max_results = data.get('max_results', 10)
+        search_mode = data.get('search_mode', 'auto')  # 'auto' or 'manual'
+
+        if not all([url, username, password, channel_name]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Normalize channel name
+        normalized_name = handle_compound_words(channel_name)
+        channel_quality = extract_quality(normalized_name)
+
+        logger.info(f"Searching streams for '{channel_name}' (mode: {search_mode}, normalized: '{normalized_name}', quality: {channel_quality})")
+
+        all_streams = []
+        used_strategy = None
+        API_PAGE_SIZE = 30  # Consistent page size for all searches
+
+        # Manual search: just use the exact term without transformation
+        if search_mode == 'manual':
+            search_term = channel_name.strip()
+
+            # Search via Dispatcharr API
+            streams_data, error = dispatcharr_api_request(
+                url, username, password, 'GET',
+                f'/api/channels/streams/?search={search_term}&page_size={API_PAGE_SIZE}'
+            )
+
+            if streams_data:
+                results = streams_data.get('results', []) if isinstance(streams_data, dict) else []
+                used_strategy = 'Manual Search'
+                logger.info(f"Manual search got {len(results)} results")
+
+                # Score each result
+                for stream in results[:API_PAGE_SIZE]:
+                    scored = score_stream(stream, channel_name, channel_quality, search_term, preferred_playlists)
+                    all_streams.append(scored)
+
+        else:
+            # Auto search: Try multiple search strategies
+            tried_terms = set()  # Track attempted searches to avoid duplicates
+
+            for strategy in SEARCH_STRATEGIES:
+                search_term = strategy['transform'](normalized_name)
+
+                # Skip invalid search terms
+                if not search_term or len(search_term) < 2:
+                    logger.debug(f"  Strategy '{strategy['name']}': Skipped (term too short or empty: '{search_term}')")
+                    continue
+
+                if search_term.upper() in ['UHD', '4K', 'FHD', 'HD', 'SD', 'TV', 'CHANNEL']:
+                    logger.debug(f"  Strategy '{strategy['name']}': Skipped (generic term: '{search_term}')")
+                    continue
+
+                # Skip if we've already tried this exact term
+                if search_term in tried_terms:
+                    logger.debug(f"  Strategy '{strategy['name']}': Skipped (duplicate of previous: '{search_term}')")
+                    continue
+                tried_terms.add(search_term)
+
+                logger.info(f"  Strategy '{strategy['name']}': Trying search term '{search_term}'")
+
+                # Search via Dispatcharr API
+                streams_data, error = dispatcharr_api_request(
+                    url, username, password, 'GET',
+                    f'/api/channels/streams/?search={search_term}&page_size={API_PAGE_SIZE}'
+                )
+
+                if error or not streams_data:
+                    logger.warning(f"  Strategy '{strategy['name']}': API error or no data (error: {error})")
+                    continue
+
+                results = streams_data.get('results', []) if isinstance(streams_data, dict) else []
+                logger.info(f"  Strategy '{strategy['name']}': Got {len(results)} raw results from API")
+
+                if results:
+                    used_strategy = strategy['name']
+                    # Score each result
+                    for stream in results[:API_PAGE_SIZE]:
+                        scored = score_stream(stream, channel_name, channel_quality, search_term, preferred_playlists)
+                        all_streams.append(scored)
+
+                    logger.info(f"  Strategy '{strategy['name']}': Added {len(all_streams)} streams")
+
+                    # Break after first successful strategy
+                    if all_streams:
+                        break
+
+        # Sort by total score
+        all_streams.sort(key=lambda x: x['total_score'], reverse=True)
+
+        logger.info(f"Search complete: Found {len(all_streams)} streams, returning top {min(len(all_streams), max_results)} (strategy: {used_strategy})")
+
+        return jsonify({
+            'success': True,
+            'strategy': used_strategy,
+            'total_found': len(all_streams),
+            'results': all_streams[:max_results]
+        })
+
+    except Exception as e:
+        logger.error(f"Error searching streams: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/dispatcharr/channels/<int:channel_id>/search-streams', methods=['POST'])
+def search_streams_for_channel(channel_id):
+    """Search for matching streams for a channel"""
+    try:
+        data = request.json
+        url = data.get('url')
+        username = data.get('username')
+        password = data.get('password')
+        channel_name = data.get('channel_name')
+        preferred_playlists = data.get('preferred_playlists', [])
+        max_results = data.get('max_results', 10)
+        search_mode = data.get('search_mode', 'auto')  # 'auto' or 'manual'
+
+        if not all([url, username, password, channel_name]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        # Normalize channel name
+        normalized_name = handle_compound_words(channel_name)
+        channel_quality = extract_quality(normalized_name)
+
+        logger.info(f"Searching streams for channel '{channel_name}' (mode: {search_mode}, normalized: '{normalized_name}', quality: {channel_quality})")
+
+        all_streams = []
+        used_strategy = None
+        API_PAGE_SIZE = 30  # Consistent page size for all searches
+
+        # Manual search: just use the exact term without transformation
+        if search_mode == 'manual':
+            search_term = channel_name.strip()
+
+            # Search via Dispatcharr API
+            streams_data, error = dispatcharr_api_request(
+                url, username, password, 'GET',
+                f'/api/channels/streams/?search={search_term}&page_size={API_PAGE_SIZE}'
+            )
+
+            if streams_data:
+                results = streams_data.get('results', []) if isinstance(streams_data, dict) else []
+                used_strategy = 'Manual Search'
+                logger.info(f"Manual search got {len(results)} results")
+
+                # Log first stream's keys for debugging (use debug level for less verbosity)
+                if results and len(results) > 0:
+                    logger.debug(f"  Sample stream keys: {list(results[0].keys())}")
+
+                # Score each result using deduplicated helper function
+                for stream in results[:API_PAGE_SIZE]:
+                    scored = score_stream(stream, channel_name, channel_quality, search_term, preferred_playlists)
+                    all_streams.append(scored)
+
+        else:
+            # Auto search: Try multiple search strategies (pre-defined, ordered from broadest to most specific)
+            # ALL strategies strip quality first, then we prioritize by quality match in scoring
+            tried_terms = set()  # Track attempted searches to avoid duplicates
+
+            for strategy in SEARCH_STRATEGIES:
+                search_term = strategy['transform'](normalized_name)
+
+                # Skip invalid search terms
+                if not search_term or len(search_term) < 2:
+                    logger.debug(f"  Strategy '{strategy['name']}': Skipped (term too short or empty: '{search_term}')")
+                    continue
+
+                if search_term.upper() in ['UHD', '4K', 'FHD', 'HD', 'SD', 'TV', 'CHANNEL']:
+                    logger.debug(f"  Strategy '{strategy['name']}': Skipped (generic term: '{search_term}')")
+                    continue
+
+                # Skip if we've already tried this exact term
+                if search_term in tried_terms:
+                    logger.debug(f"  Strategy '{strategy['name']}': Skipped (duplicate of previous: '{search_term}')")
+                    continue
+                tried_terms.add(search_term)
+
+                logger.info(f"  Strategy '{strategy['name']}': Trying search term '{search_term}'")
+
+                # Search via Dispatcharr API
+                streams_data, error = dispatcharr_api_request(
+                    url, username, password, 'GET',
+                    f'/api/channels/streams/?search={search_term}&page_size={API_PAGE_SIZE}'
+                )
+
+                if error or not streams_data:
+                    logger.warning(f"  Strategy '{strategy['name']}': API error or no data (error: {error})")
+                    continue
+
+                results = streams_data.get('results', []) if isinstance(streams_data, dict) else []
+                logger.info(f"  Strategy '{strategy['name']}': Got {len(results)} raw results from API")
+
+                # Log first stream's keys for debugging (use debug level for less verbosity)
+                if results and len(results) > 0:
+                    logger.debug(f"  Sample stream keys: {list(results[0].keys())}")
+
+                if results:
+                    used_strategy = strategy['name']
+                    # Score each result using deduplicated helper function
+                    for stream in results[:API_PAGE_SIZE]:
+                        scored = score_stream(stream, channel_name, channel_quality, search_term, preferred_playlists)
+                        all_streams.append(scored)
+
+                    logger.info(f"  Strategy '{strategy['name']}': Added {len(all_streams)} streams")
+
+                    # Break after first successful strategy (can be disabled for multi-strategy aggregation)
+                    if all_streams:
+                        break
+
+        # Sort by total score
+        all_streams.sort(key=lambda x: x['total_score'], reverse=True)
+
+        logger.info(f"Search complete: Found {len(all_streams)} streams, returning top {min(len(all_streams), max_results)} (strategy: {used_strategy})")
+
+        return jsonify({
+            'success': True,
+            'strategy': used_strategy,
+            'total_found': len(all_streams),
+            'results': all_streams[:max_results]
+        })
+
+    except Exception as e:
+        logger.error(f"Error searching streams: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/dispatcharr/channels/<int:channel_id>/streams', methods=['POST'])
+def manage_channel_streams(channel_id):
+    """Get or update streams for a channel"""
+    try:
+        data = request.json
+        url = data.get('url')
+        username = data.get('username')
+        password = data.get('password')
+
+        if not all([url, username, password]):
+            return jsonify({'error': 'Missing credentials'}), 400
+
+        # Check if this is a GET (fetch) or UPDATE (save) operation
+        if 'stream_ids' in data:
+            # Update stream order
+            stream_ids = data.get('stream_ids', [])
+
+            # Update via PATCH to channel
+            update_data = {'streams': stream_ids}
+            result, error = dispatcharr_api_request(
+                url, username, password, 'PATCH',
+                f'/api/channels/channels/{channel_id}/',
+                update_data
+            )
+
+            if error:
+                return jsonify({'error': error}), 500
+
+            return jsonify({'success': True, 'channel': result})
+        else:
+            # Get streams in priority order
+            # Use the streams sub-endpoint for correct order
+            streams_data, error = dispatcharr_api_request(
+                url, username, password, 'GET',
+                f'/api/channels/channels/{channel_id}/streams/'
+            )
+
+            if error:
+                return jsonify({'error': error}), 500
+
+            return jsonify({'success': True, 'streams': streams_data})
+
+    except Exception as e:
+        logger.error(f"Error managing channel streams: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ============================================================================

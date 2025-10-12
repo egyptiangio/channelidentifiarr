@@ -61,7 +61,14 @@ settings.json
 # Temporary files
 *.tmp
 *.bak
+*.backup
+*.old
 *.cache
+
+# Planning and roadmap documents
+*_PLAN.md
+*roadmap*
+*ROADMAP*
 
 # OS
 Thumbs.db
