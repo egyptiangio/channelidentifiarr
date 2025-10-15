@@ -167,16 +167,16 @@
             flex: 1;
         }
 
-        input, select, button {
+        input, select, button, textarea {
             padding: 8px 14px;
             border-radius: 6px;
-            border: 1px solid #333;
-            background: #2a2a2a;
-            color: #e0e0e0;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
             font-size: 14px;
         }
 
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -398,6 +398,15 @@
             }
         }
 
+        @keyframes progress-slide {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 100% 0%;
+            }
+        }
+
         .error {
             background: rgba(244, 67, 54, 0.1);
             border: 1px solid rgba(244, 67, 54, 0.3);
@@ -564,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.4.0-beta</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.0</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -677,13 +686,64 @@
         <!-- Channel Matching Tab Content -->
         <!-- Settings Tab Content -->
         <div id="settingsTab" class="tab-content" style="display: none;">
-            <div class="settings-section">
-                <h2>⚙️ Settings</h2>
-                <p style="color: #999; margin-bottom: 30px;">Configure your connections and preferences</p>
+            <div style="display: flex; gap: 20px; max-width: 1400px; margin: 0 auto;">
+                <!-- Settings Sidebar -->
+                <div style="width: 220px; flex-shrink: 0;">
+                    <div style="position: sticky; top: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 15px;">
+                        <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1rem;">⚙️ Settings</h3>
+                        <nav style="display: flex; flex-direction: column; gap: 4px;">
+                            <!-- Database -->
+                            <a href="#settings-database" onclick="scrollToSetting('settings-database')" style="padding: 8px 12px; border-radius: 6px; text-decoration: none; color: #999; transition: all 0.2s; display: block; font-size: 0.9rem;" onmouseover="this.style.background='rgba(102, 126, 234, 0.2)'; this.style.color='#667eea';" onmouseout="this.style.background=''; this.style.color='#999';">
+                                💾 Database
+                            </a>
 
-                <!-- Database Settings -->
-                <div class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                    <h3>💾 Database Configuration</h3>
+                            <!-- Dispatcharr -->
+                            <a href="#settings-dispatcharr" onclick="scrollToSetting('settings-dispatcharr')" style="padding: 8px 12px; border-radius: 6px; text-decoration: none; color: #fff; transition: all 0.2s; display: block; font-size: 0.9rem; font-weight: 500;" onmouseover="this.style.background='rgba(102, 126, 234, 0.2)';" onmouseout="this.style.background='';">
+                                📡 Dispatcharr
+                            </a>
+                            <div style="padding-left: 20px; display: flex; flex-direction: column; gap: 2px;">
+                                <a href="#settings-dispatcharr-login" onclick="scrollToSetting('settings-dispatcharr-login')" style="padding: 6px 10px; border-radius: 4px; text-decoration: none; color: #999; transition: all 0.2s; display: block; font-size: 0.8rem;" onmouseover="this.style.background='rgba(102, 126, 234, 0.15)'; this.style.color='#667eea';" onmouseout="this.style.background=''; this.style.color='#999';">
+                                    Login
+                                </a>
+                                <a href="#settings-dispatcharr-matching" onclick="scrollToSetting('settings-dispatcharr-matching')" style="padding: 6px 10px; border-radius: 4px; text-decoration: none; color: #999; transition: all 0.2s; display: block; font-size: 0.8rem;" onmouseover="this.style.background='rgba(102, 126, 234, 0.15)'; this.style.color='#667eea';" onmouseout="this.style.background=''; this.style.color='#999';">
+                                    Matching
+                                </a>
+                                <a href="#settings-dispatcharr-streams" onclick="scrollToSetting('settings-dispatcharr-streams')" style="padding: 6px 10px; border-radius: 4px; text-decoration: none; color: #999; transition: all 0.2s; display: block; font-size: 0.8rem;" onmouseover="this.style.background='rgba(102, 126, 234, 0.15)'; this.style.color='#667eea';" onmouseout="this.style.background=''; this.style.color='#999';">
+                                    Streams
+                                </a>
+                                <a href="#settings-dispatcharr-channel-creation" onclick="scrollToSetting('settings-dispatcharr-channel-creation')" style="padding: 6px 10px; border-radius: 4px; text-decoration: none; color: #999; transition: all 0.2s; display: block; font-size: 0.8rem;" onmouseover="this.style.background='rgba(102, 126, 234, 0.15)'; this.style.color='#667eea';" onmouseout="this.style.background=''; this.style.color='#999';">
+                                    Channel Creation
+                                </a>
+                                <a href="#settings-dispatcharr-groups" onclick="scrollToSetting('settings-dispatcharr-groups')" style="padding: 6px 10px; border-radius: 4px; text-decoration: none; color: #999; transition: all 0.2s; display: block; font-size: 0.8rem;" onmouseover="this.style.background='rgba(102, 126, 234, 0.15)'; this.style.color='#667eea';" onmouseout="this.style.background=''; this.style.color='#999';">
+                                    Groups
+                                </a>
+                            </div>
+
+                            <!-- Emby -->
+                            <a href="#settings-emby" onclick="scrollToSetting('settings-emby')" style="padding: 8px 12px; border-radius: 6px; text-decoration: none; color: #fff; transition: all 0.2s; display: block; font-size: 0.9rem; font-weight: 500; margin-top: 4px;" onmouseover="this.style.background='rgba(102, 126, 234, 0.2)';" onmouseout="this.style.background='';">
+                                📺 Emby
+                            </a>
+                            <div style="padding-left: 20px; display: flex; flex-direction: column; gap: 2px;">
+                                <a href="#settings-emby-login" onclick="scrollToSetting('settings-emby-login')" style="padding: 6px 10px; border-radius: 4px; text-decoration: none; color: #999; transition: all 0.2s; display: block; font-size: 0.8rem;" onmouseover="this.style.background='rgba(102, 126, 234, 0.15)'; this.style.color='#667eea';" onmouseout="this.style.background=''; this.style.color='#999';">
+                                    Login
+                                </a>
+                            </div>
+                        </nav>
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <button onclick="saveAllSettings()" class="btn-primary" style="width: 100%;">💾 Save All</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Content -->
+                <div style="flex: 1; overflow-y: auto;">
+                    <div style="margin-bottom: 30px;">
+                        <p style="color: #999;">Configure your connections and preferences</p>
+                    </div>
+
+                    <!-- Database Settings -->
+                    <div id="settings-database" class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px; scroll-margin-top: 20px;">
+                        <h3>💾 Database Configuration</h3>
                     <div style="margin-top: 15px;">
                         <label style="display: block; margin-bottom: 5px; color: #999;">Database Path:</label>
                         <input type="text" id="settingsDatabasePath" placeholder="/data/channelidentifiarr.db" value="/data/channelidentifiarr.db" style="width: 100%;">
@@ -693,13 +753,53 @@
                         <button onclick="testDatabaseConnection()" class="btn-secondary">🔗 Test Database</button>
                         <span id="databaseTestResult" style="margin-left: 15px;"></span>
                     </div>
+
+                    <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+
+                    <h4 style="margin-bottom: 10px; font-size: 1rem; color: #999;">Database Updates</h4>
+                    <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">Check for and download updated databases from remote maintainers.</p>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #999;">Remote Database URL:</label>
+                        <input type="text" id="settingsRemoteDatabaseUrl" placeholder="https://example.com/channelidentifiarr.db" style="width: 100%;">
+                        <p style="color: #666; font-size: 0.85rem; margin-top: 5px;">URL to remote database file. A JSON metadata file (channelidentifiarr.json) must be available in the same directory.</p>
+                    </div>
+
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                            <div>
+                                <div style="font-size: 0.85rem; color: #999; margin-bottom: 5px;">Local Version:</div>
+                                <div id="localDbVersion" style="font-size: 1rem; font-weight: bold; color: #4a9eff;">Loading...</div>
+                                <div id="localDbDate" style="font-size: 0.8rem; color: #666; margin-top: 2px;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.85rem; color: #999; margin-bottom: 5px;">Remote Version:</div>
+                                <div id="remoteDbVersion" style="font-size: 1rem; font-weight: bold; color: #666;">-</div>
+                                <div id="remoteDbDate" style="font-size: 0.8rem; color: #666; margin-top: 2px;">-</div>
+                                <div id="remoteDbSize" style="font-size: 0.8rem; color: #666; margin-top: 2px;">-</div>
+                            </div>
+                        </div>
+                        <div id="updateStatus" style="font-size: 0.9rem; color: #4a9eff; text-align: center;"></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                        <button onclick="checkForDatabaseUpdate()" class="btn-secondary" id="btnCheckUpdate">🔍 Check for Updates</button>
+                        <button onclick="downloadDatabaseUpdate()" class="btn-primary" id="btnDownloadUpdate" disabled style="opacity: 0.5;">⬇️ Download Update</button>
+                        <button onclick="restoreDatabaseBackup()" class="btn-secondary" id="btnRestoreBackup">🔙 Restore Backup</button>
+                    </div>
+                    <div id="downloadProgress" style="margin-top: 15px; display: none;">
+                        <div style="background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; height: 24px; position: relative;">
+                            <div id="downloadProgressBar" style="background: linear-gradient(90deg, #4a9eff, #6bb6ff); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                            <div id="downloadProgressText" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.85rem; font-weight: bold;">0%</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Dispatcharr Settings -->
-                <div class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <div id="settings-dispatcharr" class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px; scroll-margin-top: 20px;">
                     <h3>📡 Dispatcharr Settings</h3>
 
-                    <h4 style="margin-top: 20px; margin-bottom: 10px; font-size: 1rem; color: #999;">Connection Settings</h4>
+                    <h4 id="settings-dispatcharr-login" style="margin-top: 20px; margin-bottom: 10px; font-size: 1rem; color: #999; scroll-margin-top: 80px;">Connection Settings</h4>
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; color: #999;">Server URL:</label>
                         <input type="text" id="settingsDispatcharrUrl" placeholder="http://192.168.1.100:9191" style="width: 100%;">
@@ -722,7 +822,7 @@
 
                     <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
 
-                    <h4 style="margin-bottom: 10px; font-size: 1rem; color: #999;">Matching Preferences</h4>
+                    <h4 id="settings-dispatcharr-matching" style="margin-bottom: 10px; font-size: 1rem; color: #999; scroll-margin-top: 80px;">Matching Preferences</h4>
                     <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">Select which fields to update when applying a match:</p>
                     <div>
                         <label style="display: flex; align-items: center; margin-bottom: 10px;">
@@ -745,7 +845,7 @@
 
                     <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
 
-                    <h4 style="margin-bottom: 10px; font-size: 1rem; color: #999;">Stream Management</h4>
+                    <h4 id="settings-dispatcharr-streams" style="margin-bottom: 10px; font-size: 1rem; color: #999; scroll-margin-top: 80px;">Stream Management</h4>
                     <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">Configure stream search and matching behavior:</p>
 
                     <div style="margin-bottom: 15px;">
@@ -768,13 +868,75 @@
                             🔄 Refresh Playlists
                         </button>
                     </div>
+
+                    <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+
+                    <h4 id="settings-dispatcharr-channel-creation" style="margin-bottom: 10px; font-size: 1rem; color: #999; scroll-margin-top: 80px;">Channel Creation Defaults</h4>
+                    <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">Configure default settings for creating new channels:</p>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 8px; color: #999; font-weight: 500;">Default Group for New Channels:</label>
+
+                        <!-- Current default group display -->
+                        <div id="currentDefaultGroupDisplay" style="background: rgba(74, 158, 255, 0.08); border: 1px solid rgba(74, 158, 255, 0.2); padding: 10px 12px; border-radius: 6px; margin-bottom: 12px;">
+                            <div style="font-size: 0.75rem; color: #999; margin-bottom: 3px;">Current default:</div>
+                            <div id="currentDefaultGroupName" style="font-size: 0.95rem; color: #4a9eff;">No Default Set</div>
+                        </div>
+
+                        <!-- Group selector -->
+                        <input type="text" id="settingsDefaultGroupFilter" placeholder="Type to search groups..." style="width: 100%; margin-bottom: 8px;" oninput="filterDefaultGroupSelector()">
+                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
+                            <input type="checkbox" id="settingsDefaultGroupShowCustomOnly" onchange="filterDefaultGroupSelector()" style="margin-right: 8px;">
+                            <span style="font-size: 0.9rem; color: #999;">Show only custom groups (no M3U)</span>
+                        </label>
+                        <select id="settingsDefaultGroup" size="6" style="width: 100%; padding: 10px; border-radius: 4px; max-height: 180px; font-size: 0.95rem;" onchange="updateDefaultGroupDisplay()">
+                            <option value="">-- No Default --</option>
+                        </select>
+                        <div id="settingsDefaultGroupStatus" style="font-size: 0.85rem; color: #4a9eff; margin-top: 8px; font-weight: 500;"></div>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #999;">Smart Ranges:</label>
+                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">
+                            Define channel number ranges with automatic group assignment. When creating a channel in a range, the associated group will be auto-assigned.
+                        </div>
+                        <div id="customRangesList" style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 6px; min-height: 60px; margin-bottom: 10px;">
+                            <div style="text-align: center; color: #666; padding: 10px; font-size: 0.85rem;">
+                                No Smart Ranges defined
+                            </div>
+                        </div>
+                        <button onclick="openCustomRangesModal()" class="btn-secondary" style="width: 100%;">
+                            ⚙️ Manage Smart Ranges
+                        </button>
+                    </div>
+
+                    <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
+
+                    <h4 id="settings-dispatcharr-groups" style="margin-bottom: 10px; font-size: 1rem; color: #999; scroll-margin-top: 80px;">Manage Groups</h4>
+                    <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">
+                        View and delete channel groups. Groups can only be deleted if they have no channels and no M3U playlist associations.
+                    </p>
+                    <div id="manageGroupsList" style="background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 6px; min-height: 60px; margin-bottom: 10px;">
+                        <div style="text-align: center; color: #666; padding: 10px; font-size: 0.85rem;">
+                            Loading groups...
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="openCreateGroupInManagement()" class="btn-primary" style="flex: 1;">
+                            ➕ Create Group
+                        </button>
+                        <button onclick="loadGroupsForManagement()" class="btn-secondary" style="flex: 1;">
+                            🔄 Refresh
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Emby Settings -->
-                <div class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <div id="settings-emby" class="settings-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px; scroll-margin-top: 20px;">
                     <h3>📺 Emby Settings</h3>
 
-                    <div style="margin-bottom: 15px; margin-top: 20px;">
+                    <h4 id="settings-emby-login" style="margin-top: 20px; margin-bottom: 10px; font-size: 1rem; color: #999; scroll-margin-top: 80px;">Connection Settings</h4>
+                    <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; color: #999;">Server URL:</label>
                         <input type="text" id="settingsEmbyUrl" placeholder="http://192.168.1.100:8096" style="width: 100%;">
                         <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">Include port in URL (default: 8096)</div>
@@ -795,12 +957,9 @@
                     </div>
                 </div>
 
-                <!-- Save Settings -->
-                <div style="text-align: center; margin-top: 30px;">
-                    <button onclick="saveAllSettings()" class="btn-primary" style="padding: 15px 40px; font-size: 1.1rem;">💾 Save All Settings</button>
-                </div>
-            </div>
-        </div>
+                </div><!-- End Settings Content -->
+            </div><!-- End Settings Container -->
+        </div><!-- End Settings Tab -->
 
         <!-- Dispatcharr Tab Content -->
         <div id="dispatcharrTab" class="tab-content">
@@ -815,6 +974,8 @@
             <div class="dispatcharr-section">
                 <h2>📡 Dispatcharr Channels</h2>
                 <div class="dispatcharr-controls" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+                    <button onclick="openCreateCustomChannelModal()" class="btn-primary">➕ Create Channel</button>
+                    <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
                     <button onclick="loadDispatcharrChannels()">🔄 Refresh Channels</button>
                     <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
                     <span style="color: #999; font-size: 0.9rem;">Select:</span>
@@ -886,7 +1047,7 @@
                         <div style="display: grid; gap: 15px;">
                             <div>
                                 <label style="display: block; margin-bottom: 5px; color: #ccc;">Country:</label>
-                                <select id="embyCountrySelect" style="width: 100%; padding: 8px; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; color: #fff;">
+                                <select id="embyCountrySelect" style="width: 100%; padding: 8px; border-radius: 4px;">
                                     <option value="">Any Country</option>
                                     <option value="USA" selected>USA - United States</option>
                                     <option value="CAN">CAN - Canada</option>
@@ -911,7 +1072,7 @@
 
                             <div>
                                 <label style="display: block; margin-bottom: 5px; color: #ccc;">ZIP/Postal Code:</label>
-                                <input type="text" id="embyZipcode" placeholder="e.g., 90210" style="width: 100%; padding: 8px; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; color: #fff;">
+                                <input type="text" id="embyZipcode" placeholder="e.g., 90210" style="width: 100%; padding: 8px; border-radius: 4px;">
                                 <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">Lineups matching this location will be preferred</div>
                             </div>
                         </div>
@@ -997,9 +1158,9 @@
                         <label style="display: block; margin-bottom: 5px; color: #999;">Channel Number:</label>
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                             <input type="number" id="createChannelNumber" placeholder="e.g. 101" style="flex: 1; min-width: 120px;" step="0.1">
+                            <button onclick="openRangeSelector()" class="btn-secondary" style="padding: 8px 12px; white-space: nowrap;">📊 Smart Range</button>
                             <button onclick="suggestChannelNumber('first')" class="btn-secondary" style="padding: 8px 12px; white-space: nowrap;">First Available</button>
                             <button onclick="suggestChannelNumber('next')" class="btn-secondary" style="padding: 8px 12px; white-space: nowrap;">Highest + 1</button>
-                            <button onclick="openRangeSelector()" class="btn-secondary" style="padding: 8px 12px; white-space: nowrap;">📊 Range</button>
                         </div>
                         <div id="channelNumberSuggestion" style="font-size: 0.85rem; color: #999; margin-top: 5px;"></div>
                     </div>
@@ -1008,11 +1169,25 @@
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; color: #999;">Group: <span style="color: #ff6b6b;">*</span></label>
                         <input type="text" id="createChannelGroupFilter" placeholder="Type to filter groups..." style="width: 100%; margin-bottom: 8px;" oninput="filterGroupsInCreate()">
+
+                        <!-- Create New Group Button -->
+                        <button onclick="toggleCreateGroupForm()" class="btn-secondary" style="width: 100%; margin-bottom: 8px; font-size: 0.9rem;">➕ Create New Group</button>
+
+                        <!-- Inline Group Creation Form (hidden by default) -->
+                        <div id="inlineGroupCreateForm" style="display: none; background: rgba(102, 126, 234, 0.1); border: 1px solid #667eea; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="newGroupName" placeholder="Enter group name (e.g., NEWS)" style="flex: 1;" onkeypress="if(event.key==='Enter') createGroupInline()">
+                                <button onclick="createGroupInline()" class="btn-primary" style="padding: 8px 16px; white-space: nowrap;">Create</button>
+                                <button onclick="cancelCreateGroupInline()" class="btn-secondary" style="padding: 8px 16px;">Cancel</button>
+                            </div>
+                            <div id="inlineGroupStatus" style="font-size: 0.85rem; margin-top: 8px;"></div>
+                        </div>
+
                         <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
                             <input type="checkbox" id="createChannelShowCustomOnly" onchange="filterGroupsInCreate()" style="margin-right: 8px;">
                             <span style="font-size: 0.9rem; color: #999;">Show only custom groups (no M3U associations)</span>
                         </label>
-                        <select id="createChannelGroup" size="5" style="width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; border-radius: 4px; color: #fff; max-height: 150px;">
+                        <select id="createChannelGroup" size="5" style="width: 100%; padding: 10px; border-radius: 4px; max-height: 150px;">
                         </select>
                         <div id="groupFilterStatus" style="font-size: 0.85rem; color: #999; margin-top: 5px;"></div>
                     </div>
@@ -1020,7 +1195,7 @@
                     <!-- Gracenote ID (Read-only) -->
                     <div style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 5px; color: #999;">Gracenote ID:</label>
-                        <input type="text" id="createChannelGracenoteId" readonly style="width: 100%; background: #1a1a1a; cursor: not-allowed;">
+                        <input type="text" id="createChannelGracenoteId" readonly style="width: 100%; opacity: 0.6; cursor: not-allowed;">
                     </div>
 
                     <!-- TVG-ID -->
@@ -1078,7 +1253,7 @@
     <!-- Matching Modal Overlay -->
     <div id="matchingModal" class="modal" style="display: none;">
         <div class="modal-content" style="width: 90%; max-width: 900px;">
-            <div class="modal-header" style="position: sticky; top: 0; background: #1a1a2e; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div class="modal-header" style="position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <div class="modal-title">🎯 Channel Matching</div>
                 <button class="close-button" onclick="closeMatchingModal()">×</button>
             </div>
@@ -1195,22 +1370,97 @@
             </div>
             <div style="padding: 20px;">
                 <div style="margin-bottom: 20px;">
-                    <h3 style="margin-top: 0; margin-bottom: 15px; color: #999;">Suggested Ranges</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 15px; color: #999;">Your Smart Ranges</h3>
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 10px;">
+                        Select a range to auto-fill channel number and assign group
+                    </div>
                     <div id="suggestedRangesList" style="display: grid; gap: 10px;">
                         <!-- Populated by JavaScript -->
                     </div>
                 </div>
 
                 <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                    <h3 style="margin-top: 0; margin-bottom: 15px; color: #999;">Custom Range</h3>
+                    <h3 style="margin-top: 0; margin-bottom: 15px; color: #999;">One-Time Range</h3>
+                    <div style="font-size: 0.85rem; color: #666; margin-bottom: 10px;">
+                        Enter a one-time range for this channel only (won't auto-assign group)
+                    </div>
                     <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 10px;">
                         <input type="number" id="customRangeStart" placeholder="Start (e.g. 5001)" step="1" min="1">
                         <span style="color: #999;">to</span>
                         <input type="number" id="customRangeEnd" placeholder="End (e.g. 6000)" step="1" min="1">
                     </div>
-                    <button onclick="applyCustomRange()" class="btn-primary" style="width: 100%; margin-bottom: 10px;">Apply Custom Range</button>
+                    <button onclick="applyCustomRange()" class="btn-primary" style="width: 100%; margin-bottom: 10px;">Apply Range</button>
                     <div id="customRangeStatus" style="font-size: 0.85rem; color: #999;"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Group Modal -->
+    <div id="editGroupModal" class="modal" style="display: none; z-index: 2000;">
+        <div class="modal-content" style="width: 90%; max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title">✏️ Edit Group</div>
+                <button class="close-button" onclick="closeEditGroupModal()">×</button>
+            </div>
+            <div style="padding: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #999;">Group Name:</label>
+                    <input type="text" id="editGroupName" placeholder="Enter group name" style="width: 100%;">
+                </div>
+                <div id="editGroupInfo" style="font-size: 0.85rem; color: #999; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+                    <!-- Info will be populated by JS -->
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="saveGroupEdit()" class="btn-primary" style="flex: 1;">💾 Save</button>
+                    <button onclick="closeEditGroupModal()" class="btn-secondary" style="flex: 1;">Cancel</button>
+                </div>
+                <div id="editGroupStatus" style="margin-top: 10px; font-size: 0.85rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Ranges Management Modal -->
+    <div id="customRangesModal" class="modal" style="display: none; z-index: 2000;">
+        <div class="modal-content" style="width: 90%; max-width: 800px; max-height: 80vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div class="modal-title">📊 Manage Smart Ranges</div>
+                <button class="close-button" onclick="closeCustomRangesModal()">×</button>
+            </div>
+            <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #999; font-size: 0.9rem;">Define channel number ranges with automatic group assignment. Ranges are automatically linked to groups by matching names.</p>
+                </div>
+
+                <!-- Existing Ranges List -->
+                <div id="customRangesModalList" style="margin-bottom: 20px;">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Add New Range Section -->
+                <div style="background: rgba(102, 126, 234, 0.1); border: 1px solid #667eea; padding: 15px; border-radius: 8px;">
+                    <h4 style="margin-top: 0; margin-bottom: 15px; color: #667eea;">➕ Add New Range</h4>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #999; font-size: 0.85rem;">Range Name:</label>
+                            <input type="text" id="newRangeName" placeholder="e.g., SPORTS, NEWS" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #999; font-size: 0.85rem;">Start:</label>
+                            <input type="number" id="newRangeStart" placeholder="e.g., 1001" min="1" step="1" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #999; font-size: 0.85rem;">End:</label>
+                            <input type="number" id="newRangeEnd" placeholder="e.g., 2000" min="1" step="1" style="width: 100%;">
+                        </div>
+                    </div>
+                    <button onclick="addRangeFromModal()" class="btn-primary" style="width: 100%;">➕ Add Range</button>
+                    <div id="addRangeStatus" style="margin-top: 10px; font-size: 0.85rem;"></div>
+                </div>
+            </div>
+            <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px;">
+                <button onclick="saveCustomRangesFromModal()" class="btn-primary" style="flex: 1;">💾 Save All Changes</button>
+                <button onclick="closeCustomRangesModal()" class="btn-secondary">Close</button>
             </div>
         </div>
     </div>
@@ -1227,6 +1477,9 @@
         let currentMatchIndex = 0;
         let matchingResults = [];
         let isMatching = false;
+
+        // Track if changes were made in modals (for conditional reload)
+        let channelChangedInModal = false;
 
         // Custom Notification System
         function showNotification(message, type = 'info') {
@@ -1375,6 +1628,8 @@
                 document.getElementById('settingsTab').style.display = 'block';
                 // Auto-load playlists when entering settings tab
                 loadPlaylistsForSettings();
+                // Auto-check for database updates if remote URL is configured
+                autoCheckDatabaseUpdate();
             }
         }
 
@@ -1893,12 +2148,20 @@
                 return;
             }
 
+            // Reset change tracking flag
+            channelChangedInModal = false;
+
             // Create edit modal
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.onclick = (e) => {
                 if (e.target === modal) {
                     modal.remove();
+                    // Only reload if changes were made
+                    if (channelChangedInModal) {
+                        loadDispatcharrChannels();
+                        channelChangedInModal = false; // Reset flag
+                    }
                 }
             };
 
@@ -1909,7 +2172,7 @@
                             <div class="modal-title">Edit Channel ${channel.channel_number}</div>
                             <div style="color: #999; margin-top: 5px;">Channel ID: ${channel.id}</div>
                         </div>
-                        <button class="close-button" onclick="this.closest('.modal').remove()">×</button>
+                        <button class="close-button" onclick="this.closest('.modal').remove(); if (channelChangedInModal) { loadDispatcharrChannels(); channelChangedInModal = false; }">×</button>
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -1936,7 +2199,7 @@
                         <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: space-between;">
                             <button onclick="deleteDispatcharrChannel(${channel.id})" class="btn-secondary" style="background: #ff6b6b; border-color: #ff6b6b;">🗑️ Delete Channel</button>
                             <div style="display: flex; gap: 10px;">
-                                <button onclick="this.closest('.modal').remove()" class="btn-secondary">Cancel</button>
+                                <button onclick="this.closest('.modal').remove(); if (channelChangedInModal) { loadDispatcharrChannels(); channelChangedInModal = false; }" class="btn-secondary">Cancel</button>
                                 <button onclick="saveChannelEdits(${channel.id})" class="btn-primary">💾 Save Changes</button>
                             </div>
                         </div>
@@ -1987,10 +2250,14 @@
 
                 if (result.success) {
                     showNotification('Channel updated successfully!', 'success');
-                    // Close modal
+                    // Mark that changes were made
+                    channelChangedInModal = true;
+                    // Close modal (reload will happen via close handler)
                     document.querySelector('.modal').remove();
-                    // Reload channels to show updated data
-                    loadDispatcharrChannels();
+                    if (channelChangedInModal) {
+                        loadDispatcharrChannels();
+                        channelChangedInModal = false; // Reset flag
+                    }
                 } else {
                     showNotification('Failed to update channel: ' + (result.error || 'Unknown error'), 'error');
                 }
@@ -2039,6 +2306,8 @@
 
                 if (result.success) {
                     showNotification('Channel deleted successfully!', 'success');
+                    // Mark that changes were made
+                    channelChangedInModal = true;
                     // Close ALL modals (edit modal + confirmation modal)
                     document.querySelectorAll('.modal').forEach(modal => {
                         modal.style.display = 'none';
@@ -2064,6 +2333,10 @@
         let lastStreamSearchTerm = null;
         let lastStreamSearchMode = 'auto';
         let playlistPriorityOrder = []; // Array of playlist IDs in priority order
+        let customRangesData = []; // Array of {start, end, name, groupId}
+        let defaultGroupId = null; // Default group ID for new channels
+        let editingGroupId = null; // ID of group currently being edited
+        let editingGroupChannelCount = 0; // Channel count of group being edited
 
         async function loadM3UAccounts() {
             // Load M3U accounts if not already cached
@@ -2101,6 +2374,9 @@
                 showNotification('Channel not found');
                 return;
             }
+
+            // Reset change tracking flag
+            channelChangedInModal = false;
 
             currentStreamManagerChannel = channel;
             const settings = await getSettings();
@@ -2156,6 +2432,11 @@
             modal.onclick = (e) => {
                 if (e.target === modal) {
                     modal.remove();
+                    // Only reload if changes were made
+                    if (channelChangedInModal) {
+                        loadDispatcharrChannels();
+                        channelChangedInModal = false; // Reset flag
+                    }
                 }
             };
 
@@ -2166,7 +2447,7 @@
                             <div class="modal-title">Manage Streams - ${escapeHtml(channel.name)}</div>
                             <div style="color: #999; margin-top: 5px;">Channel ${channel.channel_number}</div>
                         </div>
-                        <button class="close-button" onclick="this.closest('.modal').remove()">×</button>
+                        <button class="close-button" onclick="this.closest('.modal').remove(); if (channelChangedInModal) { loadDispatcharrChannels(); channelChangedInModal = false; }">×</button>
                     </div>
 
                     <div style="flex: 1; overflow-y: auto; margin-top: 20px;">
@@ -2520,6 +2801,8 @@
                     console.error('Failed to save stream order:', data.error);
                     showNotification('Failed to save stream order', 'error');
                 } else {
+                    // Mark that changes were made
+                    channelChangedInModal = true;
                     // Update local channel data with new streams
                     const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === currentStreamManagerChannel.id);
                     if (channelIndex !== -1) {
@@ -2970,9 +3253,14 @@
                 // Database settings
                 if (settings.database) {
                     document.getElementById('settingsDatabasePath').value = settings.database.path || '/data/channelidentifiarr.db';
+                    document.getElementById('settingsRemoteDatabaseUrl').value = settings.database.remoteUrl || '';
                 } else {
                     document.getElementById('settingsDatabasePath').value = '/data/channelidentifiarr.db';
+                    document.getElementById('settingsRemoteDatabaseUrl').value = '';
                 }
+
+                // Load local database version on page load
+                loadLocalDatabaseVersion();
 
                 // Dispatcharr settings
                 if (settings.dispatcharr) {
@@ -3005,6 +3293,26 @@
                     }
                 }
 
+                // Channel creation settings
+                if (settings.channelCreation) {
+                    // Load Smart Ranges
+                    customRangesData = settings.channelCreation.customRanges || [];
+
+                    // Load default group (will be populated after groups are loaded)
+                    if (settings.channelCreation.defaultGroup) {
+                        defaultGroupId = settings.channelCreation.defaultGroup;
+                    }
+                }
+
+                // Load groups for default group selector (BEFORE rendering ranges)
+                await loadGroupsForSettings();
+
+                // Now render Smart Ranges after groups are loaded
+                renderCustomRanges();
+
+                // Load groups for management section
+                await loadGroupsForManagement();
+
                 // Update tab visibility
                 await updateTabVisibility();
             } catch (error) {
@@ -3031,10 +3339,19 @@
             }
         }
 
+        function scrollToSetting(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            return false; // Prevent default anchor behavior
+        }
+
         async function saveAllSettings() {
             const settings = {
                 database: {
-                    path: document.getElementById('settingsDatabasePath').value
+                    path: document.getElementById('settingsDatabasePath').value,
+                    remoteUrl: document.getElementById('settingsRemoteDatabaseUrl').value
                 },
                 dispatcharr: {
                     url: document.getElementById('settingsDispatcharrUrl').value,
@@ -3055,6 +3372,10 @@
                 streamManagement: {
                     maxResults: parseInt(document.getElementById('streamSearchMaxResults').value) || 10,
                     playlistPriority: playlistPriorityOrder
+                },
+                channelCreation: {
+                    defaultGroup: document.getElementById('settingsDefaultGroup').value || null,
+                    customRanges: customRangesData || []
                 }
             };
 
@@ -3130,6 +3451,8 @@
             .then(data => {
                 if (data.status === 'healthy') {
                     document.getElementById('databaseTestResult').innerHTML = `<span style="color: #51cf66;">✅ Connected! (${data.stations_count.toLocaleString()} stations)</span>`;
+                    // Load local version
+                    loadLocalDatabaseVersion();
                 } else {
                     document.getElementById('databaseTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Database error</span>';
                 }
@@ -3137,6 +3460,296 @@
             .catch(err => {
                 document.getElementById('databaseTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Connection failed</span>';
             });
+        }
+
+        async function loadLocalDatabaseVersion() {
+            try {
+                const response = await fetch('/api/database/metadata');
+                const data = await response.json();
+
+                if (response.ok && data.version) {
+                    document.getElementById('localDbVersion').textContent = data.version || 'Unknown';
+                    document.getElementById('localDbDate').textContent = data.effective_date ? `Date: ${data.effective_date}` : '-';
+                } else {
+                    document.getElementById('localDbVersion').textContent = 'Error loading';
+                    document.getElementById('localDbDate').textContent = '-';
+                }
+            } catch (err) {
+                console.error('Error loading local DB version:', err);
+                document.getElementById('localDbVersion').textContent = 'Error';
+            }
+        }
+
+        async function autoCheckDatabaseUpdate() {
+            // Silently check for updates if remote URL is configured
+            const remoteUrl = document.getElementById('settingsRemoteDatabaseUrl').value.trim();
+
+            if (!remoteUrl) {
+                return; // No remote URL configured, skip check
+            }
+
+            const statusDiv = document.getElementById('updateStatus');
+            const downloadBtn = document.getElementById('btnDownloadUpdate');
+
+            // Show subtle loading indicator
+            statusDiv.textContent = 'Checking for updates...';
+            statusDiv.style.color = '#666';
+
+            // Reset remote display
+            document.getElementById('remoteDbVersion').textContent = '-';
+            document.getElementById('remoteDbDate').textContent = '-';
+            document.getElementById('remoteDbSize').textContent = '-';
+            downloadBtn.disabled = true;
+            downloadBtn.style.opacity = '0.5';
+
+            try {
+                const response = await fetch('/api/database/check-remote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ remote_url: remoteUrl })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update remote version display
+                    document.getElementById('remoteDbVersion').textContent = data.remote.version;
+                    document.getElementById('remoteDbDate').textContent = `Date: ${data.remote.date}`;
+                    document.getElementById('remoteDbSize').textContent = `Size: ${data.file_size_mb} MB`;
+
+                    if (data.update_available) {
+                        statusDiv.textContent = '⚠️ Update available!';
+                        statusDiv.style.color = '#51cf66';
+                        document.getElementById('remoteDbVersion').style.color = '#51cf66';
+                        downloadBtn.disabled = false;
+                        downloadBtn.style.opacity = '1';
+                    } else {
+                        statusDiv.textContent = '✅ You have the latest version';
+                        statusDiv.style.color = '#4a9eff';
+                        document.getElementById('remoteDbVersion').style.color = '#666';
+                    }
+                } else {
+                    statusDiv.textContent = 'Check failed (click Check for Updates to retry)';
+                    statusDiv.style.color = '#999';
+                }
+            } catch (err) {
+                console.error('Auto-check for updates error:', err);
+                statusDiv.textContent = '';
+            }
+        }
+
+        async function checkForDatabaseUpdate() {
+            const remoteUrl = document.getElementById('settingsRemoteDatabaseUrl').value.trim();
+
+            if (!remoteUrl) {
+                showNotification('Please enter a remote database URL', 'error');
+                return;
+            }
+
+            // Save remote URL to settings
+            await saveAllSettings();
+
+            const checkBtn = document.getElementById('btnCheckUpdate');
+            const downloadBtn = document.getElementById('btnDownloadUpdate');
+            const statusDiv = document.getElementById('updateStatus');
+
+            checkBtn.disabled = true;
+            checkBtn.textContent = '🔍 Checking...';
+            statusDiv.textContent = 'Checking for updates...';
+            statusDiv.style.color = '#999';
+
+            // Reset remote display
+            document.getElementById('remoteDbVersion').textContent = '-';
+            document.getElementById('remoteDbDate').textContent = '-';
+            document.getElementById('remoteDbSize').textContent = '-';
+            downloadBtn.disabled = true;
+            downloadBtn.style.opacity = '0.5';
+
+            try {
+                const response = await fetch('/api/database/check-remote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ remote_url: remoteUrl })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update remote version display
+                    document.getElementById('remoteDbVersion').textContent = data.remote.version;
+                    document.getElementById('remoteDbDate').textContent = `Date: ${data.remote.date}`;
+                    document.getElementById('remoteDbSize').textContent = `Size: ${data.file_size_mb} MB`;
+
+                    if (data.update_available) {
+                        statusDiv.textContent = '⚠️ Update available!';
+                        statusDiv.style.color = '#51cf66';
+                        document.getElementById('remoteDbVersion').style.color = '#51cf66';
+                        downloadBtn.disabled = false;
+                        downloadBtn.style.opacity = '1';
+                        showNotification(`Update available: ${data.remote.version} (${data.remote.date})`, 'success');
+                    } else {
+                        statusDiv.textContent = '✅ You have the latest version';
+                        statusDiv.style.color = '#4a9eff';
+                        document.getElementById('remoteDbVersion').style.color = '#666';
+                        showNotification('You have the latest version', 'info');
+                    }
+                } else {
+                    statusDiv.textContent = '❌ ' + (data.error || 'Failed to check for updates');
+                    statusDiv.style.color = '#ff6b6b';
+                    showNotification(data.error || 'Failed to check for updates', 'error');
+                }
+            } catch (err) {
+                console.error('Error checking for updates:', err);
+                statusDiv.textContent = '❌ Connection error';
+                statusDiv.style.color = '#ff6b6b';
+                showNotification('Error checking for updates', 'error');
+            } finally {
+                checkBtn.disabled = false;
+                checkBtn.textContent = '🔍 Check for Updates';
+            }
+        }
+
+        async function downloadDatabaseUpdate() {
+            const remoteUrl = document.getElementById('settingsRemoteDatabaseUrl').value.trim();
+
+            if (!remoteUrl) {
+                showNotification('Please enter a remote database URL', 'error');
+                return;
+            }
+
+            // Confirm download
+            const remoteVersion = document.getElementById('remoteDbVersion').textContent;
+            const remoteSize = document.getElementById('remoteDbSize').textContent;
+
+            if (!confirm(`Download and install database update?\n\nVersion: ${remoteVersion}\n${remoteSize}\n\nYour current database will be backed up automatically before updating.`)) {
+                return;
+            }
+
+            const downloadBtn = document.getElementById('btnDownloadUpdate');
+            const checkBtn = document.getElementById('btnCheckUpdate');
+            const restoreBtn = document.getElementById('btnRestoreBackup');
+            const statusDiv = document.getElementById('updateStatus');
+            const progressDiv = document.getElementById('downloadProgress');
+
+            // Disable all buttons
+            downloadBtn.disabled = true;
+            checkBtn.disabled = true;
+            restoreBtn.disabled = true;
+            downloadBtn.textContent = '⬇️ Downloading...';
+
+            statusDiv.textContent = 'Creating backup and downloading update...';
+            statusDiv.style.color = '#999';
+
+            // Show progress bar with indeterminate state
+            progressDiv.style.display = 'block';
+            const progressBar = document.getElementById('downloadProgressBar');
+            const progressText = document.getElementById('downloadProgressText');
+            progressBar.style.width = '100%';
+            progressBar.style.background = 'repeating-linear-gradient(90deg, #4a9eff, #6bb6ff 40px, #4a9eff 80px)';
+            progressBar.style.backgroundSize = '200% 100%';
+            progressBar.style.animation = 'progress-slide 8s linear infinite';
+            progressText.textContent = 'Downloading... (this may take several minutes for large files)';
+
+            try {
+                const response = await fetch('/api/database/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ remote_url: remoteUrl })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Reset progress bar to completion state
+                    progressBar.style.animation = 'none';
+                    progressBar.style.background = 'linear-gradient(90deg, #4a9eff, #6bb6ff)';
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Complete!';
+
+                    statusDiv.textContent = `✅ Database updated to ${data.new_version}`;
+                    statusDiv.style.color = '#51cf66';
+
+                    // Update local version display
+                    document.getElementById('localDbVersion').textContent = data.new_version;
+                    document.getElementById('localDbDate').textContent = `Date: ${data.new_date}`;
+
+                    showNotification(`Database updated successfully to ${data.new_version}`, 'success');
+
+                    // Hide progress after a moment
+                    setTimeout(() => {
+                        progressDiv.style.display = 'none';
+                    }, 2000);
+                } else {
+                    statusDiv.textContent = '❌ ' + (data.error || 'Update failed');
+                    statusDiv.style.color = '#ff6b6b';
+                    showNotification(data.error || 'Failed to update database', 'error');
+                    progressDiv.style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Error updating database:', err);
+                statusDiv.textContent = '❌ Update failed';
+                statusDiv.style.color = '#ff6b6b';
+                showNotification('Error updating database', 'error');
+                progressDiv.style.display = 'none';
+            } finally {
+                downloadBtn.disabled = false;
+                checkBtn.disabled = false;
+                restoreBtn.disabled = false;
+                downloadBtn.textContent = '⬇️ Download Update';
+            }
+        }
+
+        async function restoreDatabaseBackup() {
+            if (!confirm('Restore database from backup?\n\nThis will replace your current database with the backup copy. Any changes made since the backup will be lost.')) {
+                return;
+            }
+
+            const restoreBtn = document.getElementById('btnRestoreBackup');
+            const checkBtn = document.getElementById('btnCheckUpdate');
+            const downloadBtn = document.getElementById('btnDownloadUpdate');
+            const statusDiv = document.getElementById('updateStatus');
+
+            restoreBtn.disabled = true;
+            checkBtn.disabled = true;
+            downloadBtn.disabled = true;
+            restoreBtn.textContent = '🔙 Restoring...';
+
+            statusDiv.textContent = 'Restoring from backup...';
+            statusDiv.style.color = '#999';
+
+            try {
+                const response = await fetch('/api/database/restore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.textContent = `✅ Database restored to ${data.restored_version}`;
+                    statusDiv.style.color = '#51cf66';
+
+                    // Update local version display
+                    document.getElementById('localDbVersion').textContent = data.restored_version;
+                    document.getElementById('localDbDate').textContent = `Date: ${data.restored_date}`;
+
+                    showNotification(`Database restored successfully to ${data.restored_version}`, 'success');
+                } else {
+                    statusDiv.textContent = '❌ ' + (data.error || 'Restore failed');
+                    statusDiv.style.color = '#ff6b6b';
+                    showNotification(data.error || 'Failed to restore database', 'error');
+                }
+            } catch (err) {
+                console.error('Error restoring database:', err);
+                statusDiv.textContent = '❌ Restore failed';
+                statusDiv.style.color = '#ff6b6b';
+                showNotification('Error restoring database', 'error');
+            } finally {
+                restoreBtn.disabled = false;
+                checkBtn.disabled = false;
+                downloadBtn.disabled = false;
+                restoreBtn.textContent = '🔙 Restore Backup';
+            }
         }
 
         function testDispatcharrSettings() {
@@ -3311,6 +3924,686 @@
             });
         }
 
+        // Smart Ranges and Default Group Functions
+        async function loadGroupsForSettings() {
+            // Load groups for the default group selector
+            if (!dispatcharrGroups || dispatcharrGroups.length === 0) {
+                await loadDispatcharrGroups();
+            }
+
+            filterDefaultGroupSelector();
+        }
+
+        function updateDefaultGroupDisplay() {
+            const select = document.getElementById('settingsDefaultGroup');
+            const displayBox = document.getElementById('currentDefaultGroupDisplay');
+            const displayName = document.getElementById('currentDefaultGroupName');
+            const statusDiv = document.getElementById('settingsDefaultGroupStatus');
+
+            if (!select || !displayBox || !displayName) return;
+
+            const selectedValue = select.value;
+            const selectedOption = select.options[select.selectedIndex];
+
+            if (!selectedValue) {
+                // No default set
+                displayName.textContent = 'No Default Set';
+                displayBox.style.background = 'rgba(128, 128, 128, 0.05)';
+                displayBox.style.borderColor = 'rgba(128, 128, 128, 0.15)';
+                displayName.style.color = '#999';
+                statusDiv.textContent = '';
+            } else {
+                // Default group selected
+                const groupName = selectedOption.textContent;
+                displayName.textContent = groupName;
+                displayBox.style.background = 'rgba(74, 158, 255, 0.08)';
+                displayBox.style.borderColor = 'rgba(74, 158, 255, 0.2)';
+                displayName.style.color = '#4a9eff';
+                statusDiv.textContent = `✓ Default group will be applied to new channels`;
+            }
+        }
+
+        function filterDefaultGroupSelector() {
+            const filter = document.getElementById('settingsDefaultGroupFilter').value.toLowerCase();
+            const showCustomOnly = document.getElementById('settingsDefaultGroupShowCustomOnly').checked;
+            const select = document.getElementById('settingsDefaultGroup');
+            if (!select) return;
+
+            // Filter groups
+            let filtered = dispatcharrGroups.filter(g => {
+                // Text filter
+                const matchesText = g.name.toLowerCase().includes(filter);
+
+                // Custom groups filter (groups with no M3U associations)
+                const isCustomGroup = !g.m3u_account_count || g.m3u_account_count === 0;
+                const matchesCustomFilter = !showCustomOnly || isCustomGroup;
+
+                return matchesText && matchesCustomFilter;
+            });
+
+            select.innerHTML = '<option value="">-- No Default --</option>';
+
+            filtered.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group.id;
+                const m3uIndicator = (group.m3u_account_count && group.m3u_account_count > 0) ? ` (M3U)` : '';
+                option.textContent = group.name + m3uIndicator;
+                if (defaultGroupId && group.id == defaultGroupId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+
+            // Update the display box
+            updateDefaultGroupDisplay();
+        }
+
+        // Helper function to check if two ranges overlap
+        function rangesOverlap(range1Start, range1End, range2Start, range2End) {
+            // Two ranges overlap if one starts before the other ends
+            return (range1Start <= range2End && range1End >= range2Start);
+        }
+
+        // Check if a new range overlaps with existing ranges
+        function checkRangeOverlap(newStart, newEnd, excludeIndex = -1) {
+            for (let i = 0; i < customRangesData.length; i++) {
+                // Skip the range being edited
+                if (i === excludeIndex) continue;
+
+                const existing = customRangesData[i];
+                if (rangesOverlap(newStart, newEnd, existing.start, existing.end)) {
+                    return {
+                        overlaps: true,
+                        conflictingRange: existing
+                    };
+                }
+            }
+            return { overlaps: false };
+        }
+
+        function renderCustomRanges() {
+            const container = document.getElementById('customRangesList');
+            if (!container) return;
+
+            if (!customRangesData || customRangesData.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 10px; font-size: 0.85rem;">No Smart Ranges defined</div>';
+                return;
+            }
+
+            // Compact version for settings page
+            container.innerHTML = customRangesData.map((range, index) => {
+                const groupName = range.groupId ? (dispatcharrGroups.find(g => g.id == range.groupId)?.name || 'Unknown Group') : 'No Group';
+                return `
+                    <div style="background: rgba(255,255,255,0.05); padding: 8px 10px; margin-bottom: 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                        <div>
+                            <span style="font-weight: 500; margin-right: 8px;">${escapeHtml(range.name)}</span>
+                            <span style="color: #999; font-size: 0.85rem;">${range.start}-${range.end}</span>
+                            <span style="color: #667eea; margin-left: 8px; font-size: 0.85rem;">→ ${escapeHtml(groupName)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addCustomRange() {
+            const name = prompt('Enter range name (e.g., "SPORTS", "NEWS"):');
+            if (!name || !name.trim()) return;
+
+            const start = prompt('Enter start channel number:');
+            if (!start || isNaN(parseInt(start))) {
+                showNotification('Invalid start number', 'error');
+                return;
+            }
+
+            const end = prompt('Enter end channel number:');
+            if (!end || isNaN(parseInt(end))) {
+                showNotification('Invalid end number', 'error');
+                return;
+            }
+
+            const startNum = parseInt(start);
+            const endNum = parseInt(end);
+
+            if (startNum >= endNum) {
+                showNotification('Start must be less than end', 'error');
+                return;
+            }
+
+            // Check for overlaps with existing ranges
+            const overlapCheck = checkRangeOverlap(startNum, endNum);
+            if (overlapCheck.overlaps) {
+                showNotification(
+                    `Range overlaps with "${overlapCheck.conflictingRange.name}" (${overlapCheck.conflictingRange.start}-${overlapCheck.conflictingRange.end})`,
+                    'error'
+                );
+                return;
+            }
+
+            // Find group by name (case insensitive)
+            const matchingGroup = dispatcharrGroups.find(g =>
+                g.name.toLowerCase() === name.trim().toLowerCase()
+            );
+
+            customRangesData.push({
+                name: name.trim(),
+                start: startNum,
+                end: endNum,
+                groupId: matchingGroup ? matchingGroup.id : null
+            });
+
+            renderCustomRanges();
+            saveAllSettings();
+
+            if (!matchingGroup) {
+                showNotification(`Range "${name}" added (no matching group found - you can create the group later)`, 'success');
+            } else {
+                showNotification(`Range "${name}" added and linked to group "${matchingGroup.name}"`, 'success');
+            }
+        }
+
+        function editCustomRange(index) {
+            const range = customRangesData[index];
+
+            const name = prompt('Enter range name:', range.name);
+            if (!name || !name.trim()) return;
+
+            const start = prompt('Enter start channel number:', range.start);
+            if (!start || isNaN(parseInt(start))) {
+                showNotification('Invalid start number', 'error');
+                return;
+            }
+
+            const end = prompt('Enter end channel number:', range.end);
+            if (!end || isNaN(parseInt(end))) {
+                showNotification('Invalid end number', 'error');
+                return;
+            }
+
+            const startNum = parseInt(start);
+            const endNum = parseInt(end);
+
+            if (startNum >= endNum) {
+                showNotification('Start must be less than end', 'error');
+                return;
+            }
+
+            // Check for overlaps with existing ranges (excluding current range)
+            const overlapCheck = checkRangeOverlap(startNum, endNum, index);
+            if (overlapCheck.overlaps) {
+                showNotification(
+                    `Range overlaps with "${overlapCheck.conflictingRange.name}" (${overlapCheck.conflictingRange.start}-${overlapCheck.conflictingRange.end})`,
+                    'error'
+                );
+                return;
+            }
+
+            // Find group by name (case insensitive)
+            const matchingGroup = dispatcharrGroups.find(g =>
+                g.name.toLowerCase() === name.trim().toLowerCase()
+            );
+
+            customRangesData[index] = {
+                name: name.trim(),
+                start: startNum,
+                end: endNum,
+                groupId: matchingGroup ? matchingGroup.id : null
+            };
+
+            renderCustomRanges();
+            saveAllSettings();
+            showNotification('Range updated', 'success');
+        }
+
+        function deleteCustomRange(index) {
+            const range = customRangesData[index];
+            if (confirm(`Delete range "${range.name}" (${range.start}-${range.end})?`)) {
+                customRangesData.splice(index, 1);
+                renderCustomRanges();
+                saveAllSettings();
+                showNotification('Range deleted', 'success');
+            }
+        }
+
+        // Group Management Functions
+        async function loadGroupsForManagement() {
+            const container = document.getElementById('manageGroupsList');
+            if (!container) return;
+
+            container.innerHTML = '<div style="text-align: center; color: #999; padding: 10px;">Loading...</div>';
+
+            // Always reload groups and channels to get fresh data
+            await loadDispatcharrGroups();
+
+            // Force load channels for accurate counts
+            const settings = await getSettings();
+            if (settings.dispatcharr && settings.dispatcharr.url) {
+                try {
+                    const response = await fetch('/api/dispatcharr/channels', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: settings.dispatcharr.url,
+                            username: settings.dispatcharr.username,
+                            password: settings.dispatcharr.password
+                        })
+                    });
+                    const data = await response.json();
+                    if (data.channels) {
+                        dispatcharrChannels = data.channels;
+                        console.log(`Loaded ${dispatcharrChannels.length} channels for group management`);
+                    } else {
+                        console.warn('No channels returned from API');
+                        dispatcharrChannels = [];
+                    }
+                } catch (error) {
+                    console.error('Failed to load channels:', error);
+                }
+            }
+
+            if (!dispatcharrGroups || dispatcharrGroups.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 10px;">No groups found</div>';
+                return;
+            }
+
+            // Filter to only show groups with NO M3U associations
+            const nonM3UGroups = dispatcharrGroups.filter(g => !g.m3u_account_count || g.m3u_account_count === 0);
+
+            if (nonM3UGroups.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 10px;">No user-created groups found. All groups are M3U-associated.</div>';
+                return;
+            }
+
+            // Sort groups by name
+            const sortedGroups = [...nonM3UGroups].sort((a, b) => a.name.localeCompare(b.name));
+
+            container.innerHTML = sortedGroups.map(group => {
+                // Count channels in this group
+                let channelCount = 0;
+                if (dispatcharrChannels && Array.isArray(dispatcharrChannels)) {
+                    const matchingChannels = dispatcharrChannels.filter(ch => {
+                        // Dispatcharr channels use 'group_id' field
+                        return ch.group_id == group.id;
+                    });
+                    channelCount = matchingChannels.length;
+                    console.log(`Group "${group.name}" (ID: ${group.id}): ${channelCount} channels found`);
+                }
+                const canDelete = channelCount === 0;
+
+                return `
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; margin-bottom: 4px;">${escapeHtml(group.name)}</div>
+                                <div style="color: #999; font-size: 0.85rem;">
+                                    ${channelCount} channel${channelCount !== 1 ? 's' : ''}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <button onclick="openEditGroupModal(${group.id}, '${escapeHtml(group.name).replace(/'/g, "\\'")}', ${channelCount})" class="btn-secondary"
+                                    style="padding: 6px 10px; font-size: 0.85rem;">
+                                    ✏️ Edit
+                                </button>
+                                ${canDelete ? `
+                                    <button onclick="deleteGroup(${group.id}, '${escapeHtml(group.name).replace(/'/g, "\\'")})" class="btn-secondary"
+                                        style="padding: 6px 10px; font-size: 0.85rem; background: rgba(255, 107, 107, 0.2); border-color: #ff6b6b;">
+                                        🗑️ Delete
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function deleteGroup(groupId, groupName) {
+            if (!confirm(`Are you sure you want to delete the group "${groupName}"?\n\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/dispatcharr/groups/${groupId}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification(`Group "${groupName}" deleted successfully`, 'success');
+
+                    // Reload groups
+                    await loadDispatcharrGroups();
+                    await loadGroupsForManagement();
+                    await loadGroupsForSettings();
+                    renderCustomRanges();
+                } else {
+                    showNotification(`Failed to delete group: ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting group:', error);
+                showNotification(`Error deleting group: ${error.message}`, 'error');
+            }
+        }
+
+        function openCreateGroupInManagement() {
+            const groupName = prompt('Enter new group name:');
+            if (!groupName || !groupName.trim()) return;
+
+            createGroupFromManagement(groupName.trim());
+        }
+
+        async function createGroupFromManagement(groupName) {
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/dispatcharr/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password,
+                        name: groupName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.group) {
+                    showNotification(`Group "${groupName}" created successfully`, 'success');
+
+                    // Reload groups everywhere
+                    await loadDispatcharrGroups();
+                    await loadGroupsForManagement();
+                    await loadGroupsForSettings();
+                    renderCustomRanges();
+                } else {
+                    showNotification(`Failed to create group: ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error creating group:', error);
+                showNotification(`Error creating group: ${error.message}`, 'error');
+            }
+        }
+
+        function openEditGroupModal(groupId, groupName, channelCount) {
+            editingGroupId = groupId;
+            editingGroupChannelCount = channelCount;
+
+            document.getElementById('editGroupName').value = groupName;
+            document.getElementById('editGroupInfo').innerHTML = `
+                <div>${channelCount} channel${channelCount !== 1 ? 's' : ''} currently assigned to this group</div>
+                ${channelCount > 0 ? '<div style="color: #ffd43b; margin-top: 5px;">⚠️ Changing the name will update all references including Smart Ranges</div>' : ''}
+            `;
+            document.getElementById('editGroupStatus').innerHTML = '';
+            document.getElementById('editGroupModal').style.display = 'flex';
+        }
+
+        function closeEditGroupModal() {
+            document.getElementById('editGroupModal').style.display = 'none';
+            editingGroupId = null;
+            editingGroupChannelCount = 0;
+        }
+
+        async function saveGroupEdit() {
+            const newName = document.getElementById('editGroupName').value.trim();
+            const statusDiv = document.getElementById('editGroupStatus');
+
+            if (!newName) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">Group name is required</span>';
+                return;
+            }
+
+            if (!editingGroupId) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">No group selected for editing</span>';
+                return;
+            }
+
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">Please configure Dispatcharr settings first</span>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<span style="color: #999;">Saving...</span>';
+
+            try {
+                const response = await fetch(`/api/dispatcharr/groups/${editingGroupId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password,
+                        name: newName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showNotification(`Group renamed to "${newName}"`, 'success');
+
+                    // Reload groups everywhere
+                    await loadDispatcharrGroups();
+                    await loadGroupsForManagement();
+                    await loadGroupsForSettings();
+                    renderCustomRanges();
+
+                    closeEditGroupModal();
+                } else {
+                    statusDiv.innerHTML = `<span style="color: #ff6b6b;">Failed: ${data.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                console.error('Error updating group:', error);
+                statusDiv.innerHTML = `<span style="color: #ff6b6b;">Error: ${error.message}</span>`;
+            }
+        }
+
+        // Smart Ranges Modal Functions
+        function openCustomRangesModal() {
+            renderCustomRangesModalList();
+            document.getElementById('customRangesModal').style.display = 'flex';
+        }
+
+        function closeCustomRangesModal() {
+            document.getElementById('customRangesModal').style.display = 'none';
+            // Clear add new range fields
+            document.getElementById('newRangeName').value = '';
+            document.getElementById('newRangeStart').value = '';
+            document.getElementById('newRangeEnd').value = '';
+            document.getElementById('addRangeStatus').innerHTML = '';
+        }
+
+        async function renderCustomRangesModalList() {
+            const container = document.getElementById('customRangesModalList');
+            if (!container) return;
+
+            // Ensure channels are loaded for usage stats
+            await ensureChannelsLoaded();
+
+            if (!customRangesData || customRangesData.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No Smart Ranges defined yet. Add your first range below!</div>';
+                return;
+            }
+
+            container.innerHTML = customRangesData.map((range, index) => {
+                const groupName = range.groupId ? (dispatcharrGroups.find(g => g.id == range.groupId)?.name || 'Unknown Group') : 'No Group';
+
+                // Count channels in this range
+                let usedCount = 0;
+                const rangeSize = range.end - range.start + 1;
+                if (dispatcharrChannels && dispatcharrChannels.length > 0) {
+                    usedCount = dispatcharrChannels.filter(ch => {
+                        const num = parseFloat(ch.channel_number);
+                        return !isNaN(num) && num >= range.start && num <= range.end;
+                    }).length;
+                }
+
+                const availableCount = rangeSize - usedCount;
+                const usagePercent = (usedCount / rangeSize * 100).toFixed(1);
+
+                return `
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; font-size: 1rem; margin-bottom: 3px;">${escapeHtml(range.name)}</div>
+                                <div style="color: #999; font-size: 0.85rem;">
+                                    ${range.start} - ${range.end}
+                                    <span style="color: #667eea; margin-left: 8px;">→ ${escapeHtml(groupName)}</span>
+                                </div>
+                            </div>
+                            <button onclick="deleteRangeFromModal(${index})" class="btn-secondary"
+                                style="padding: 5px 8px; font-size: 0.8rem; background: rgba(255, 107, 107, 0.2); border-color: #ff6b6b;">
+                                🗑️
+                            </button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #999; margin-bottom: 4px;">
+                            <span>${usedCount}/${rangeSize}</span>
+                            <span style="color: ${usedCount === 0 ? '#51cf66' : '#ffd43b'};">${availableCount} available</span>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px; overflow: hidden;">
+                            <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: ${usagePercent}%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function addRangeFromModal() {
+            const name = document.getElementById('newRangeName').value.trim();
+            const start = parseInt(document.getElementById('newRangeStart').value);
+            const end = parseInt(document.getElementById('newRangeEnd').value);
+            const statusDiv = document.getElementById('addRangeStatus');
+
+            if (!name) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Range name is required</span>';
+                return;
+            }
+
+            if (!start || isNaN(start)) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Invalid start number</span>';
+                return;
+            }
+
+            if (!end || isNaN(end)) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Invalid end number</span>';
+                return;
+            }
+
+            if (start >= end) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Start must be less than end</span>';
+                return;
+            }
+
+            // Check for overlaps with existing ranges
+            const overlapCheck = checkRangeOverlap(start, end);
+            if (overlapCheck.overlaps) {
+                statusDiv.innerHTML = `<span style="color: #ff6b6b;">⚠️ Range overlaps with "${escapeHtml(overlapCheck.conflictingRange.name)}" (${overlapCheck.conflictingRange.start}-${overlapCheck.conflictingRange.end})</span>`;
+                return;
+            }
+
+            // Find group by name (case insensitive)
+            let matchingGroup = dispatcharrGroups.find(g =>
+                g.name.toLowerCase() === name.toLowerCase()
+            );
+
+            // If group doesn't exist, offer to create it
+            if (!matchingGroup) {
+                statusDiv.innerHTML = '<span style="color: #ffd43b;">Group not found. Creating...</span>';
+
+                const settings = await getSettings();
+                if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                    statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Please configure Dispatcharr settings first</span>';
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/dispatcharr/groups', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: settings.dispatcharr.url,
+                            username: settings.dispatcharr.username,
+                            password: settings.dispatcharr.password,
+                            name: name
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success && data.group) {
+                        // Reload groups
+                        await loadDispatcharrGroups();
+                        await loadGroupsForSettings();
+                        await loadGroupsForManagement();
+
+                        matchingGroup = data.group;
+                        statusDiv.innerHTML = `<span style="color: #51cf66;">✓ Group "${name}" created and range added!</span>`;
+                    } else {
+                        statusDiv.innerHTML = `<span style="color: #ff6b6b;">⚠️ Failed to create group: ${data.error || 'Unknown error'}</span>`;
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error creating group:', error);
+                    statusDiv.innerHTML = `<span style="color: #ff6b6b;">⚠️ Error creating group: ${error.message}</span>`;
+                    return;
+                }
+            } else {
+                statusDiv.innerHTML = `<span style="color: #51cf66;">✓ Range added and linked to existing "${matchingGroup.name}" group</span>`;
+            }
+
+            customRangesData.push({
+                name: name,
+                start: start,
+                end: end,
+                groupId: matchingGroup ? matchingGroup.id : null
+            });
+
+            // Clear fields
+            document.getElementById('newRangeName').value = '';
+            document.getElementById('newRangeStart').value = '';
+            document.getElementById('newRangeEnd').value = '';
+
+            // Refresh the list
+            renderCustomRangesModalList();
+
+            // Clear status after 3 seconds
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        function deleteRangeFromModal(index) {
+            const range = customRangesData[index];
+            if (confirm(`Delete range "${range.name}" (${range.start}-${range.end})?`)) {
+                customRangesData.splice(index, 1);
+                renderCustomRangesModalList();
+            }
+        }
+
+        async function saveCustomRangesFromModal() {
+            await saveAllSettings();
+            renderCustomRanges(); // Update the preview in settings
+            showNotification('Smart Ranges saved successfully', 'success');
+        }
+
         // Channel Matching Functions
         async function startChannelMatching() {
             // Load Dispatcharr channels first if needed
@@ -3472,6 +4765,8 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    // Mark that changes were made
+                    channelChangedInModal = true;
                     // Record result
                     matchingResults.push({
                         channel: channel,
@@ -3790,6 +5085,9 @@
             matchingResults = [];
             isMatching = true;
 
+            // Reset change tracking flag
+            channelChangedInModal = false;
+
             // Show matching modal
             document.getElementById('matchingModal').style.display = 'flex';
             document.getElementById('matchingInterface').style.display = 'block';
@@ -3803,6 +5101,11 @@
             isMatching = false;
             matchingQueue = [];
             currentMatchIndex = 0;
+            // Reload channels if any matches were applied
+            if (channelChangedInModal) {
+                loadDispatcharrChannels();
+                channelChangedInModal = false; // Reset flag
+            }
         }
 
         // Load database metadata
@@ -3952,7 +5255,7 @@
                 // Load channels in background for sidebar and suggestions
                 await ensureChannelsLoaded();
 
-                // Load groups
+                // Load groups (default group selection happens in filterGroupsInCreate)
                 await loadGroupsForCreate();
 
                 // Render sidebar
@@ -3963,6 +5266,49 @@
             } catch (error) {
                 showNotification(`Failed to load station details: ${error.message}`, 'error');
                 console.error('Error opening create channel modal:', error);
+            }
+        }
+
+        async function openCreateCustomChannelModal() {
+            // Open Create Channel modal without station data (for custom channels)
+            try {
+                createChannelStationData = null;
+
+                // Show empty station info
+                document.getElementById('createChannelStationInfo').innerHTML = `
+                    <div style="text-align: center; color: #999; padding: 10px;">
+                        <div style="font-size: 1.1rem; margin-bottom: 5px;">Custom Channel</div>
+                        <div style="font-size: 0.85rem;">Not linked to Gracenote database</div>
+                    </div>
+                `;
+
+                // Clear all form fields
+                document.getElementById('createChannelName').value = '';
+                document.getElementById('createChannelGracenoteId').value = '';
+                document.getElementById('createChannelTvgId').value = '';
+                document.getElementById('createChannelNumber').value = '';
+                document.getElementById('createChannelGroupFilter').value = '';
+                document.getElementById('createChannelShowCustomOnly').checked = false;
+                createChannelStreams = [];
+
+                // Clear stream search results and assigned streams
+                document.getElementById('createChannelStreamSearchResults').innerHTML = '';
+                renderCreateChannelAssignedStreams();
+
+                // Load channels in background for sidebar and suggestions
+                await ensureChannelsLoaded();
+
+                // Load groups (default group selection happens in filterGroupsInCreate)
+                await loadGroupsForCreate();
+
+                // Render sidebar
+                renderChannelSidebar();
+
+                // Show modal
+                document.getElementById('createChannelModal').style.display = 'flex';
+            } catch (error) {
+                showNotification(`Failed to open custom channel modal: ${error.message}`, 'error');
+                console.error('Error opening custom channel modal:', error);
             }
         }
 
@@ -4027,6 +5373,10 @@
             });
 
             select.innerHTML = '';
+
+            // Track if we found and selected the default
+            let defaultFound = false;
+
             filtered.forEach((group, index) => {
                 const option = document.createElement('option');
                 option.value = group.id;
@@ -4035,7 +5385,15 @@
                 const m3uIndicator = group.m3u_account_count > 0 ? ` 📡(${group.m3u_account_count})` : '';
                 option.textContent = group.name + m3uIndicator;
 
-                if (index === 0 && !select.value) option.selected = true;
+                // Check if this is the default group
+                if (defaultGroupId && group.id == defaultGroupId) {
+                    option.selected = true;
+                    defaultFound = true;
+                } else if (index === 0 && !defaultFound) {
+                    // Only auto-select first if no default group is set or found
+                    option.selected = true;
+                }
+
                 select.appendChild(option);
             });
 
@@ -4045,6 +5403,84 @@
                 : `Showing ${filtered.length}${customOnlyText} of ${allGroupsForFilter.length} groups`;
 
             document.getElementById('groupFilterStatus').textContent = statusText;
+        }
+
+        function toggleCreateGroupForm() {
+            const form = document.getElementById('inlineGroupCreateForm');
+            const isVisible = form.style.display !== 'none';
+            form.style.display = isVisible ? 'none' : 'block';
+
+            if (!isVisible) {
+                document.getElementById('newGroupName').focus();
+            }
+        }
+
+        async function createGroupInline() {
+            const groupName = document.getElementById('newGroupName').value.trim();
+            const statusDiv = document.getElementById('inlineGroupStatus');
+
+            if (!groupName) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Group name is required</span>';
+                return;
+            }
+
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Please configure Dispatcharr settings first</span>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<span style="color: #999;">Creating group...</span>';
+
+            try {
+                const response = await fetch('/api/dispatcharr/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password,
+                        name: groupName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.innerHTML = '<span style="color: #51cf66;">✅ Group created!</span>';
+
+                    // Force reload groups from API and refresh the UI
+                    await loadDispatcharrGroups();
+                    await loadGroupsForCreate();
+
+                    // Select the newly created group
+                    const select = document.getElementById('createChannelGroup');
+                    const newOption = Array.from(select.options).find(opt =>
+                        opt.textContent.includes(groupName)
+                    );
+                    if (newOption) {
+                        newOption.selected = true;
+                    }
+
+                    // Clear and hide form after brief delay
+                    setTimeout(() => {
+                        cancelCreateGroupInline();
+                    }, 1500);
+
+                    showNotification(`Group "${groupName}" created successfully!`, 'success');
+                } else {
+                    statusDiv.innerHTML = `<span style="color: #ff6b6b;">❌ Failed: ${data.error || 'Unknown error'}</span>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">❌ Error creating group</span>';
+                console.error(error);
+            }
+        }
+
+        function cancelCreateGroupInline() {
+            document.getElementById('inlineGroupCreateForm').style.display = 'none';
+            document.getElementById('newGroupName').value = '';
+            document.getElementById('inlineGroupStatus').innerHTML = '';
         }
 
         function renderChannelSidebar() {
@@ -4148,49 +5584,64 @@
         }
 
         async function openRangeSelector() {
+            // Check if Smart Ranges are defined
+            if (!customRangesData || customRangesData.length === 0) {
+                // No Smart Ranges - direct user to settings
+                const container = document.getElementById('suggestedRangesList');
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px;">
+                        <div style="font-size: 2rem; margin-bottom: 15px;">📊</div>
+                        <div style="font-size: 1.1rem; margin-bottom: 10px; color: #ffd43b;">No Smart Ranges Defined</div>
+                        <div style="color: #999; font-size: 0.9rem; margin-bottom: 20px;">
+                            Smart Ranges allow you to organize channels by number ranges with automatic group assignment.
+                        </div>
+                        <button onclick="closeRangeSelector(); showTab('settings')" class="btn-primary">
+                            Go to Settings to Create Ranges
+                        </button>
+                    </div>
+                `;
+                document.getElementById('rangeSelectorModal').style.display = 'flex';
+                return;
+            }
+
             // Ensure channels are loaded
             await ensureChannelsLoaded();
 
-            // Generate suggested ranges
-            const suggestedRanges = [];
-
-            // Always show first 10 ranges (1-1000, 1001-2000, etc.)
-            for (let i = 0; i < 10; i++) {
-                const start = i * 1000 + 1;
-                const end = (i + 1) * 1000;
-
+            // Use Smart Ranges from settings
+            const container = document.getElementById('suggestedRangesList');
+            container.innerHTML = customRangesData.map(range => {
                 // Count how many channels are in this range
                 let count = 0;
+                const rangeSize = range.end - range.start + 1;
                 if (dispatcharrChannels && dispatcharrChannels.length > 0) {
                     count = dispatcharrChannels.filter(ch => {
                         const num = parseFloat(ch.channel_number);
-                        return !isNaN(num) && num >= start && num <= end;
+                        return !isNaN(num) && num >= range.start && num <= range.end;
                     }).length;
                 }
 
-                suggestedRanges.push({start, end, count});
-            }
-
-            // Render suggested ranges
-            const container = document.getElementById('suggestedRangesList');
-            container.innerHTML = suggestedRanges.map(range => {
-                const usagePercent = (range.count / 1000 * 100).toFixed(1);
-                const usageColor = range.count === 0 ? '#51cf66' : range.count < 500 ? '#ffd43b' : '#ff6b6b';
+                const usagePercent = (count / rangeSize * 100).toFixed(1);
+                const usageColor = count === 0 ? '#51cf66' : count < rangeSize / 2 ? '#ffd43b' : '#ff6b6b';
+                const groupName = range.groupId ? (dispatcharrGroups.find(g => g.id == range.groupId)?.name || 'Unknown Group') : 'No Group';
 
                 return `
-                    <div onclick="applyRange(${range.start}, ${range.end})"
+                    <div onclick="applyRange(${range.start}, ${range.end}, ${range.groupId || 'null'})"
                          style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s;"
                          onmouseover="this.style.background='rgba(102, 126, 234, 0.2)'; this.style.borderColor='#667eea';"
                          onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)';">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span style="font-weight: bold; font-size: 1.1rem;">${range.start} - ${range.end}</span>
-                            <span style="color: ${usageColor}; font-weight: bold;">${range.count} used</span>
+                            <div>
+                                <div style="font-weight: bold; font-size: 1.1rem;">${escapeHtml(range.name)}</div>
+                                <div style="color: #999; font-size: 0.85rem; margin-top: 2px;">${range.start} - ${range.end}</div>
+                            </div>
+                            <span style="color: ${usageColor}; font-weight: bold;">${count} used</span>
                         </div>
                         <div style="background: rgba(0,0,0,0.3); height: 6px; border-radius: 3px; overflow: hidden;">
                             <div style="background: ${usageColor}; height: 100%; width: ${usagePercent}%;"></div>
                         </div>
-                        <div style="font-size: 0.8rem; color: #999; margin-top: 5px;">
-                            ${range.count === 0 ? 'Empty range' : `${(1000 - range.count)} available`}
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #999; margin-top: 5px;">
+                            <span>${count === 0 ? 'Empty range' : `${(rangeSize - count)} available`}</span>
+                            <span style="color: #667eea;">→ ${escapeHtml(groupName)}</span>
                         </div>
                     </div>
                 `;
@@ -4207,9 +5658,20 @@
             document.getElementById('customRangeStatus').textContent = '';
         }
 
-        async function applyRange(start, end) {
+        async function applyRange(start, end, groupId) {
             // Use the range mode in suggestChannelNumber
             await suggestChannelNumber(`range-${start}-${end}`);
+
+            // Auto-assign the group if provided
+            if (groupId) {
+                const groupSelect = document.getElementById('createChannelGroup');
+                const option = Array.from(groupSelect.options).find(opt => opt.value == groupId);
+                if (option) {
+                    option.selected = true;
+                    showNotification(`Group auto-assigned based on range`, 'info');
+                }
+            }
+
             closeRangeSelector();
         }
 
@@ -4236,7 +5698,7 @@
                 return;
             }
 
-            // Apply the custom range
+            // Apply the one-time range
             await applyRange(start, end);
         }
 
@@ -4573,11 +6035,14 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSettings();
+        document.addEventListener('DOMContentLoaded', async function() {
+            // PRIORITY: Show tabs as quickly as possible
+            await updateTabVisibility();
+
+            // Then load everything else in the background
+            await loadSettings();
             loadDatabaseMetadata();
             populateEmbyCountries();
-            updateTabVisibility();
         });
     </script>
 </body>

@@ -15,6 +15,8 @@ import json
 from datetime import datetime, timedelta
 import re
 from difflib import SequenceMatcher
+import shutil
+import tempfile
 from settings_manager import get_settings_manager
 
 # Configure logging
@@ -472,7 +474,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.4.0-beta</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.5.0</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -545,6 +547,284 @@ def get_database_metadata():
             'station_count': 0,
             'error': str(e)
         }), 500
+
+@app.route('/api/database/check-remote', methods=['POST'])
+def check_remote_database():
+    """Check remote database version using JSON metadata file"""
+    try:
+        data = request.json
+        remote_url = data.get('remote_url', '').strip()
+
+        if not remote_url:
+            return jsonify({'error': 'Remote URL required'}), 400
+
+        # Construct JSON metadata URL (replace .db with .json)
+        # e.g., channelidentifiarr.db -> channelidentifiarr.json
+        json_url = remote_url.replace('.db', '.json')
+        logger.info(f"Checking remote metadata at: {json_url}")
+
+        # Fetch JSON metadata
+        response = requests.get(json_url, timeout=10)
+        response.raise_for_status()
+        remote_metadata = response.json()
+
+        # Validate JSON structure
+        required_keys = ['data_version', 'effective_date', 'schema_version']
+        for key in required_keys:
+            if key not in remote_metadata:
+                return jsonify({'error': f'Invalid metadata file: missing {key}'}), 400
+
+        # Get local metadata
+        local_conn = get_db_connection()
+        local_cursor = local_conn.cursor()
+        local_cursor.execute("""
+            SELECT key, value
+            FROM metadata
+            WHERE key IN ('data_version', 'effective_date', 'schema_version')
+        """)
+
+        local_metadata = {}
+        for row in local_cursor.fetchall():
+            local_metadata[row['key']] = row['value']
+
+        local_conn.close()
+
+        # Compare versions
+        remote_version = remote_metadata.get('data_version', 'Unknown')
+        remote_date = remote_metadata.get('effective_date', 'Unknown')
+        local_version = local_metadata.get('data_version', 'Unknown')
+        local_date = local_metadata.get('effective_date', 'Unknown')
+
+        # Date-based comparison
+        update_available = False
+        if remote_date != 'Unknown' and local_date != 'Unknown':
+            try:
+                remote_dt = datetime.strptime(remote_date, '%Y-%m-%d')
+                local_dt = datetime.strptime(local_date, '%Y-%m-%d')
+                update_available = remote_dt > local_dt
+            except:
+                # Fallback to version string comparison
+                update_available = remote_version != local_version
+        else:
+            update_available = remote_version != local_version
+
+        # Get database file size from HEAD request
+        file_size = 0
+        try:
+            head_response = requests.head(remote_url, timeout=10)
+            file_size = int(head_response.headers.get('content-length', 0))
+        except:
+            logger.warning("Could not determine remote database file size")
+
+        return jsonify({
+            'success': True,
+            'update_available': update_available,
+            'local': {
+                'version': local_version,
+                'date': local_date,
+                'schema_version': local_metadata.get('schema_version', 'Unknown')
+            },
+            'remote': {
+                'version': remote_version,
+                'date': remote_date,
+                'schema_version': remote_metadata.get('schema_version', 'Unknown')
+            },
+            'file_size': file_size,
+            'file_size_mb': round(file_size / (1024 * 1024), 2) if file_size else 0
+        })
+
+    except requests.RequestException as e:
+        logger.error(f"Error fetching remote metadata: {e}")
+        return jsonify({'error': f'Failed to fetch remote metadata: {str(e)}'}), 500
+    except json.JSONDecodeError as e:
+        logger.error(f"Error parsing metadata JSON: {e}")
+        return jsonify({'error': 'Invalid JSON metadata file'}), 500
+    except Exception as e:
+        logger.error(f"Error checking remote database: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/database/backup', methods=['POST'])
+def backup_database():
+    """Create a backup of the current database"""
+    try:
+        db_path = DB_PATH
+        if not os.path.exists(db_path):
+            return jsonify({'error': 'Database file not found'}), 404
+
+        # Backup path (keep only 1 backup)
+        backup_path = db_path + '.backup'
+
+        # Remove old backup if exists
+        if os.path.exists(backup_path):
+            os.remove(backup_path)
+            logger.info(f"Removed old backup: {backup_path}")
+
+        # Create new backup
+        shutil.copy2(db_path, backup_path)
+
+        backup_size = os.path.getsize(backup_path)
+        backup_size_mb = round(backup_size / (1024 * 1024), 2)
+
+        logger.info(f"Database backed up to: {backup_path} ({backup_size_mb} MB)")
+
+        return jsonify({
+            'success': True,
+            'backup_path': backup_path,
+            'backup_size': backup_size,
+            'backup_size_mb': backup_size_mb,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"Error creating backup: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/database/restore', methods=['POST'])
+def restore_database():
+    """Restore database from backup"""
+    try:
+        db_path = DB_PATH
+        backup_path = db_path + '.backup'
+
+        if not os.path.exists(backup_path):
+            return jsonify({'error': 'Backup file not found'}), 404
+
+        # Verify backup is valid SQLite database
+        try:
+            test_conn = sqlite3.connect(backup_path)
+            test_conn.execute("SELECT 1 FROM metadata LIMIT 1")
+            test_conn.close()
+        except sqlite3.Error as e:
+            return jsonify({'error': f'Backup file is corrupted: {str(e)}'}), 400
+
+        # Restore backup
+        shutil.copy2(backup_path, db_path)
+
+        # Get restored version info
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT key, value
+            FROM metadata
+            WHERE key IN ('data_version', 'effective_date')
+        """)
+
+        restored_metadata = {}
+        for row in cursor.fetchall():
+            restored_metadata[row['key']] = row['value']
+
+        conn.close()
+
+        logger.info(f"Database restored from backup: {backup_path}")
+
+        return jsonify({
+            'success': True,
+            'restored_version': restored_metadata.get('data_version', 'Unknown'),
+            'restored_date': restored_metadata.get('effective_date', 'Unknown'),
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"Error restoring database: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/database/update', methods=['POST'])
+def update_database():
+    """Download and replace database with remote version"""
+    try:
+        data = request.json
+        remote_url = data.get('remote_url', '').strip()
+
+        if not remote_url:
+            return jsonify({'error': 'Remote URL required'}), 400
+
+        db_path = DB_PATH
+        temp_db = None
+
+        try:
+            # Create automatic backup before updating
+            backup_path = db_path + '.backup'
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
+                logger.info(f"Removed old backup: {backup_path}")
+
+            shutil.copy2(db_path, backup_path)
+            logger.info(f"Created backup before update: {backup_path}")
+
+            # Download to temp file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.db') as tf:
+                temp_db = tf.name
+
+            logger.info(f"Downloading database from: {remote_url}")
+
+            # Download with streaming
+            response = requests.get(remote_url, stream=True, timeout=60)
+            response.raise_for_status()
+
+            total_size = int(response.headers.get('content-length', 0))
+            chunk_size = 1024 * 1024  # 1MB chunks
+            downloaded = 0
+
+            with open(temp_db, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=chunk_size):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+
+            logger.info(f"Download complete: {downloaded} bytes")
+
+            # Verify downloaded file is valid SQLite database
+            try:
+                test_conn = sqlite3.connect(temp_db)
+                test_conn.execute("SELECT 1 FROM metadata LIMIT 1")
+                test_conn.close()
+            except sqlite3.Error as e:
+                return jsonify({'error': f'Downloaded file is not a valid database: {str(e)}'}), 400
+
+            # Replace current database
+            shutil.move(temp_db, db_path)
+            temp_db = None  # Prevent cleanup
+
+            # Get new version info
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT key, value
+                FROM metadata
+                WHERE key IN ('data_version', 'effective_date')
+            """)
+
+            new_metadata = {}
+            for row in cursor.fetchall():
+                new_metadata[row['key']] = row['value']
+
+            conn.close()
+
+            logger.info(f"Database updated successfully to version {new_metadata.get('data_version')}")
+
+            return jsonify({
+                'success': True,
+                'new_version': new_metadata.get('data_version', 'Unknown'),
+                'new_date': new_metadata.get('effective_date', 'Unknown'),
+                'downloaded_size': downloaded,
+                'downloaded_size_mb': round(downloaded / (1024 * 1024), 2),
+                'timestamp': datetime.now().isoformat()
+            })
+
+        finally:
+            # Clean up temp file if download failed
+            if temp_db and os.path.exists(temp_db):
+                try:
+                    os.unlink(temp_db)
+                except:
+                    pass
+
+    except requests.RequestException as e:
+        logger.error(f"Error downloading database: {e}")
+        return jsonify({'error': f'Failed to download database: {str(e)}'}), 500
+    except Exception as e:
+        logger.error(f"Error updating database: {e}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/search/stations', methods=['GET'])
 def search_stations():
@@ -1593,11 +1873,10 @@ def create_dispatcharr_group():
         if not all([url, username, password, group_name]):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Create group with name and permissions (required by API)
-        logger.info(f"Creating new group with name: {group_name}")
+        # Create channel group (only name is required)
+        logger.info(f"Creating new channel group with name: {group_name}")
         group_data = {
-            'name': group_name,
-            'permissions': []  # Empty permissions array (required field)
+            'name': group_name
         }
 
         create_result, create_error = dispatcharr_api_request(
@@ -1605,7 +1884,7 @@ def create_dispatcharr_group():
             username=username,
             password=password,
             method='POST',
-            endpoint='/api/accounts/groups/',
+            endpoint='/api/channels/groups/',
             data=group_data
         )
 
@@ -1630,6 +1909,86 @@ def create_dispatcharr_group():
         logger.error(f"Error creating Dispatcharr group: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/dispatcharr/groups/<int:group_id>', methods=['PATCH'])
+def update_dispatcharr_group(group_id):
+    """Update a Dispatcharr channel group name"""
+    try:
+        data = request.json
+        url = data.get('url')
+        username = data.get('username')
+        password = data.get('password')
+        new_name = data.get('name')
+
+        if not all([url, username, password, new_name]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        logger.info(f"Updating channel group {group_id} with new name: {new_name}")
+
+        # Update the group
+        update_data = {'name': new_name}
+        update_result, update_error = dispatcharr_api_request(
+            url=url,
+            username=username,
+            password=password,
+            method='PATCH',
+            endpoint=f'/api/channels/groups/{group_id}/',
+            data=update_data
+        )
+
+        if update_error:
+            if 'not found' in str(update_error).lower():
+                return jsonify({'error': 'Group not found'}), 404
+            return jsonify({'error': str(update_error)}), 500
+
+        logger.info(f"Group {group_id} updated successfully")
+
+        return jsonify({
+            'success': True,
+            'group': update_result
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating Dispatcharr group: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/dispatcharr/groups/<int:group_id>', methods=['DELETE'])
+def delete_dispatcharr_group(group_id):
+    """Delete a Dispatcharr channel group"""
+    try:
+        data = request.json
+        url = data.get('url')
+        username = data.get('username')
+        password = data.get('password')
+
+        if not all([url, username, password]):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        logger.info(f"Deleting channel group with ID: {group_id}")
+
+        # Delete the group
+        delete_result, delete_error = dispatcharr_api_request(
+            url=url,
+            username=username,
+            password=password,
+            method='DELETE',
+            endpoint=f'/api/channels/groups/{group_id}/'
+        )
+
+        # For DELETE requests, a 204 No Content or empty response is success
+        if delete_error and 'not found' in str(delete_error).lower():
+            return jsonify({'error': 'Group not found or already deleted'}), 404
+
+        if delete_error and 'cannot delete' in str(delete_error).lower():
+            return jsonify({'error': 'Cannot delete group - it may have channels or M3U associations'}), 400
+
+        logger.info(f"Group {group_id} deleted successfully")
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        logger.error(f"Error deleting Dispatcharr group: {e}")
+        return jsonify({'error': str(e)}), 500
+
 # ============================================================================
 # EMBY INTEGRATION ENDPOINTS
 # ============================================================================
@@ -1640,7 +1999,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.4.0-beta"'
+            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.0"'
         }
         auth_data = {
             'Username': username,
@@ -2044,7 +2403,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.4.0-beta&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.0&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:
@@ -2332,6 +2691,13 @@ def get_m3u_accounts():
             for acc in accounts_data:
                 acc_id = acc.get('id')
                 acc_name = acc.get('name', f'Account {acc_id}')
+                acc_locked = acc.get('locked', False)
+
+                # Skip the built-in "custom" locked account
+                if acc_locked and acc_name.lower() == 'custom':
+                    logger.debug(f"Skipping locked custom account (ID: {acc_id})")
+                    continue
+
                 accounts.append({
                     'id': acc_id,
                     'name': acc_name,

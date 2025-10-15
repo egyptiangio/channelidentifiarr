@@ -1,6 +1,6 @@
 # ChannelIdentifiarr
 
-**v0.4.0-beta**
+**v0.5.0**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
@@ -12,6 +12,7 @@ Web-based TV channel lineup search and Dispatcherr/Emby integration.
 - Advanced stream management and assignment
 - Drag-and-drop stream ordering
 - Channel renumbering with range selection
+- Remote database update system with automatic backups
 
 ## Channel Creation from Search Results
 
@@ -48,6 +49,13 @@ Advanced stream management features integrated with Dispatcharr:
 - **M3U Playlist Filtering** - See which playlist each stream comes from
 - **Confidence Scoring** - View match quality scores for each stream suggestion
 - **Stream Preview** - See stream URLs and metadata before assigning
+
+## Additional Features
+
+- **Database Updates** - Check for and download updated databases from remote sources with automatic backups
+- **Group Management** - Create, edit, and delete custom channel groups
+- **Default Groups** - Set default group for new channels with prominent display in Settings
+- **Smart Ranges** - Define channel number ranges with automatic group assignment
 
 ## Quick Start
 
