@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.0</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.1</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -4842,9 +4842,9 @@
 
             document.getElementById('matchingSummary').innerHTML = summaryHtml;
 
-            // Auto-refresh Dispatcharr channels in background if any were matched
+            // Set flag to reload channels when modal closes
             if (matched > 0) {
-                loadDispatcharrChannels();
+                channelChangedInModal = true;
             }
         }
 
