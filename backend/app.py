@@ -474,7 +474,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.5.1</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.5.2</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -909,12 +909,12 @@ def search_stations():
             params.append(station_type)
 
         if quality:
-            # Treat UHDTV, 4k, and UHDTV/4K as equivalent
-            if quality.upper() in ['UHDTV', '4K', 'UHDTV/4K']:
-                sql += " AND (sl.video_type = 'UHDTV' OR sl.video_type = '4k')"
-            else:
-                sql += " AND sl.video_type = ?"
-                params.append(quality)
+            # Support multiple qualities (comma-separated)
+            qualities = [q.strip() for q in quality.split(',') if q.strip()]
+            if qualities:
+                placeholders = ','.join(['?' for _ in qualities])
+                sql += f" AND sl.video_type IN ({placeholders})"
+                params.extend(qualities)
 
         sql += """
             ORDER BY
@@ -1453,6 +1453,10 @@ def suggest_matches():
         channel_id = data.get('channel_id')
         existing_station_id = data.get('existing_station_id')
 
+        # Manual filters from UI (override auto-detection)
+        filter_country = data.get('filter_country', '')  # Empty string = all countries
+        filter_resolutions = data.get('filter_resolutions', [])  # Empty list = all resolutions
+
         if not channel_name:
             return jsonify({'error': 'Channel name required'}), 400
 
@@ -1504,9 +1508,10 @@ def suggest_matches():
         clean_name = parsed['clean_name']
         detected_resolution = parsed.get('resolution', '')
 
-        logger.info(f"Matching channel: '{channel_name}' | Clean: '{clean_name}' | Resolution: '{detected_resolution}'")
+        logger.info(f"Matching channel: '{channel_name}' | Clean: '{clean_name}' | Auto-detected: Resolution={detected_resolution}")
+        logger.info(f"Manual filters: Country={filter_country}, Resolutions={filter_resolutions}")
 
-        # Try multiple search strategies with resolution filter
+        # Try multiple search strategies with filters
         sql = """
             SELECT DISTINCT
                 s.station_id,
@@ -1533,13 +1538,20 @@ def suggest_matches():
             clean_name, clean_name
         ]
 
-        # Add resolution filter if detected
-        if detected_resolution:
-            logger.info(f"Filtering by resolution: {detected_resolution}")
-            sql += " AND sl.video_type = ?"
-            params.append(detected_resolution)
-        else:
-            logger.info("No resolution detected - showing all resolutions")
+        # Apply resolution filter (manual filter takes precedence)
+        if filter_resolutions and len(filter_resolutions) > 0:
+            # User has selected specific resolutions
+            placeholders = ','.join(['?' for _ in filter_resolutions])
+            sql += f" AND sl.video_type IN ({placeholders})"
+            params.extend(filter_resolutions)
+            logger.info(f"Applying manual resolution filter: {filter_resolutions}")
+        # No else - if no filter specified, show all resolutions
+
+        # Apply country filter
+        if filter_country:
+            sql += " AND lm.country = ?"
+            params.append(filter_country)
+            logger.info(f"Applying country filter: {filter_country}")
 
         sql += """
             GROUP BY s.station_id, s.name, s.call_sign, s.type, s.logo_uri
@@ -1999,7 +2011,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.1"'
+            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.2"'
         }
         auth_data = {
             'Username': username,
@@ -2403,7 +2415,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.1&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.2&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:

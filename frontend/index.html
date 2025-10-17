@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.1</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.2</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1297,8 +1297,59 @@
                         </div>
                     </div>
 
+                    <!-- Filter Section -->
+                    <div id="matchingFilters" style="margin-top: 20px; padding: 15px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer;" onclick="toggleMatchingFilters()">
+                            <h3 style="margin: 0; font-size: 1rem;">🔍 Filters <span style="color: #999; font-size: 0.85rem; font-weight: normal;">(from parsed data)</span></h3>
+                            <span id="filterToggleIcon" style="font-size: 1.2rem;">▼</span>
+                        </div>
+                        <div id="filterControls" style="margin-top: 15px;">
+                            <!-- Country Filter -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-size: 0.9rem; color: #999; margin-bottom: 5px;">
+                                    Country <span id="countryAutoDetected" style="color: #667eea; font-size: 0.85rem;"></span>
+                                </label>
+                                <select id="filterCountry" onchange="applyMatchingFilters()" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
+                                    <option value="">All Countries</option>
+                                    <option value="USA">USA</option>
+                                    <option value="CAN">Canada</option>
+                                    <option value="GBR">United Kingdom</option>
+                                    <option value="AUS">Australia</option>
+                                    <option value="MEX">Mexico</option>
+                                </select>
+                            </div>
+
+                            <!-- Resolution Filter -->
+                            <div style="margin-bottom: 12px;">
+                                <label style="display: block; font-size: 0.9rem; color: #999; margin-bottom: 5px;">
+                                    Quality/Resolution <span id="resolutionAutoDetected" style="color: #667eea; font-size: 0.85rem;"></span>
+                                </label>
+                                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                        <input type="checkbox" id="filterSD" value="SD" onchange="applyMatchingFilters()" checked>
+                                        <span>SD</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                        <input type="checkbox" id="filterHD" value="HD" onchange="applyMatchingFilters()" checked>
+                                        <span>HD</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                                        <input type="checkbox" id="filterUHD" value="UHD" onchange="applyMatchingFilters()" checked>
+                                        <span>UHD/4K</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Filter Actions -->
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button onclick="resetMatchingFilters()" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9rem;">Reset to Auto</button>
+                                <button onclick="clearAllMatchingFilters()" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9rem;">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Suggested Matches -->
-                    <div class="matching-suggestions">
+                    <div class="matching-suggestions" style="margin-top: 20px;">
                         <h3>Suggested Matches:</h3>
                         <div id="suggestedMatches" style="margin-top: 15px;">
                             <!-- Will be populated dynamically -->
@@ -1480,6 +1531,7 @@
 
         // Track if changes were made in modals (for conditional reload)
         let channelChangedInModal = false;
+        let hasIncrementalUpdates = false; // Track if we did immediate row updates (skip full reload)
 
         // Custom Notification System
         function showNotification(message, type = 'info') {
@@ -2157,11 +2209,13 @@
             modal.onclick = (e) => {
                 if (e.target === modal) {
                     modal.remove();
-                    // Only reload if changes were made
-                    if (channelChangedInModal) {
+                    // Improved refresh strategy: skip reload if we already did incremental updates
+                    if (hasIncrementalUpdates) {
+                        hasIncrementalUpdates = false;
+                    } else if (channelChangedInModal) {
                         loadDispatcharrChannels();
-                        channelChangedInModal = false; // Reset flag
                     }
+                    channelChangedInModal = false;
                 }
             };
 
@@ -2172,7 +2226,7 @@
                             <div class="modal-title">Edit Channel ${channel.channel_number}</div>
                             <div style="color: #999; margin-top: 5px;">Channel ID: ${channel.id}</div>
                         </div>
-                        <button class="close-button" onclick="this.closest('.modal').remove(); if (channelChangedInModal) { loadDispatcharrChannels(); channelChangedInModal = false; }">×</button>
+                        <button class="close-button" onclick="this.closest('.modal').remove(); if (hasIncrementalUpdates) { hasIncrementalUpdates = false; } else if (channelChangedInModal) { loadDispatcharrChannels(); } channelChangedInModal = false;">×</button>
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -2199,7 +2253,7 @@
                         <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: space-between;">
                             <button onclick="deleteDispatcharrChannel(${channel.id})" class="btn-secondary" style="background: #ff6b6b; border-color: #ff6b6b;">🗑️ Delete Channel</button>
                             <div style="display: flex; gap: 10px;">
-                                <button onclick="this.closest('.modal').remove(); if (channelChangedInModal) { loadDispatcharrChannels(); channelChangedInModal = false; }" class="btn-secondary">Cancel</button>
+                                <button onclick="this.closest('.modal').remove(); if (hasIncrementalUpdates) { hasIncrementalUpdates = false; } else if (channelChangedInModal) { loadDispatcharrChannels(); } channelChangedInModal = false;" class="btn-secondary">Cancel</button>
                                 <button onclick="saveChannelEdits(${channel.id})" class="btn-primary">💾 Save Changes</button>
                             </div>
                         </div>
@@ -2250,14 +2304,18 @@
 
                 if (result.success) {
                     showNotification('Channel updated successfully!', 'success');
-                    // Mark that changes were made
-                    channelChangedInModal = true;
-                    // Close modal (reload will happen via close handler)
-                    document.querySelector('.modal').remove();
-                    if (channelChangedInModal) {
-                        loadDispatcharrChannels();
-                        channelChangedInModal = false; // Reset flag
+
+                    // Update local channel data with the updated channel from API
+                    const channelIndex = dispatcharrChannels.findIndex(ch => ch.id == channelId);
+                    if (channelIndex !== -1 && result.channel) {
+                        dispatcharrChannels[channelIndex] = result.channel;
+                        // Update just this channel's row immediately (improved refresh strategy)
+                        updateSingleChannelRow(channelId);
+                        hasIncrementalUpdates = true;
                     }
+
+                    // Close modal (skip reload since we already updated the row)
+                    document.querySelector('.modal').remove();
                 } else {
                     showNotification('Failed to update channel: ' + (result.error || 'Unknown error'), 'error');
                 }
@@ -2432,11 +2490,13 @@
             modal.onclick = (e) => {
                 if (e.target === modal) {
                     modal.remove();
-                    // Only reload if changes were made
-                    if (channelChangedInModal) {
+                    // Improved refresh strategy: skip reload if we already did incremental updates
+                    if (hasIncrementalUpdates) {
+                        hasIncrementalUpdates = false;
+                    } else if (channelChangedInModal) {
                         loadDispatcharrChannels();
-                        channelChangedInModal = false; // Reset flag
                     }
+                    channelChangedInModal = false;
                 }
             };
 
@@ -2447,7 +2507,7 @@
                             <div class="modal-title">Manage Streams - ${escapeHtml(channel.name)}</div>
                             <div style="color: #999; margin-top: 5px;">Channel ${channel.channel_number}</div>
                         </div>
-                        <button class="close-button" onclick="this.closest('.modal').remove(); if (channelChangedInModal) { loadDispatcharrChannels(); channelChangedInModal = false; }">×</button>
+                        <button class="close-button" onclick="this.closest('.modal').remove(); if (hasIncrementalUpdates) { hasIncrementalUpdates = false; } else if (channelChangedInModal) { loadDispatcharrChannels(); } channelChangedInModal = false;">×</button>
                     </div>
 
                     <div style="flex: 1; overflow-y: auto; margin-top: 20px;">
@@ -2801,14 +2861,13 @@
                     console.error('Failed to save stream order:', data.error);
                     showNotification('Failed to save stream order', 'error');
                 } else {
-                    // Mark that changes were made
-                    channelChangedInModal = true;
                     // Update local channel data with new streams
                     const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === currentStreamManagerChannel.id);
                     if (channelIndex !== -1) {
                         dispatcharrChannels[channelIndex].streams = currentChannelStreams;
-                        // Update just this channel's row for instant feedback (much faster than full re-render)
+                        // Update just this channel's row immediately (improved refresh strategy)
                         updateSingleChannelRow(currentStreamManagerChannel.id);
+                        hasIncrementalUpdates = true;
                     }
                 }
             } catch (error) {
@@ -4633,6 +4692,72 @@
             await matchNextChannel();
         }
 
+        // Matching Filter Functions (unified filters with full manual control)
+        let autoDetectedFilters = {country: '', resolution: ''};  // Store auto-detected values
+
+        function toggleMatchingFilters() {
+            const controls = document.getElementById('filterControls');
+            const icon = document.getElementById('filterToggleIcon');
+            if (controls.style.display === 'none') {
+                controls.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                controls.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+
+        function getMatchingFilters() {
+            // Get currently selected filters from UI
+            const country = document.getElementById('filterCountry').value;
+            const resolutions = [];
+            if (document.getElementById('filterSD').checked) resolutions.push('SD');
+            if (document.getElementById('filterHD').checked) resolutions.push('HD');
+            if (document.getElementById('filterUHD').checked) resolutions.push('UHD');
+
+            return {
+                country: country,
+                resolutions: resolutions
+            };
+        }
+
+        function applyMatchingFilters() {
+            // Re-run matching with current filters
+            if (isMatching && matchingQueue[currentMatchIndex]) {
+                matchNextChannel();  // Refresh suggestions for current channel
+            }
+        }
+
+        function resetMatchingFilters() {
+            // Reset to auto-detected values
+            document.getElementById('filterCountry').value = autoDetectedFilters.country || '';
+
+            // Reset resolution checkboxes based on auto-detected value
+            const autoResolution = autoDetectedFilters.resolution;
+            if (autoResolution) {
+                // Only check the auto-detected resolution
+                document.getElementById('filterSD').checked = (autoResolution === 'SD');
+                document.getElementById('filterHD').checked = (autoResolution === 'HD');
+                document.getElementById('filterUHD').checked = (autoResolution === 'UHD');
+            } else {
+                // No auto-detection - check all
+                document.getElementById('filterSD').checked = true;
+                document.getElementById('filterHD').checked = true;
+                document.getElementById('filterUHD').checked = true;
+            }
+
+            applyMatchingFilters();
+        }
+
+        function clearAllMatchingFilters() {
+            // Clear all filters (show everything)
+            document.getElementById('filterCountry').value = '';
+            document.getElementById('filterSD').checked = true;
+            document.getElementById('filterHD').checked = true;
+            document.getElementById('filterUHD').checked = true;
+            applyMatchingFilters();
+        }
+
         async function matchNextChannel() {
             if (!isMatching || currentMatchIndex >= matchingQueue.length) {
                 finishMatching();
@@ -4655,23 +4780,55 @@
                 const container = document.getElementById('suggestedMatches');
                 container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;"><span style="font-size: 2rem;">🔄</span><br/>Searching database for matches...</p>';
 
+                // Get current filter values (unified filters with full manual control)
+                const filters = getMatchingFilters();
+
                 const response = await fetch('/api/match/suggest', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         channel_name: channel.name,
                         channel_id: channel.id,
-                        existing_station_id: channel.gracenote_id || null
+                        existing_station_id: channel.gracenote_id || null,
+                        filter_country: filters.country,
+                        filter_resolutions: filters.resolutions
                     })
                 });
 
                 const data = await response.json();
 
-                // Update parsed info
+                // Update parsed info and populate filters from parsed data (first time only)
                 if (data.parsed) {
                     document.getElementById('parsedCleanName').textContent = data.parsed.clean_name || '-';
                     document.getElementById('parsedCountry').textContent = data.parsed.country || 'Not detected';
                     document.getElementById('parsedResolution').textContent = data.parsed.resolution || 'Not detected';
+
+                    // Store auto-detected values and populate filters on first channel
+                    if (currentMatchIndex === 0) {
+                        autoDetectedFilters = {
+                            country: data.parsed.country || '',
+                            resolution: data.parsed.resolution || ''
+                        };
+
+                        // Populate filter UI with auto-detected values
+                        if (autoDetectedFilters.country) {
+                            document.getElementById('filterCountry').value = autoDetectedFilters.country;
+                            document.getElementById('countryAutoDetected').textContent = `(auto: ${autoDetectedFilters.country})`;
+                        }
+
+                        if (autoDetectedFilters.resolution) {
+                            // Check only the auto-detected resolution
+                            document.getElementById('filterSD').checked = (autoDetectedFilters.resolution === 'SD');
+                            document.getElementById('filterHD').checked = (autoDetectedFilters.resolution === 'HD');
+                            document.getElementById('filterUHD').checked = (autoDetectedFilters.resolution === 'UHD');
+                            document.getElementById('resolutionAutoDetected').textContent = `(auto: ${autoDetectedFilters.resolution})`;
+                        } else {
+                            // No resolution detected - show all
+                            document.getElementById('filterSD').checked = true;
+                            document.getElementById('filterHD').checked = true;
+                            document.getElementById('filterUHD').checked = true;
+                        }
+                    }
                 }
 
                 // Display suggested matches - user must manually accept
@@ -4765,8 +4922,15 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Mark that changes were made
-                    channelChangedInModal = true;
+                    // Update local channel data with the updated channel from API
+                    const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === channel.id);
+                    if (channelIndex !== -1 && result.channel) {
+                        dispatcharrChannels[channelIndex] = result.channel;
+                        // Update just this channel's row immediately (improved refresh strategy)
+                        updateSingleChannelRow(channel.id);
+                        hasIncrementalUpdates = true;
+                    }
+
                     // Record result
                     matchingResults.push({
                         channel: channel,
@@ -4853,7 +5017,19 @@
             if (!query) return;
 
             try {
-                const response = await fetch(`/api/search/stations?q=${encodeURIComponent(query)}&limit=10`);
+                // Get current filter values (unified filters with full manual control)
+                const filters = getMatchingFilters();
+
+                // Build query string with filters
+                let queryParams = `q=${encodeURIComponent(query)}&limit=10`;
+                if (filters.country) {
+                    queryParams += `&country=${encodeURIComponent(filters.country)}`;
+                }
+                if (filters.resolutions.length > 0) {
+                    queryParams += `&quality=${encodeURIComponent(filters.resolutions.join(','))}`;
+                }
+
+                const response = await fetch(`/api/search/stations?${queryParams}`);
                 const data = await response.json();
 
                 const container = document.getElementById('manualSearchResults');
@@ -5101,11 +5277,13 @@
             isMatching = false;
             matchingQueue = [];
             currentMatchIndex = 0;
-            // Reload channels if any matches were applied
-            if (channelChangedInModal) {
+            // Improved refresh strategy: skip reload if we already did incremental updates
+            if (hasIncrementalUpdates) {
+                hasIncrementalUpdates = false;
+            } else if (channelChangedInModal) {
                 loadDispatcharrChannels();
-                channelChangedInModal = false; // Reset flag
             }
+            channelChangedInModal = false;
         }
 
         // Load database metadata

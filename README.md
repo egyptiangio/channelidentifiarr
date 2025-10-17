@@ -1,6 +1,6 @@
 # ChannelIdentifiarr
 
-**v0.5.1**
+**v0.5.2**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
