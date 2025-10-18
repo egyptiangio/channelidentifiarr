@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.2</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.3</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1275,24 +1275,22 @@
                 <div id="matchingInterface">
                     <!-- Current Channel Being Matched -->
                     <div class="matching-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <h3>Currently Matching:</h3>
-                        <div style="display: flex; align-items: center; margin-top: 15px;">
-                            <div style="flex: 1;">
-                                <div style="font-size: 1.5rem; font-weight: bold;" id="currentChannelName">-</div>
-                                <div style="color: #999; margin-top: 5px;">
-                                    <span>Channel ID: <span id="currentChannelId">-</span></span> |
-                                    <span>Current Station ID: <span id="currentStationId" style="color: #ff6b6b;">None</span></span>
-                                </div>
+                        <h3 style="margin: 0 0 15px 0;">Currently Matching:</h3>
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 8px;" id="currentChannelName">-</div>
+                            <div style="color: #999; font-size: 0.9rem; display: flex; gap: 15px; flex-wrap: wrap;">
+                                <span>Channel ID: <span id="currentChannelId">-</span></span>
+                                <span>Current Station ID: <span id="currentStationId" style="color: #ff6b6b;">None</span></span>
                             </div>
                         </div>
 
                         <!-- Parsed Info -->
-                        <div id="parsedInfo" style="margin-top: 15px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
-                            <div style="font-size: 0.9rem; color: #999;">Parsed Analysis:</div>
-                            <div style="margin-top: 5px;">
-                                <span>Clean Name: <strong id="parsedCleanName">-</strong></span> |
-                                <span>Country: <strong id="parsedCountry">-</strong></span> |
-                                <span>Resolution: <strong id="parsedResolution">-</strong></span>
+                        <div id="parsedInfo" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border-left: 3px solid #667eea;">
+                            <div style="font-size: 0.85rem; color: #999; margin-bottom: 8px;">📋 Parsed Analysis:</div>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 0.9rem;">
+                                <div><span style="color: #999;">Clean Name:</span> <strong id="parsedCleanName">-</strong></div>
+                                <div><span style="color: #999;">Country:</span> <strong id="parsedCountry">-</strong></div>
+                                <div><span style="color: #999;">Resolution:</span> <strong id="parsedResolution">-</strong></div>
                             </div>
                         </div>
                     </div>
@@ -1301,15 +1299,15 @@
                     <div id="matchingFilters" style="margin-top: 20px; padding: 15px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer;" onclick="toggleMatchingFilters()">
                             <h3 style="margin: 0; font-size: 1rem;">🔍 Filters <span style="color: #999; font-size: 0.85rem; font-weight: normal;">(from parsed data)</span></h3>
-                            <span id="filterToggleIcon" style="font-size: 1.2rem;">▼</span>
+                            <span id="filterToggleIcon" style="font-size: 1.2rem;">▶</span>
                         </div>
-                        <div id="filterControls" style="margin-top: 15px;">
+                        <div id="filterControls" style="display: none; margin-top: 15px;">
                             <!-- Country Filter -->
                             <div style="margin-bottom: 12px;">
                                 <label style="display: block; font-size: 0.9rem; color: #999; margin-bottom: 5px;">
                                     Country <span id="countryAutoDetected" style="color: #667eea; font-size: 0.85rem;"></span>
                                 </label>
-                                <select id="filterCountry" onchange="applyMatchingFilters()" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
+                                <select id="filterCountry" onchange="filtersManuallyModified = true; applyMatchingFilters()" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
                                     <option value="">All Countries</option>
                                     <option value="USA">USA</option>
                                     <option value="CAN">Canada</option>
@@ -1326,15 +1324,15 @@
                                 </label>
                                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                                     <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                        <input type="checkbox" id="filterSD" value="SD" onchange="applyMatchingFilters()" checked>
+                                        <input type="checkbox" id="filterSD" value="SD" onchange="filtersManuallyModified = true; applyMatchingFilters()" checked>
                                         <span>SD</span>
                                     </label>
                                     <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                        <input type="checkbox" id="filterHD" value="HD" onchange="applyMatchingFilters()" checked>
+                                        <input type="checkbox" id="filterHD" value="HD" onchange="filtersManuallyModified = true; applyMatchingFilters()" checked>
                                         <span>HD</span>
                                     </label>
                                     <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                        <input type="checkbox" id="filterUHD" value="UHD" onchange="applyMatchingFilters()" checked>
+                                        <input type="checkbox" id="filterUHD" value="UHD" onchange="filtersManuallyModified = true; applyMatchingFilters()" checked>
                                         <span>UHD/4K</span>
                                     </label>
                                 </div>
@@ -4694,6 +4692,26 @@
 
         // Matching Filter Functions (unified filters with full manual control)
         let autoDetectedFilters = {country: '', resolution: ''};  // Store auto-detected values
+        let filtersManuallyModified = false;  // Track if user manually changed filters
+
+        // Normalize resolution values between database format and UI format
+        function normalizeResolutionToUI(dbValue) {
+            if (!dbValue) return '';
+            const upper = dbValue.toUpperCase();
+            if (upper === 'HDTV') return 'HD';
+            if (upper === 'SDTV') return 'SD';
+            if (upper === 'UHDTV' || upper === '4K') return 'UHD';
+            return dbValue; // Fallback to original
+        }
+
+        function normalizeResolutionToDB(uiValue) {
+            if (!uiValue) return '';
+            const upper = uiValue.toUpperCase();
+            if (upper === 'HD') return 'HDTV';
+            if (upper === 'SD') return 'SDTV';
+            if (upper === 'UHD') return 'UHDTV';
+            return uiValue; // Fallback to original
+        }
 
         function toggleMatchingFilters() {
             const controls = document.getElementById('filterControls');
@@ -4708,12 +4726,12 @@
         }
 
         function getMatchingFilters() {
-            // Get currently selected filters from UI
+            // Get currently selected filters from UI and convert to database format
             const country = document.getElementById('filterCountry').value;
             const resolutions = [];
-            if (document.getElementById('filterSD').checked) resolutions.push('SD');
-            if (document.getElementById('filterHD').checked) resolutions.push('HD');
-            if (document.getElementById('filterUHD').checked) resolutions.push('UHD');
+            if (document.getElementById('filterSD').checked) resolutions.push(normalizeResolutionToDB('SD'));
+            if (document.getElementById('filterHD').checked) resolutions.push(normalizeResolutionToDB('HD'));
+            if (document.getElementById('filterUHD').checked) resolutions.push(normalizeResolutionToDB('UHD'));
 
             return {
                 country: country,
@@ -4729,16 +4747,20 @@
         }
 
         function resetMatchingFilters() {
+            // Reset manual modification flag to allow auto-detection
+            filtersManuallyModified = false;
+
             // Reset to auto-detected values
             document.getElementById('filterCountry').value = autoDetectedFilters.country || '';
 
-            // Reset resolution checkboxes based on auto-detected value
+            // Reset resolution checkboxes based on auto-detected value (normalize DB format to UI)
             const autoResolution = autoDetectedFilters.resolution;
             if (autoResolution) {
+                const normalizedResolution = normalizeResolutionToUI(autoResolution);
                 // Only check the auto-detected resolution
-                document.getElementById('filterSD').checked = (autoResolution === 'SD');
-                document.getElementById('filterHD').checked = (autoResolution === 'HD');
-                document.getElementById('filterUHD').checked = (autoResolution === 'UHD');
+                document.getElementById('filterSD').checked = (normalizedResolution === 'SD');
+                document.getElementById('filterHD').checked = (normalizedResolution === 'HD');
+                document.getElementById('filterUHD').checked = (normalizedResolution === 'UHD');
             } else {
                 // No auto-detection - check all
                 document.getElementById('filterSD').checked = true;
@@ -4750,6 +4772,9 @@
         }
 
         function clearAllMatchingFilters() {
+            // Mark as manually modified since user is clearing filters
+            filtersManuallyModified = true;
+
             // Clear all filters (show everything)
             document.getElementById('filterCountry').value = '';
             document.getElementById('filterSD').checked = true;
@@ -4797,37 +4822,49 @@
 
                 const data = await response.json();
 
-                // Update parsed info and populate filters from parsed data (first time only)
+                // Update parsed info and populate filters from parsed data (for every channel)
                 if (data.parsed) {
                     document.getElementById('parsedCleanName').textContent = data.parsed.clean_name || '-';
                     document.getElementById('parsedCountry').textContent = data.parsed.country || 'Not detected';
                     document.getElementById('parsedResolution').textContent = data.parsed.resolution || 'Not detected';
 
-                    // Store auto-detected values and populate filters on first channel
-                    if (currentMatchIndex === 0) {
-                        autoDetectedFilters = {
-                            country: data.parsed.country || '',
-                            resolution: data.parsed.resolution || ''
-                        };
+                    // Store auto-detected values
+                    autoDetectedFilters = {
+                        country: data.parsed.country || '',
+                        resolution: data.parsed.resolution || ''
+                    };
 
-                        // Populate filter UI with auto-detected values
+                    // Only auto-populate filters if user hasn't manually modified them
+                    if (!filtersManuallyModified) {
+                        // Populate filter UI with auto-detected values for this channel
                         if (autoDetectedFilters.country) {
                             document.getElementById('filterCountry').value = autoDetectedFilters.country;
                             document.getElementById('countryAutoDetected').textContent = `(auto: ${autoDetectedFilters.country})`;
+                        } else {
+                            document.getElementById('filterCountry').value = '';
+                            document.getElementById('countryAutoDetected').textContent = '';
                         }
 
                         if (autoDetectedFilters.resolution) {
+                            // Normalize database format to UI format for comparison
+                            const normalizedResolution = normalizeResolutionToUI(autoDetectedFilters.resolution);
                             // Check only the auto-detected resolution
-                            document.getElementById('filterSD').checked = (autoDetectedFilters.resolution === 'SD');
-                            document.getElementById('filterHD').checked = (autoDetectedFilters.resolution === 'HD');
-                            document.getElementById('filterUHD').checked = (autoDetectedFilters.resolution === 'UHD');
-                            document.getElementById('resolutionAutoDetected').textContent = `(auto: ${autoDetectedFilters.resolution})`;
+                            document.getElementById('filterSD').checked = (normalizedResolution === 'SD');
+                            document.getElementById('filterHD').checked = (normalizedResolution === 'HD');
+                            document.getElementById('filterUHD').checked = (normalizedResolution === 'UHD');
+                            document.getElementById('resolutionAutoDetected').textContent = `(auto: ${normalizedResolution})`;
                         } else {
                             // No resolution detected - show all
                             document.getElementById('filterSD').checked = true;
                             document.getElementById('filterHD').checked = true;
                             document.getElementById('filterUHD').checked = true;
+                            document.getElementById('resolutionAutoDetected').textContent = '';
                         }
+                    } else {
+                        // User has manual filters - just update the auto-detected labels for reference
+                        document.getElementById('countryAutoDetected').textContent = autoDetectedFilters.country ? `(auto: ${autoDetectedFilters.country})` : '';
+                        const normalizedResolution = normalizeResolutionToUI(autoDetectedFilters.resolution);
+                        document.getElementById('resolutionAutoDetected').textContent = normalizedResolution ? `(auto: ${normalizedResolution})` : '';
                     }
                 }
 
@@ -4938,8 +4975,9 @@
                         status: 'matched'
                     });
 
-                    // Move to next channel
+                    // Move to next channel - reset manual filter flag
                     currentMatchIndex++;
+                    filtersManuallyModified = false;
                     await matchNextChannel();
                 } else {
                     showNotification('Failed to apply match: ' + (result.error || 'Unknown error'));
@@ -4956,7 +4994,9 @@
                 status: 'skipped'
             });
 
+            // Move to next channel - reset manual filter flag
             currentMatchIndex++;
+            filtersManuallyModified = false;
             matchNextChannel();
         }
 
@@ -5263,6 +5303,9 @@
 
             // Reset change tracking flag
             channelChangedInModal = false;
+
+            // Reset filter flag for first channel
+            filtersManuallyModified = false;
 
             // Show matching modal
             document.getElementById('matchingModal').style.display = 'flex';
