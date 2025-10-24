@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.3</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.4</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -833,10 +833,23 @@
                             <input type="checkbox" id="applyChannelName" style="margin-right: 10px;">
                             <span>Apply channel name</span>
                         </label>
-                        <label style="display: flex; align-items: center; margin-bottom: 10px;">
-                            <input type="checkbox" id="applyCallSign" style="margin-right: 10px;">
-                            <span>Apply call sign as TVG-ID (tvg_id)</span>
-                        </label>
+                        <div style="margin-bottom: 10px;">
+                            <label style="display: flex; align-items: center; margin-bottom: 10px;">
+                                <input type="checkbox" id="applyTvgId" style="margin-right: 10px;" onchange="toggleTvgIdSourceOptions()">
+                                <span>Apply TVG-ID (tvg_id)</span>
+                            </label>
+                            <div style="margin-left: 30px;">
+                                <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="radio" name="tvgIdSource" value="callsign" id="tvgIdSourceCallsign" style="margin-right: 10px;" disabled>
+                                    <span id="tvgIdSourceCallsignLabel" style="color: #666;">Use Call Sign</span>
+                                </label>
+                                <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
+                                    <input type="radio" name="tvgIdSource" value="gracenote" id="tvgIdSourceGracenote" style="margin-right: 10px;" disabled>
+                                    <span id="tvgIdSourceGracenoteLabel" style="color: #666;">Use Gracenote ID</span>
+                                </label>
+                                <div id="tvgIdSourceHelp" style="font-size: 0.8rem; color: #666; margin-top: 3px;">Select which value to populate into the TVG-ID field</div>
+                            </div>
+                        </div>
                         <label style="display: flex; align-items: center; margin-bottom: 10px;">
                             <input type="checkbox" id="applyLogo" checked style="margin-right: 10px;">
                             <span>Apply logo</span>
@@ -973,33 +986,52 @@
 
             <div class="dispatcharr-section">
                 <h2>📡 Dispatcharr Channels</h2>
-                <div class="dispatcharr-controls" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
-                    <button onclick="openCreateCustomChannelModal()" class="btn-primary">➕ Create Channel</button>
+                <div class="dispatcharr-controls" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: nowrap; align-items: center; overflow-x: auto;">
+                    <button onclick="openCreateCustomChannelModal()" class="btn-primary" style="padding: 3px 6px; font-size: 11px;">➕ Create Channel</button>
                     <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
-                    <button onclick="loadDispatcharrChannels()">🔄 Refresh Channels</button>
+                    <button onclick="loadDispatcharrChannels()" style="padding: 3px 6px; font-size: 11px;">🔄 Refresh Channels</button>
                     <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
                     <span style="color: #999; font-size: 0.9rem;">Select:</span>
-                    <button onclick="selectAll()" class="btn-secondary" style="padding: 6px 12px;">All</button>
-                    <button onclick="selectMissingGracenote()" class="btn-secondary" style="padding: 6px 12px;">Missing Gracenote ID</button>
-                    <button onclick="selectMissingLogo()" class="btn-secondary" style="padding: 6px 12px;">Missing Logo</button>
-                    <button onclick="selectMissingTvgId()" class="btn-secondary" style="padding: 6px 12px;">Missing TVG-ID</button>
+                    <button onclick="selectAll()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">All</button>
+                    <button onclick="selectMissingGracenote()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">Missing Gracenote ID</button>
+                    <button onclick="selectMissingLogo()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">Missing Logo</button>
+                    <button onclick="selectMissingTvgId()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">Missing TVG-ID</button>
                     <div style="flex-grow: 1;"></div>
-                    <button onclick="matchSelectedStations()" class="btn-primary" id="matchSelectedBtn" disabled style="padding: 10px 20px; font-weight: bold;">🎯 Match Selected</button>
+                    <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
+                    <button onclick="matchSelectedStations()" class="btn-primary" id="matchSelectedBtn" disabled style="padding: 3px 6px; font-size: 11px;">🎯 Match Selected</button>
+                    <button onclick="bulkEditGroup()" class="btn-secondary" id="bulkEditGroupBtn" disabled style="padding: 3px 6px; font-size: 11px;">📝 Edit Selected</button>
+                    <button onclick="bulkDeleteChannels()" id="bulkDeleteBtn" disabled style="padding: 3px 6px; font-size: 11px; background: #dc2626; border-color: #dc2626; color: white;">🗑️ Delete Selected</button>
                 </div>
 
                 <!-- Dispatcharr channels table -->
                 <div class="results-table-container" style="margin-top: 20px;">
-                    <table class="results-table" id="dispatcharrTable">
+                    <table class="results-table" id="dispatcharrTable" style="table-layout: fixed; width: 100%;">
                         <thead>
                             <tr>
                                 <th style="width: 40px;"><input type="checkbox" id="selectAllChannels" onclick="toggleSelectAll()" title="Select/Deselect All"></th>
-                                <th>Channel #</th>
-                                <th>Name</th>
-                                <th>Call Sign</th>
-                                <th>Gracenote ID</th>
-                                <th>Group</th>
-                                <th>Logo</th>
-                                <th>Actions</th>
+                                <th style="width: 80px;">Channel #</th>
+                                <th style="width: 200px;">Name</th>
+                                <th style="width: 120px;">Call Sign</th>
+                                <th style="width: 120px;">Gracenote ID</th>
+                                <th style="width: 150px;">Group</th>
+                                <th style="width: 100px;">Logo</th>
+                                <th style="width: 200px;">Actions</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th><input type="text" id="filterChannelNumber" placeholder="# or range" style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
+                                <th><input type="text" id="filterName" placeholder="Filter by name..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
+                                <th><input type="text" id="filterCallSign" placeholder="Filter..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
+                                <th><input type="text" id="filterGracenoteId" placeholder="Numeric only..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()" onkeypress="return event.charCode >= 48 && event.charCode <= 57"></th>
+                                <th><input type="text" id="filterGroup" placeholder="Filter by group..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
+                                <th>
+                                    <select id="filterLogo" style="width: 100%; padding: 4px; font-size: 12px;" onchange="filterDispatcharrChannels()">
+                                        <option value="">All</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="dispatcharrTableBody">
@@ -2156,6 +2188,100 @@
             });
 
             // Enable/disable action buttons
+            updateMatchButtons();
+        }
+
+        function filterDispatcharrChannels() {
+            // Get filter values
+            const channelNumberFilter = document.getElementById('filterChannelNumber').value.trim();
+            const nameFilter = document.getElementById('filterName').value.toLowerCase().trim();
+            const callSignFilter = document.getElementById('filterCallSign').value.toLowerCase().trim();
+            const gracenoteIdFilter = document.getElementById('filterGracenoteId').value.trim();
+            const groupFilter = document.getElementById('filterGroup').value.toLowerCase().trim();
+            const logoFilter = document.getElementById('filterLogo').value;
+
+            // Parse channel number filter (support ranges like "100-200")
+            let channelNumberMin = null;
+            let channelNumberMax = null;
+            if (channelNumberFilter) {
+                if (channelNumberFilter.includes('-')) {
+                    const parts = channelNumberFilter.split('-').map(p => parseFloat(p.trim()));
+                    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                        channelNumberMin = Math.min(parts[0], parts[1]);
+                        channelNumberMax = Math.max(parts[0], parts[1]);
+                    }
+                } else {
+                    const num = parseFloat(channelNumberFilter);
+                    if (!isNaN(num)) {
+                        channelNumberMin = num;
+                        channelNumberMax = num;
+                    }
+                }
+            }
+
+            // Get all table rows
+            const tableBody = document.getElementById('dispatcharrTableBody');
+            const rows = tableBody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                // Skip rows that don't have a channel ID (like empty state rows)
+                const channelId = row.getAttribute('data-channel-id');
+                if (!channelId) {
+                    return;
+                }
+
+                // Find the channel data
+                const channel = dispatcharrChannels.find(ch => ch.id == channelId);
+                if (!channel) {
+                    return;
+                }
+
+                // Apply filters
+                let channelNumberMatch = true;
+                if (channelNumberMin !== null && channelNumberMax !== null) {
+                    const channelNum = parseFloat(channel.channel_number);
+                    channelNumberMatch = !isNaN(channelNum) && channelNum >= channelNumberMin && channelNum <= channelNumberMax;
+                }
+
+                const nameMatch = !nameFilter || (channel.name && channel.name.toLowerCase().includes(nameFilter));
+                const callSignMatch = !callSignFilter || (channel.call_sign && channel.call_sign.toLowerCase().includes(callSignFilter));
+                const gracenoteIdMatch = !gracenoteIdFilter || (channel.gracenote_id && channel.gracenote_id.includes(gracenoteIdFilter));
+
+                // For group filter, need to look up group name
+                let groupMatch = true;
+                if (groupFilter) {
+                    const group = dispatcharrGroups.find(g => g.id === channel.group_id);
+                    const groupName = group ? group.name : '';
+                    groupMatch = groupName.toLowerCase().includes(groupFilter);
+                }
+
+                // Logo filter - check if logo_url exists and is not a generic placeholder
+                let logoMatch = true;
+                if (logoFilter === 'yes') {
+                    // Has logo: logo_url must exist, not be empty, and not be a generic placeholder
+                    const hasLogo = channel.logo_url &&
+                                   typeof channel.logo_url === 'string' &&
+                                   channel.logo_url.trim().length > 0 &&
+                                   !channel.logo_url.includes('generic');
+                    logoMatch = hasLogo;
+                } else if (logoFilter === 'no') {
+                    // No logo: logo_url is undefined, null, empty string, whitespace, or generic placeholder
+                    const hasLogo = channel.logo_url &&
+                                   typeof channel.logo_url === 'string' &&
+                                   channel.logo_url.trim().length > 0 &&
+                                   !channel.logo_url.includes('generic');
+                    logoMatch = !hasLogo;
+                }
+
+                // Show or hide row based on all filters
+                if (channelNumberMatch && nameMatch && callSignMatch && gracenoteIdMatch && groupMatch && logoMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update button states based on visible checked rows
             updateMatchButtons();
         }
 
@@ -3337,8 +3463,33 @@
                 if (settings.matching) {
                     document.getElementById('applyStationId').checked = settings.matching.applyStationId !== false;
                     document.getElementById('applyChannelName').checked = settings.matching.applyChannelName === true;
-                    document.getElementById('applyCallSign').checked = settings.matching.applyCallSign === true;
                     document.getElementById('applyLogo').checked = settings.matching.applyLogo !== false;
+
+                    // Handle legacy applyCallSign setting - convert to applyTvgId
+                    let applyTvgIdValue = false;
+                    let tvgIdSourceValue = 'callsign';
+
+                    if (settings.matching.applyTvgId !== undefined) {
+                        applyTvgIdValue = settings.matching.applyTvgId;
+                        tvgIdSourceValue = settings.matching.tvgIdSource || 'callsign';
+                    } else if (settings.matching.applyCallSign === true) {
+                        // Legacy: if applyCallSign was true, enable applyTvgId with callsign source
+                        applyTvgIdValue = true;
+                        tvgIdSourceValue = 'callsign';
+                    }
+
+                    // Set the master checkbox
+                    document.getElementById('applyTvgId').checked = applyTvgIdValue;
+
+                    // Set the appropriate radio button
+                    if (tvgIdSourceValue === 'callsign') {
+                        document.getElementById('tvgIdSourceCallsign').checked = true;
+                    } else if (tvgIdSourceValue === 'gracenote') {
+                        document.getElementById('tvgIdSourceGracenote').checked = true;
+                    }
+
+                    // Enable/disable radio buttons based on master checkbox
+                    toggleTvgIdSourceOptions();
                 }
 
                 // Stream management settings
@@ -3404,6 +3555,33 @@
             return false; // Prevent default anchor behavior
         }
 
+        function toggleTvgIdSourceOptions() {
+            const applyTvgId = document.getElementById('applyTvgId').checked;
+            const callsignRadio = document.getElementById('tvgIdSourceCallsign');
+            const gracenoteRadio = document.getElementById('tvgIdSourceGracenote');
+            const callsignLabel = document.getElementById('tvgIdSourceCallsignLabel');
+            const gracenoteLabel = document.getElementById('tvgIdSourceGracenoteLabel');
+
+            if (applyTvgId) {
+                // Enable radio buttons
+                callsignRadio.disabled = false;
+                gracenoteRadio.disabled = false;
+                callsignLabel.style.color = '#fff';
+                gracenoteLabel.style.color = '#fff';
+
+                // If neither is selected, default to callsign
+                if (!callsignRadio.checked && !gracenoteRadio.checked) {
+                    callsignRadio.checked = true;
+                }
+            } else {
+                // Disable radio buttons
+                callsignRadio.disabled = true;
+                gracenoteRadio.disabled = true;
+                callsignLabel.style.color = '#666';
+                gracenoteLabel.style.color = '#666';
+            }
+        }
+
         async function saveAllSettings() {
             const settings = {
                 database: {
@@ -3423,8 +3601,9 @@
                 matching: {
                     applyStationId: document.getElementById('applyStationId').checked,
                     applyChannelName: document.getElementById('applyChannelName').checked,
-                    applyCallSign: document.getElementById('applyCallSign').checked,
-                    applyLogo: document.getElementById('applyLogo').checked
+                    applyLogo: document.getElementById('applyLogo').checked,
+                    applyTvgId: document.getElementById('applyTvgId').checked,
+                    tvgIdSource: document.querySelector('input[name="tvgIdSource"]:checked')?.value || 'callsign'
                 },
                 streamManagement: {
                     maxResults: parseInt(document.getElementById('streamSearchMaxResults').value) || 10,
@@ -4950,8 +5129,8 @@
                         apply_options: settings.matching || {
                             applyStationId: true,
                             applyChannelName: false,
-                            applyCallSign: false,
-                            applyLogo: true
+                            applyLogo: true,
+                            tvgIdSource: 'none'
                         }
                     })
                 });
@@ -5201,16 +5380,31 @@
         // New multi-select and matching functions
         function toggleSelectAll() {
             const selectAll = document.getElementById('selectAllChannels');
-            const checkboxes = document.querySelectorAll('.channel-checkbox');
-            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            // Only select visible checkboxes (those in displayed rows)
+            const visibleRows = document.querySelectorAll('#dispatcharrTableBody tr:not([style*="display: none"])');
+            visibleRows.forEach(row => {
+                const checkbox = row.querySelector('.channel-checkbox');
+                if (checkbox) {
+                    checkbox.checked = selectAll.checked;
+                }
+            });
             updateMatchButtons();
         }
 
         function updateMatchButtons() {
             const selectedChannels = document.querySelectorAll('.channel-checkbox:checked').length;
             const matchBtn = document.getElementById('matchSelectedBtn');
+            const bulkEditBtn = document.getElementById('bulkEditGroupBtn');
+            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+
             if (matchBtn) {
                 matchBtn.disabled = selectedChannels === 0;
+            }
+            if (bulkEditBtn) {
+                bulkEditBtn.disabled = selectedChannels === 0;
+            }
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.disabled = selectedChannels === 0;
             }
         }
 
@@ -5264,6 +5458,330 @@
                 }
             });
             updateMatchButtons();
+        }
+
+        async function bulkDeleteChannels() {
+            const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
+                .map(cb => parseInt(cb.dataset.channelId));
+
+            if (selectedIds.length === 0) {
+                showNotification('No channels selected!', 'error');
+                return;
+            }
+
+            const confirmMsg = `⚠️ WARNING: You are about to DELETE ${selectedIds.length} channel(s).\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to proceed?`;
+            if (!await showConfirm(confirmMsg)) {
+                return;
+            }
+
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first', 'error');
+                return;
+            }
+
+            showNotification(`Deleting ${selectedIds.length} channel(s)...`, 'info');
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const channelId of selectedIds) {
+                try {
+                    const response = await fetch(`/api/dispatcharr/channels/${channelId}/delete`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: settings.dispatcharr.url,
+                            username: settings.dispatcharr.username,
+                            password: settings.dispatcharr.password
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+
+            // Show results
+            if (errorCount === 0) {
+                showNotification(`✓ Successfully deleted ${successCount} channel(s)`, 'success');
+            } else {
+                showNotification(`Completed: ${successCount} deleted, ${errorCount} failed`, 'error');
+            }
+
+            // Reload channels
+            await loadDispatcharrChannels();
+        }
+
+        async function bulkEditGroup() {
+            const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
+                .map(cb => parseInt(cb.dataset.channelId));
+
+            if (selectedIds.length === 0) {
+                showNotification('No channels selected!', 'error');
+                return;
+            }
+
+            // Load groups if not already loaded
+            if (!dispatcharrGroups || dispatcharrGroups.length === 0) {
+                await loadDispatcharrGroups();
+            }
+
+            // Store groups for filtering
+            window.bulkEditGroupsList = [...dispatcharrGroups];
+
+            const modalHtml = `
+                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; color: #333;">
+                    <h3 style="margin-top: 0;">Bulk Edit Group</h3>
+                    <p style="color: #666;">Change group for ${selectedIds.length} selected channel(s)</p>
+
+                    <div style="margin: 20px 0;">
+                        <label style="display: block; margin-bottom: 5px; color: #333;">Select New Group:</label>
+
+                        <!-- Filter Input -->
+                        <input type="text" id="bulkEditGroupFilter" placeholder="Type to filter groups..."
+                            style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                            oninput="filterBulkEditGroups()">
+
+                        <!-- Create New Group Button -->
+                        <button onclick="toggleBulkCreateGroupForm()" class="btn-secondary"
+                            style="width: 100%; margin-bottom: 8px; padding: 8px; font-size: 0.9rem; background: #667eea; border-color: #667eea; color: white;">
+                            ➕ Create New Group
+                        </button>
+
+                        <!-- Inline Group Creation Form -->
+                        <div id="bulkInlineGroupCreateForm" style="display: none; background: rgba(102, 126, 234, 0.1); border: 1px solid #667eea; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="bulkNewGroupName" placeholder="Enter group name (e.g., NEWS)"
+                                    style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
+                                    onkeypress="if(event.key==='Enter') createGroupInlineBulk()">
+                                <button onclick="createGroupInlineBulk()" class="btn-primary" style="padding: 8px 16px; white-space: nowrap;">Create</button>
+                                <button onclick="cancelCreateGroupInlineBulk()" class="btn-secondary" style="padding: 8px 16px;">Cancel</button>
+                            </div>
+                            <div id="bulkInlineGroupStatus" style="font-size: 0.85rem; margin-top: 8px;"></div>
+                        </div>
+
+                        <!-- Show Custom Only Checkbox -->
+                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
+                            <input type="checkbox" id="bulkEditShowCustomOnly" onchange="filterBulkEditGroups()" style="margin-right: 8px;">
+                            <span style="font-size: 0.9rem; color: #666;">Show only custom groups (no M3U associations)</span>
+                        </label>
+
+                        <!-- Group Select Dropdown -->
+                        <select id="bulkEditGroupSelect" size="5"
+                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; max-height: 150px;">
+                            <option value="">-- Remove Group --</option>
+                        </select>
+
+                        <!-- Filter Status -->
+                        <div id="bulkGroupFilterStatus" style="font-size: 0.85rem; color: #666; margin-top: 5px;"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button onclick="closeBulkEditGroupModal()" class="btn-secondary" style="padding: 8px 16px;">Cancel</button>
+                        <button onclick="applyBulkGroupEdit()" class="btn-primary" style="padding: 8px 16px;">Apply Changes</button>
+                    </div>
+                </div>
+            `;
+
+            // Show modal
+            const modalBg = document.createElement('div');
+            modalBg.id = 'bulkEditGroupModal';
+            modalBg.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+            modalBg.innerHTML = modalHtml;
+            document.body.appendChild(modalBg);
+
+            // Initialize the filter
+            filterBulkEditGroups();
+        }
+
+        function filterBulkEditGroups() {
+            const filter = document.getElementById('bulkEditGroupFilter').value.toLowerCase();
+            const showCustomOnly = document.getElementById('bulkEditShowCustomOnly').checked;
+            const select = document.getElementById('bulkEditGroupSelect');
+
+            let filtered = window.bulkEditGroupsList.filter(g => {
+                // Text filter
+                const matchesText = g.name.toLowerCase().includes(filter);
+
+                // Custom groups filter (groups with no M3U associations)
+                const isCustomGroup = !g.m3u_account_count || g.m3u_account_count === 0;
+                const matchesCustomFilter = !showCustomOnly || isCustomGroup;
+
+                return matchesText && matchesCustomFilter;
+            });
+
+            select.innerHTML = '<option value="">-- Remove Group --</option>';
+
+            filtered.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group.id;
+
+                // Add indicator for M3U-associated groups
+                const m3uIndicator = group.m3u_account_count > 0 ? ` 📡(${group.m3u_account_count})` : '';
+                option.textContent = group.name + m3uIndicator;
+
+                select.appendChild(option);
+            });
+
+            const customOnlyText = showCustomOnly ? ' custom' : '';
+            const statusText = showCustomOnly && filtered.length === 0
+                ? 'No custom groups found (all groups have M3U associations)'
+                : `Showing ${filtered.length}${customOnlyText} of ${window.bulkEditGroupsList.length} groups`;
+
+            document.getElementById('bulkGroupFilterStatus').textContent = statusText;
+        }
+
+        function toggleBulkCreateGroupForm() {
+            const form = document.getElementById('bulkInlineGroupCreateForm');
+            const isVisible = form.style.display !== 'none';
+            form.style.display = isVisible ? 'none' : 'block';
+
+            if (!isVisible) {
+                document.getElementById('bulkNewGroupName').focus();
+            }
+        }
+
+        async function createGroupInlineBulk() {
+            const groupName = document.getElementById('bulkNewGroupName').value.trim();
+            const statusDiv = document.getElementById('bulkInlineGroupStatus');
+
+            if (!groupName) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Group name is required</span>';
+                return;
+            }
+
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Please configure Dispatcharr settings first</span>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<span style="color: #999;">Creating group...</span>';
+
+            try {
+                const response = await fetch('/api/dispatcharr/groups', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password,
+                        name: groupName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    statusDiv.innerHTML = '<span style="color: #51cf66;">✅ Group created!</span>';
+
+                    // Reload groups and refresh UI
+                    await loadDispatcharrGroups();
+                    window.bulkEditGroupsList = [...dispatcharrGroups];
+
+                    // Refresh the filter
+                    filterBulkEditGroups();
+
+                    // Select the newly created group
+                    const select = document.getElementById('bulkEditGroupSelect');
+                    const newOption = Array.from(select.options).find(opt => opt.textContent.startsWith(groupName));
+                    if (newOption) {
+                        newOption.selected = true;
+                    }
+
+                    // Hide the form after success
+                    setTimeout(() => {
+                        document.getElementById('bulkInlineGroupCreateForm').style.display = 'none';
+                        document.getElementById('bulkNewGroupName').value = '';
+                    }, 1500);
+                } else {
+                    statusDiv.innerHTML = `<span style="color: #ff6b6b;">⚠️ Error: ${data.error || 'Failed to create group'}</span>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<span style="color: #ff6b6b;">⚠️ Error: ${error.message}</span>`;
+            }
+        }
+
+        function cancelCreateGroupInlineBulk() {
+            document.getElementById('bulkInlineGroupCreateForm').style.display = 'none';
+            document.getElementById('bulkNewGroupName').value = '';
+            document.getElementById('bulkInlineGroupStatus').innerHTML = '';
+        }
+
+        function closeBulkEditGroupModal() {
+            const modal = document.getElementById('bulkEditGroupModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        async function applyBulkGroupEdit() {
+            const groupId = document.getElementById('bulkEditGroupSelect').value;
+            const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
+                .map(cb => parseInt(cb.dataset.channelId));
+
+            closeBulkEditGroupModal();
+
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first', 'error');
+                return;
+            }
+
+            showNotification(`Updating ${selectedIds.length} channel(s)...`, 'info');
+
+            let successCount = 0;
+            let errorCount = 0;
+
+            for (const channelId of selectedIds) {
+                try {
+                    const response = await fetch(`/api/dispatcharr/channels/${channelId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: settings.dispatcharr.url,
+                            username: settings.dispatcharr.username,
+                            password: settings.dispatcharr.password,
+                            update_data: {
+                                group_id: groupId ? parseInt(groupId) : null
+                            }
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        successCount++;
+                        // Update local channel data
+                        const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === channelId);
+                        if (channelIndex !== -1 && data.channel) {
+                            dispatcharrChannels[channelIndex] = data.channel;
+                        }
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+
+            // Show results
+            if (errorCount === 0) {
+                showNotification(`✓ Successfully updated ${successCount} channel(s)`, 'success');
+            } else {
+                showNotification(`Completed: ${successCount} updated, ${errorCount} failed`, 'error');
+            }
+
+            // Reload channels to show changes
+            await loadDispatcharrChannels();
         }
 
         async function matchSelectedStations() {
@@ -5955,6 +6473,9 @@
                 // Add logo if available from station data
                 if (createChannelStationData && createChannelStationData.logo_uri) {
                     channelData.logo_uri = createChannelStationData.logo_uri;
+                    console.log('[Create Channel] Adding logo_uri to channel data:', channelData.logo_uri);
+                } else {
+                    console.log('[Create Channel] No logo_uri in station data. createChannelStationData:', createChannelStationData);
                 }
 
                 showNotification('Creating channel...', 'info');

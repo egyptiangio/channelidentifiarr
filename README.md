@@ -1,8 +1,15 @@
 # ChannelIdentifiarr
 
-**v0.5.3**
+**v0.5.4**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
+
+## Recent Updates (v0.5.4)
+
+- **Logo Deduplication Fix** - Fixed channel creation failures when using logos that already exist in Dispatcharr. The system now searches for existing logos by URL before attempting to create new ones, preventing duplicate logo errors.
+- **Enhanced Channel Filtering** - Added comprehensive filtering for the Dispatcharr Integration tab including channel number (with range support like "100-200"), name, call sign, Gracenote ID, group, and logo presence. Select All now only selects visible filtered channels.
+- **TVG-ID Source Selection** - Added option to populate TVG-ID field from either Call Sign or Gracenote ID when matching channels.
+- **Bulk Operations** - Added bulk delete and bulk group edit functions for selected channels with confirmation dialogs.
 
 ## Features
 

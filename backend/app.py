@@ -17,6 +17,7 @@ import re
 from difflib import SequenceMatcher
 import shutil
 import tempfile
+from urllib.parse import urlparse
 from settings_manager import get_settings_manager
 
 # Configure logging
@@ -474,7 +475,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.5.3</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.5.4</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -1248,6 +1249,61 @@ def dispatcharr_api_request(url, username, password, method, endpoint, data=None
         logger.error(f"Dispatcharr API request error: {e}")
         return None, str(e)
 
+def find_or_create_logo(url, username, password, logo_url, logo_name):
+    """Find existing logo by URL or create a new one"""
+    try:
+        # Fetch all logos (paginated)
+        all_logos = []
+        next_page = '/api/channels/logos/'
+
+        while next_page:
+            logos_result, error = dispatcharr_api_request(
+                url, username, password, 'GET', next_page
+            )
+
+            if error or not logos_result:
+                logger.warning(f"Failed to fetch logos: {error}")
+                break
+
+            # Add results from this page
+            if 'results' in logos_result:
+                all_logos.extend(logos_result['results'])
+                # Get next page URL (relative path only)
+                next_url = logos_result.get('next')
+                if next_url:
+                    # Extract just the path and query string
+                    parsed = urlparse(next_url)
+                    next_page = f"{parsed.path}?{parsed.query}" if parsed.query else parsed.path
+                else:
+                    next_page = None
+            else:
+                break
+
+        # Search for logo with matching URL
+        for logo in all_logos:
+            if logo.get('url') == logo_url:
+                logger.info(f"Found existing logo ID {logo['id']} for URL: {logo_url}")
+                return logo['id'], None
+
+        # Logo not found, create new one
+        logo_data = {'name': logo_name, 'url': logo_url}
+        logo_result, logo_error = dispatcharr_api_request(
+            url, username, password, 'POST',
+            '/api/channels/logos/',
+            logo_data
+        )
+
+        if logo_result and logo_result.get('id'):
+            logger.info(f"Created new logo ID {logo_result['id']} for {logo_name}")
+            return logo_result['id'], None
+        else:
+            logger.warning(f"Failed to create logo: {logo_error}")
+            return None, logo_error
+
+    except Exception as e:
+        logger.error(f"Error in find_or_create_logo: {e}")
+        return None, str(e)
+
 @app.route('/api/dispatcharr/test', methods=['POST'])
 def test_dispatcharr_connection():
     """Test Dispatcharr connection"""
@@ -1385,19 +1441,13 @@ def create_dispatcharr_channel():
             logo_url = channel_data.pop('logo_uri')  # Remove from channel_data
             logo_name = channel_data.get('name', 'Unknown') + ' Logo'
 
-            # Create logo via Dispatcharr API
-            logo_data = {'name': logo_name, 'url': logo_url}
-            logo_result, logo_error = dispatcharr_api_request(
-                url, username, password, 'POST',
-                '/api/channels/logos/',
-                logo_data
+            # Find or create logo
+            logo_id, logo_error = find_or_create_logo(
+                url, username, password, logo_url, logo_name
             )
 
-            if logo_result and logo_result.get('id'):
-                channel_data['logo_id'] = logo_result['id']
-                logger.info(f"Created logo ID {logo_result['id']} for {logo_name}")
-            elif logo_error:
-                logger.warning(f"Failed to create logo: {logo_error}")
+            if logo_id:
+                channel_data['logo_id'] = logo_id
 
         # Create channel via Dispatcharr API
         result, error = dispatcharr_api_request(
@@ -1663,28 +1713,33 @@ def apply_match():
         if apply_options.get('applyChannelName', False):
             update_data['name'] = station_data['name']
 
-        if apply_options.get('applyCallSign', False):
+        # Handle TVG-ID based on user preference
+        if apply_options.get('applyTvgId', False):
+            tvg_id_source = apply_options.get('tvgIdSource', 'callsign')
+            if tvg_id_source == 'callsign':
+                update_data['tvg_id'] = station_data['call_sign'] or ''
+            elif tvg_id_source == 'gracenote':
+                update_data['tvg_id'] = station_data['station_id'] or ''
+        # Legacy support for old applyCallSign setting
+        elif apply_options.get('applyCallSign', False):
             update_data['tvg_id'] = station_data['call_sign'] or ''
 
         if apply_options.get('applyLogo', True) and station_data.get('logo_uri'):
-            # Create or find logo in Dispatcharr
+            # Find or create logo in Dispatcharr
             logo_url = station_data['logo_uri']
             logo_name = station_data.get('name', 'Unknown') + ' Logo'
 
-            # Create logo via Dispatcharr API
-            logo_data = {'name': logo_name, 'url': logo_url}
-            logo_result, logo_error = dispatcharr_api_request(
-                url=dispatcharr_config['url'],
-                username=dispatcharr_config['username'],
-                password=dispatcharr_config['password'],
-                method='POST',
-                endpoint='/api/channels/logos/',
-                data=logo_data
+            # Find or create logo
+            logo_id, logo_error = find_or_create_logo(
+                dispatcharr_config['url'],
+                dispatcharr_config['username'],
+                dispatcharr_config['password'],
+                logo_url,
+                logo_name
             )
 
-            if logo_result and logo_result.get('id'):
-                update_data['logo_id'] = logo_result['id']
-                logger.info(f"Created logo ID {logo_result['id']} for {logo_name}")
+            if logo_id:
+                update_data['logo_id'] = logo_id
 
         # Ensure we're updating at least one field
         if not update_data:
@@ -2011,7 +2066,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.3"'
+            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.4"'
         }
         auth_data = {
             'Username': username,
@@ -2415,7 +2470,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.3&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.4&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:
