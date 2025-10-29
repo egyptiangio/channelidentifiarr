@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.4</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.5</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -5138,6 +5138,11 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    // Show logo status message if present (no delay needed in matching workflow)
+                    if (result.logo_message) {
+                        showNotification(result.logo_message, 'info');
+                    }
+
                     // Update local channel data with the updated channel from API
                     const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === channel.id);
                     if (channelIndex !== -1 && result.channel) {
@@ -6000,8 +6005,14 @@
                 // Render sidebar
                 renderChannelSidebar();
 
-                // Show modal
-                document.getElementById('createChannelModal').style.display = 'flex';
+                // Show modal and reset scroll position
+                const modal = document.getElementById('createChannelModal');
+                modal.style.display = 'flex';
+                // Reset scroll to top
+                const modalContent = modal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.scrollTop = 0;
+                }
             } catch (error) {
                 showNotification(`Failed to load station details: ${error.message}`, 'error');
                 console.error('Error opening create channel modal:', error);
@@ -6043,8 +6054,14 @@
                 // Render sidebar
                 renderChannelSidebar();
 
-                // Show modal
-                document.getElementById('createChannelModal').style.display = 'flex';
+                // Show modal and reset scroll position
+                const modal = document.getElementById('createChannelModal');
+                modal.style.display = 'flex';
+                // Reset scroll to top
+                const modalContent = modal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.scrollTop = 0;
+                }
             } catch (error) {
                 showNotification(`Failed to open custom channel modal: ${error.message}`, 'error');
                 console.error('Error opening custom channel modal:', error);
@@ -6494,7 +6511,16 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    showNotification('Channel created successfully!', 'success');
+                    // Show logo status message first if present
+                    if (data.logo_message) {
+                        showNotification(data.logo_message, 'info');
+                    }
+
+                    // Then show success message (delayed slightly so logo message appears first)
+                    setTimeout(() => {
+                        showNotification('Channel created successfully!', 'success');
+                    }, 300);
+
                     closeCreateChannelModal();
 
                     // Refresh Dispatcharr channels if on that tab

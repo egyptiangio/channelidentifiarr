@@ -41,6 +41,13 @@ else:
 # Token management per connection
 dispatcharr_sessions = {}
 
+# Logo cache (populated on-demand when collisions occur)
+logo_cache = {
+    'urls': {},  # url -> logo_id mapping
+    'expires_at': None,
+    'session_key': None
+}
+
 # Settings manager
 settings_manager = get_settings_manager()
 
@@ -475,7 +482,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.5.4</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.5.5</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -1249,43 +1256,115 @@ def dispatcharr_api_request(url, username, password, method, endpoint, data=None
         logger.error(f"Dispatcharr API request error: {e}")
         return None, str(e)
 
-def find_or_create_logo(url, username, password, logo_url, logo_name):
-    """Find existing logo by URL or create a new one"""
+def extract_search_term(name):
+    """Extract a good search term from logo/channel name"""
+    # Remove common suffixes/prefixes that make searches too specific
+    name = name.replace(' Logo', '').replace('logo', '').strip()
+
+    # Remove quality indicators
+    for quality in [' HD', ' SD', ' UHD', ' 4K', ' FHD']:
+        name = name.replace(quality, '')
+
+    # Remove directional indicators
+    for direction in [' East', ' West', ' North', ' South']:
+        name = name.replace(direction, '')
+
+    # Take first 2-3 meaningful words (avoid too specific searches)
+    words = name.strip().split()
+    if len(words) > 3:
+        return ' '.join(words[:3])
+    return name.strip()
+
+def search_channels_by_name(url, username, password, search_term):
+    """Search for channels with similar names (returns channels with logo_id)"""
     try:
-        # Fetch all logos (paginated)
-        all_logos = []
-        next_page = '/api/channels/logos/'
+        # Get channels (first page is usually enough for name-based search)
+        channels_result, error = dispatcharr_api_request(
+            url, username, password, 'GET',
+            f'/api/channels/channels/?page_size=100'
+        )
 
-        while next_page:
-            logos_result, error = dispatcharr_api_request(
-                url, username, password, 'GET', next_page
-            )
+        if error or not channels_result:
+            return []
 
-            if error or not logos_result:
-                logger.warning(f"Failed to fetch logos: {error}")
-                break
+        # The API returns a list directly, not wrapped in {'results': [...]}
+        channels = channels_result if isinstance(channels_result, list) else []
 
-            # Add results from this page
-            if 'results' in logos_result:
-                all_logos.extend(logos_result['results'])
-                # Get next page URL (relative path only)
-                next_url = logos_result.get('next')
-                if next_url:
-                    # Extract just the path and query string
-                    parsed = urlparse(next_url)
-                    next_page = f"{parsed.path}?{parsed.query}" if parsed.query else parsed.path
-                else:
-                    next_page = None
+        # Filter channels that match search term and have logos
+        search_lower = search_term.lower()
+        matching_channels = [
+            ch for ch in channels
+            if isinstance(ch, dict) and ch.get('logo_id') and search_lower in ch.get('name', '').lower()
+        ]
+
+        logger.info(f"Found {len(matching_channels)} channels matching '{search_term}' with logos")
+        return matching_channels
+
+    except Exception as e:
+        logger.warning(f"Error searching channels: {e}")
+        return []
+
+def get_logo_cache(url, username, password):
+    """Get or populate logo cache (lazy loading with 5-min TTL)"""
+    global logo_cache
+
+    session_key = f"{url}_{username}"
+    now = datetime.now()
+
+    # Check if cache is valid
+    if (logo_cache['session_key'] == session_key and
+        logo_cache['expires_at'] and
+        now < logo_cache['expires_at']):
+        logger.info("Using cached logo database")
+        return logo_cache['urls']
+
+    # Cache expired or empty - fetch all logos
+    logger.info("Building logo cache (this may take a moment)...")
+    all_logos = []
+    next_page = '/api/channels/logos/'
+
+    while next_page:
+        logos_result, error = dispatcharr_api_request(
+            url, username, password, 'GET', next_page
+        )
+
+        if error or not logos_result:
+            logger.warning(f"Failed to fetch logos: {error}")
+            break
+
+        if 'results' in logos_result:
+            all_logos.extend(logos_result['results'])
+            next_url = logos_result.get('next')
+            if next_url:
+                parsed = urlparse(next_url)
+                next_page = f"{parsed.path}?{parsed.query}" if parsed.query else parsed.path
             else:
-                break
+                next_page = None
+        else:
+            break
 
-        # Search for logo with matching URL
-        for logo in all_logos:
-            if logo.get('url') == logo_url:
-                logger.info(f"Found existing logo ID {logo['id']} for URL: {logo_url}")
-                return logo['id'], None
+    # Build URL -> ID mapping
+    url_map = {logo['url']: logo['id'] for logo in all_logos}
 
-        # Logo not found, create new one
+    # Update cache
+    logo_cache['urls'] = url_map
+    logo_cache['expires_at'] = now + timedelta(minutes=5)
+    logo_cache['session_key'] = session_key
+
+    logger.info(f"Logo cache built with {len(url_map)} logos (expires in 5 minutes)")
+    return url_map
+
+def find_or_create_logo(url, username, password, logo_url, logo_name, station_name=None):
+    """
+    Smart logo creation with progressive collision resolution:
+    1. Optimistic create (fast path - no pre-fetching)
+    2. On duplicate: Smart search by channel name
+    3. Fallback: Cached/full logo database search
+
+    Returns: (logo_id, error, status_message)
+    """
+    try:
+        # STEP 1: Optimistic create (fast path - most common case)
         logo_data = {'name': logo_name, 'url': logo_url}
         logo_result, logo_error = dispatcharr_api_request(
             url, username, password, 'POST',
@@ -1294,15 +1373,58 @@ def find_or_create_logo(url, username, password, logo_url, logo_name):
         )
 
         if logo_result and logo_result.get('id'):
-            logger.info(f"Created new logo ID {logo_result['id']} for {logo_name}")
-            return logo_result['id'], None
-        else:
-            logger.warning(f"Failed to create logo: {logo_error}")
-            return None, logo_error
+            logger.info(f"Created new logo ID {logo_result['id']}")
+            return logo_result['id'], None, "created"
+
+        # STEP 2: Check if it's a duplicate collision
+        if logo_error and 'already exists' in str(logo_error).lower():
+            logger.info(f"Logo collision detected for URL: {logo_url}")
+
+            # STEP 2a: Smart search - find channels with similar names
+            search_term = extract_search_term(station_name or logo_name)
+            logger.info(f"Smart search for channels matching: '{search_term}'")
+
+            matching_channels = search_channels_by_name(url, username, password, search_term)
+
+            if matching_channels:
+                logger.info(f"Found {len(matching_channels)} channels with similar names, checking their logos...")
+
+                # Get unique logo IDs from matching channels
+                logo_ids = {ch['logo_id'] for ch in matching_channels if ch.get('logo_id')}
+
+                # Fetch only those specific logos
+                for logo_id in logo_ids:
+                    logo_data_check, _ = dispatcharr_api_request(
+                        url, username, password, 'GET',
+                        f'/api/channels/logos/{logo_id}/'
+                    )
+
+                    if logo_data_check and logo_data_check.get('url') == logo_url:
+                        logger.info(f"Found existing logo ID {logo_id} via smart search")
+                        return logo_id, None, "found_smart_search"
+
+                logger.info("Smart search didn't find logo, falling back to full search")
+
+            # STEP 2b: Fallback to cached/full logo database search
+            logger.info("Searching full logo database (building cache if needed)...")
+            logo_url_map = get_logo_cache(url, username, password)
+
+            if logo_url in logo_url_map:
+                logo_id = logo_url_map[logo_url]
+                logger.info(f"Found existing logo ID {logo_id} via cached search")
+                return logo_id, None, "found_full_search"
+
+            # This shouldn't happen (duplicate error but logo not found)
+            logger.warning(f"Duplicate error but logo not found in database: {logo_url}")
+            return None, "Logo exists but could not be found", "error"
+
+        # STEP 3: Some other error occurred
+        logger.warning(f"Failed to create logo: {logo_error}")
+        return None, logo_error, "error"
 
     except Exception as e:
         logger.error(f"Error in find_or_create_logo: {e}")
-        return None, str(e)
+        return None, str(e), "error"
 
 @app.route('/api/dispatcharr/test', methods=['POST'])
 def test_dispatcharr_connection():
@@ -1437,17 +1559,30 @@ def create_dispatcharr_channel():
             return jsonify({'error': 'Missing required fields'}), 400
 
         # Handle logo upload if logo_uri is provided
+        logo_status_message = None
         if 'logo_uri' in channel_data and channel_data['logo_uri']:
             logo_url = channel_data.pop('logo_uri')  # Remove from channel_data
             logo_name = channel_data.get('name', 'Unknown') + ' Logo'
+            channel_name = channel_data.get('name', 'Unknown')
 
-            # Find or create logo
-            logo_id, logo_error = find_or_create_logo(
-                url, username, password, logo_url, logo_name
+            # Find or create logo (with smart collision resolution)
+            logo_id, logo_error, status = find_or_create_logo(
+                url, username, password, logo_url, logo_name, channel_name
             )
 
             if logo_id:
                 channel_data['logo_id'] = logo_id
+                logger.info(f"Logo resolution status: {status}")
+
+                # Generate user-friendly status messages
+                if status == 'created':
+                    logo_status_message = None  # No message needed for fast path
+                elif status == 'found_smart_search':
+                    logo_status_message = 'Logo already existed - found via smart search'
+                elif status == 'found_full_search':
+                    logo_status_message = 'Logo already existed - found in database (building cache for faster future matches)'
+            else:
+                logger.warning(f"Logo operation failed: {logo_error}")
 
         # Create channel via Dispatcharr API
         result, error = dispatcharr_api_request(
@@ -1460,7 +1595,11 @@ def create_dispatcharr_channel():
             return jsonify({'success': False, 'error': error}), 500
 
         logger.info(f"Created channel: {channel_data.get('name')} (ID: {result.get('id')})")
-        return jsonify({'success': True, 'channel': result})
+
+        response_data = {'success': True, 'channel': result}
+        if logo_status_message:
+            response_data['logo_message'] = logo_status_message
+        return jsonify(response_data)
 
     except Exception as e:
         logger.error(f"Error creating Dispatcharr channel: {e}")
@@ -1724,22 +1863,36 @@ def apply_match():
         elif apply_options.get('applyCallSign', False):
             update_data['tvg_id'] = station_data['call_sign'] or ''
 
+        logo_status_message = None
         if apply_options.get('applyLogo', True) and station_data.get('logo_uri'):
             # Find or create logo in Dispatcharr
             logo_url = station_data['logo_uri']
             logo_name = station_data.get('name', 'Unknown') + ' Logo'
+            station_name = station_data.get('name', 'Unknown')
 
-            # Find or create logo
-            logo_id, logo_error = find_or_create_logo(
+            # Find or create logo (with smart collision resolution)
+            logo_id, logo_error, status = find_or_create_logo(
                 dispatcharr_config['url'],
                 dispatcharr_config['username'],
                 dispatcharr_config['password'],
                 logo_url,
-                logo_name
+                logo_name,
+                station_name
             )
 
             if logo_id:
                 update_data['logo_id'] = logo_id
+                logger.info(f"Logo resolution status: {status}")
+
+                # Generate user-friendly status messages
+                if status == 'created':
+                    logo_status_message = None  # No message needed for fast path
+                elif status == 'found_smart_search':
+                    logo_status_message = 'Logo already existed - found via smart search'
+                elif status == 'found_full_search':
+                    logo_status_message = 'Logo already existed - found in database (building cache for faster future matches)'
+            else:
+                logger.warning(f"Logo operation failed: {logo_error}")
 
         # Ensure we're updating at least one field
         if not update_data:
@@ -1756,11 +1909,14 @@ def apply_match():
         )
 
         if result and not error:
-            return jsonify({
+            response_data = {
                 'success': True,
                 'channel': result,
                 'station': station_data
-            })
+            }
+            if logo_status_message:
+                response_data['logo_message'] = logo_status_message
+            return jsonify(response_data)
         else:
             return jsonify({'error': 'Failed to update channel'}), 500
 
@@ -2066,7 +2222,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.4"'
+            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.5"'
         }
         auth_data = {
             'Username': username,
@@ -2470,7 +2626,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.4&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.5&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:
