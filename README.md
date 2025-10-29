@@ -1,10 +1,16 @@
 # ChannelIdentifiarr
 
-**v0.5.6**
+**v0.5.7**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
-## Recent Updates (v0.5.6)
+## Recent Updates (v0.5.7)
+
+**Fixed Bugs:**
+1. **Syntax error** - `try:` → `try {` (breaking UI)
+2. **Sequential matching bug** - Removed stale channel references from onclick handlers
+
+## Previous Updates (v0.5.6)
 
 - **Channel Name Parsing** - Added "." to separator list for better parsing of period-delimited channel names
 - **Manual Search Fix** - Fixed bug where sequential manual searches may only update the original channel

@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.6</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.7</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -4983,7 +4983,7 @@
             document.getElementById('manualSearchResults').innerHTML = '';
 
             // Get suggested matches
-            try:
+            try {
                 // Show loading indicator
                 const container = document.getElementById('suggestedMatches');
                 container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;"><span style="font-size: 2rem;">🔄</span><br/>Searching database for matches...</p>';
@@ -5101,7 +5101,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <button onclick="acceptMatch('${match.station.station_id}', ${JSON.stringify(channel).replace(/"/g, '&quot;')})"
+                            <button onclick="acceptMatch('${match.station.station_id}')"
                                     class="btn-primary" style="padding: 8px 20px;">
                                 ✅ ${isExisting ? 'Keep & Update' : 'Accept Match'}
                             </button>
@@ -5113,7 +5113,14 @@
             container.innerHTML = html;
         }
 
-        async function acceptMatch(stationId, channel) {
+        async function acceptMatch(stationId) {
+            // Always use current channel from matching queue to prevent stale references
+            const channel = matchingQueue[currentMatchIndex];
+            if (!channel) {
+                showNotification('Error: No channel selected', 'error');
+                return;
+            }
+
             const settings = await getSettings();
 
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
@@ -5278,7 +5285,7 @@
                                         ${station.call_sign || 'No call sign'} | ID: ${station.station_id}
                                     </div>
                                 </div>
-                                <button onclick="acceptMatch('${station.station_id}', ${JSON.stringify(matchingQueue[currentMatchIndex]).replace(/"/g, '&quot;')})"
+                                <button onclick="acceptMatch('${station.station_id}')"
                                         class="btn-secondary" style="padding: 5px 15px; font-size: 0.9rem;">
                                     Select
                                 </button>
