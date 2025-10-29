@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.5</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.6</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -4978,8 +4978,12 @@
             document.getElementById('currentChannelId').textContent = channel.id;
             document.getElementById('currentStationId').textContent = channel.gracenote_id || 'None';
 
+            // Clear manual search input and results when moving to next channel
+            document.getElementById('manualSearchInput').value = '';
+            document.getElementById('manualSearchResults').innerHTML = '';
+
             // Get suggested matches
-            try {
+            try:
                 // Show loading indicator
                 const container = document.getElementById('suggestedMatches');
                 container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;"><span style="font-size: 2rem;">🔄</span><br/>Searching database for matches...</p>';

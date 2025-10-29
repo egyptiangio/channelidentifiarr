@@ -82,7 +82,7 @@ def parse_channel_name(channel_name):
 
     # Step 0: Handle special character separators
     # Replace special separators with spaces
-    separators = r'[\|★◉:►▶→»≫—–=〉〈⟩⟨◆♦◊⬥●•]'
+    separators = r'[\|★◉:►▶→»≫—–=〉〈⟩⟨◆♦◊⬥●•\.]'
     if re.search(separators, clean_name):
         clean_name = re.sub(separators, ' ', clean_name)
         clean_name = ' '.join(clean_name.split())  # Normalize spaces
@@ -482,7 +482,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.5.5</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.5.6</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -2222,7 +2222,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.5"'
+            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.5.6"'
         }
         auth_data = {
             'Username': username,
@@ -2626,7 +2626,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.5&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.5.6&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:
