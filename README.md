@@ -1,10 +1,15 @@
 # ChannelIdentifiarr
 
-**v0.5.7**
+**v0.5.8**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
-## Recent Updates (v0.5.7)
+## Recent Updates (v0.5.8)
+
+**New Feature:**
+- **Intelligent Channel Insertion** - Added ability to insert a channel at an occupied channel number with automatic shifting of existing channels upward until a gap is reached. The system intelligently detects when a selected channel number is already in use and offers the option to shift existing channels, eliminating the need for manual renumbering.
+
+## Previous Updates (v0.5.7)
 
 **Fixed Bugs:**
 1. **Syntax error** - `try:` → `try {` (breaking UI)

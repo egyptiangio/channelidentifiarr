@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.7</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.5.8</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1195,6 +1195,9 @@
                             <button onclick="suggestChannelNumber('next')" class="btn-secondary" style="padding: 8px 12px; white-space: nowrap;">Highest + 1</button>
                         </div>
                         <div id="channelNumberSuggestion" style="font-size: 0.85rem; color: #999; margin-top: 5px;"></div>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 8px; padding: 8px; background: rgba(102, 126, 234, 0.05); border-radius: 4px; border-left: 3px solid rgba(102, 126, 234, 0.3);">
+                            💡 If you select an occupied channel number, you'll be given the option to insert the channel here and automatically shift existing channels up until a gap is found.
+                        </div>
                     </div>
 
                     <!-- Group Assignment -->
@@ -1542,6 +1545,89 @@
             <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px;">
                 <button onclick="saveCustomRangesFromModal()" class="btn-primary" style="flex: 1;">💾 Save All Changes</button>
                 <button onclick="closeCustomRangesModal()" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channel Shift Preview Modal -->
+    <div id="shiftPreviewModal" class="modal" style="display: none; z-index: 1100;">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <div class="modal-title">🔄 Channel Number Occupied - Shift Existing Channels?</div>
+                <button class="close-button" onclick="closeShiftPreviewModal()">×</button>
+            </div>
+
+            <div style="padding: 20px; overflow-y: auto; flex: 1;">
+                <!-- Summary Section -->
+                <div style="background: rgba(102, 126, 234, 0.1); border: 1px solid #667eea; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0; color: #667eea;">📊 Shift Summary</h3>
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; font-size: 0.95rem;">
+                        <strong>Inserting at:</strong>
+                        <span id="previewInsertAt"></span>
+
+                        <strong>Shift amount:</strong>
+                        <span id="previewShiftAmount"></span>
+
+                        <strong>Affected channels:</strong>
+                        <span id="previewCount"></span>
+
+                        <strong>First gap at:</strong>
+                        <span id="previewGapAt"></span>
+
+                        <strong>Estimated time:</strong>
+                        <span id="previewTime"></span>
+                    </div>
+                </div>
+
+                <!-- Warnings Section -->
+                <div id="previewWarnings"></div>
+
+                <!-- Changes Table -->
+                <div style="margin-bottom: 15px;">
+                    <h3 style="margin-bottom: 10px;">Channel Changes:</h3>
+                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 1;">
+                                <tr>
+                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Channel Name</th>
+                                    <th style="padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">Current #</th>
+                                    <th style="padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);"></th>
+                                    <th style="padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">New #</th>
+                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Group</th>
+                                </tr>
+                            </thead>
+                            <tbody id="previewTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="closeShiftPreviewModal()" class="btn-secondary">Cancel</button>
+                <button onclick="confirmChannelShift()" class="btn-primary">✓ Confirm Shift</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channel Shift Progress Modal -->
+    <div id="shiftProgressModal" class="modal" style="display: none; z-index: 1100;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <div class="modal-title">🔄 Shifting Channels</div>
+            </div>
+
+            <div style="padding: 25px;">
+                <p id="shiftProgressText" style="font-size: 1.1rem; margin-bottom: 15px; text-align: center;">Processing 0/0 channels...</p>
+
+                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; height: 30px; overflow: hidden; margin-bottom: 20px;">
+                    <div id="shiftProgressFill" style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                </div>
+
+                <div id="shiftProgressStatus" style="font-size: 0.9rem; color: #999; text-align: center; min-height: 20px;"></div>
+            </div>
+
+            <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
+                <button onclick="cancelShiftInProgress()" class="btn-secondary" id="shiftCancelButton">Cancel</button>
             </div>
         </div>
     </div>
@@ -2372,6 +2458,9 @@
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; margin-bottom: 5px; color: #999;">Channel Number:</label>
                             <input type="text" id="editChannelNumber" value="${escapeHtml(channel.channel_number || '')}" style="width: 100%;">
+                            <div style="font-size: 0.8rem; color: #666; margin-top: 8px; padding: 8px; background: rgba(102, 126, 234, 0.05); border-radius: 4px; border-left: 3px solid rgba(102, 126, 234, 0.3);">
+                                💡 If you select an occupied channel number, you'll be given the option to insert the channel here and automatically shift existing channels up until a gap is found. Your current position (${channel.channel_number}) will remain vacant.
+                            </div>
                         </div>
 
                         <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: space-between;">
@@ -2402,14 +2491,61 @@
                 return;
             }
 
+            // Find original channel
+            const originalChannel = dispatcharrChannels.find(ch => ch.id === channelId);
+            if (!originalChannel) {
+                showNotification('Channel not found', 'error');
+                return;
+            }
+
             // Get edited values
+            const newChannelNumber = document.getElementById('editChannelNumber').value;
+
             const updateData = {
                 name: document.getElementById('editChannelName').value,
                 call_sign: document.getElementById('editChannelCallSign').value,
                 gracenote_id: document.getElementById('editChannelGracenoteId').value,
-                channel_number: document.getElementById('editChannelNumber').value
+                channel_number: newChannelNumber
             };
 
+            // INTELLIGENT SHIFT DETECTION: Check if channel number changed and if new number is occupied
+            const originalNum = parseFloat(originalChannel.channel_number);
+            const newNum = parseFloat(newChannelNumber);
+
+            if (!isNaN(newNum) && originalNum !== newNum) {
+                await ensureChannelsLoaded();
+
+                // Check if the new channel number is occupied (exclude the channel being edited)
+                const isOccupied = dispatcharrChannels.some(ch => {
+                    if (ch.id === channelId) return false; // Exclude the channel being edited
+                    const existingNum = parseFloat(ch.channel_number);
+                    return !isNaN(existingNum) && existingNum === newNum;
+                });
+
+                if (isOccupied) {
+                    // New number is taken - automatically plan a shift
+                    // EXCLUDE the channel being edited from the shift (it's being moved, not shifted)
+                    const plan = await planChannelShift(newNum, 1, channelId);
+
+                    if (plan.affectedChannels.length > 0) {
+                        // Show preview modal with option to shift
+                        showShiftPreviewModal(plan);
+
+                        // Store channel edit data for after shift
+                        pendingChannelData = {
+                            channelId: channelId,
+                            updateData: updateData,
+                            isEdit: true
+                        };
+
+                        // Exit here - update will happen after user confirms shift
+                        return;
+                    }
+                    // If no channels to shift (shouldn't happen), fall through to normal update
+                }
+            }
+
+            // Normal update (no shift)
             try {
                 const response = await fetch(`/api/dispatcharr/channels/${channelId}`, {
                     method: 'PATCH',
@@ -6469,6 +6605,604 @@
             await applyRange(start, end);
         }
 
+        // ========== CHANNEL SHIFT FUNCTIONALITY ==========
+
+        // Global state for shift operations
+        let shiftPlanData = null;
+        let shiftCancelled = false;
+        let pendingChannelData = null; // Store channel data for creation after shift
+        let hiddenEditModal = null; // Store reference to temporarily hidden edit modal
+
+        /**
+         * Plans a channel shift operation and shows preview modal
+         * @param {number} insertAt - Channel number to insert at
+         * @param {number} shiftAmount - Amount to shift by (default 1)
+         * @param {number} excludeChannelId - Optional channel ID to exclude from shift (for edit mode)
+         * @returns {Promise<Object>} Shift plan data
+         */
+        async function planChannelShift(insertAt, shiftAmount = 1, excludeChannelId = null) {
+            await ensureChannelsLoaded();
+
+            const plan = {
+                insertNumber: parseFloat(insertAt),
+                shiftAmount: shiftAmount,
+                affectedChannels: [],
+                warnings: [],
+                estimatedTime: 0,
+                gapAt: null,
+                excludedChannelId: excludeChannelId
+            };
+
+            // Get all channels >= insertAt (including decimals)
+            // EXCLUDE the source channel if this is an edit operation
+            const candidateChannels = dispatcharrChannels
+                .filter(ch => {
+                    const num = parseFloat(ch.channel_number);
+                    // Exclude the channel being edited (it's being moved, not shifted)
+                    if (excludeChannelId && ch.id === excludeChannelId) {
+                        return false;
+                    }
+                    return !isNaN(num) && num >= plan.insertNumber;
+                })
+                .sort((a, b) => parseFloat(a.channel_number) - parseFloat(b.channel_number));
+
+            // Find where to stop (first gap)
+            plan.gapAt = findShiftStopPoint(candidateChannels, plan.insertNumber, plan.shiftAmount);
+
+            // Filter channels up to gap
+            plan.affectedChannels = candidateChannels.filter(ch =>
+                parseFloat(ch.channel_number) < plan.gapAt
+            );
+
+            // Validate Smart Range boundaries (warning mode - allow but warn)
+            plan.warnings = validateSmartRangeBoundaries(plan.affectedChannels, plan.shiftAmount);
+
+            // Estimate time (roughly 150ms per channel)
+            plan.estimatedTime = plan.affectedChannels.length * 0.15;
+
+            return plan;
+        }
+
+        /**
+         * Finds the point where shifting should stop (first gap)
+         * @param {Array} channels - Sorted channels in ascending order
+         * @param {number} insertAt - Starting point
+         * @param {number} shiftAmount - Shift amount
+         * @returns {number} Channel number where gap occurs
+         */
+        function findShiftStopPoint(channels, insertAt, shiftAmount) {
+            let expected = parseFloat(insertAt);
+
+            for (const ch of channels) {
+                const num = parseFloat(ch.channel_number);
+
+                // If there's a gap (channel number > expected), return the gap position
+                if (num > expected) {
+                    return expected;
+                }
+
+                // Move expected to next position after this channel
+                expected = num + shiftAmount;
+            }
+
+            // No gap found - return Infinity to shift all
+            return Infinity;
+        }
+
+        /**
+         * Validates Smart Range boundaries and generates warnings
+         * @param {Array} channels - Channels to be shifted
+         * @param {number} shiftAmount - Shift amount
+         * @returns {Array} Array of warning objects
+         */
+        function validateSmartRangeBoundaries(channels, shiftAmount) {
+            const warnings = [];
+
+            if (!customRangesData || customRangesData.length === 0) {
+                return warnings;
+            }
+
+            for (const ch of channels) {
+                const currentNum = parseFloat(ch.channel_number);
+                const newNum = currentNum + shiftAmount;
+
+                // Find Smart Range for this channel's current position
+                const range = customRangesData.find(r =>
+                    currentNum >= r.start && currentNum <= r.end
+                );
+
+                if (range && newNum > range.end) {
+                    warnings.push({
+                        type: 'range_overflow',
+                        channel: ch,
+                        range: range,
+                        currentNumber: currentNum,
+                        newNumber: newNum,
+                        message: `${ch.name} (${currentNum}) will exceed ${range.name} range boundary (${range.end}) → becomes ${newNum}`
+                    });
+                }
+            }
+
+            return warnings;
+        }
+
+        /**
+         * Shows the shift preview modal with plan data
+         * @param {Object} plan - Shift plan data
+         */
+        function showShiftPreviewModal(plan) {
+            shiftPlanData = plan;
+
+            // Hide any open edit modal temporarily (so shift preview is visible)
+            const editModals = document.querySelectorAll('.modal');
+            for (const modal of editModals) {
+                if (modal.id !== 'shiftPreviewModal' && modal.id !== 'shiftProgressModal' && modal.style.display !== 'none') {
+                    hiddenEditModal = modal;
+                    modal.style.display = 'none';
+                    break;
+                }
+            }
+
+            // Populate summary
+            document.getElementById('previewInsertAt').textContent = plan.insertNumber;
+            document.getElementById('previewShiftAmount').textContent = `+${plan.shiftAmount}`;
+            document.getElementById('previewCount').textContent = `${plan.affectedChannels.length} channel(s)`;
+            document.getElementById('previewGapAt').textContent = plan.gapAt === Infinity ? 'No gap found (shift all)' : plan.gapAt;
+            document.getElementById('previewTime').textContent = `~${plan.estimatedTime.toFixed(1)}s`;
+
+            // Show warnings
+            const warningsDiv = document.getElementById('previewWarnings');
+            if (plan.warnings.length > 0) {
+                warningsDiv.innerHTML = `
+                    <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid #ff6b6b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3 style="margin-top: 0; color: #ff6b6b;">⚠️ Warnings (${plan.warnings.length})</h3>
+                        <ul style="margin: 0; padding-left: 20px;">
+                            ${plan.warnings.map(w => `<li style="margin: 5px 0;">${w.message}</li>`).join('')}
+                        </ul>
+                        <p style="margin: 10px 0 0 0; font-size: 0.9rem; color: #999;">
+                            These channels will be shifted beyond their Smart Range boundaries. You can still proceed if desired.
+                        </p>
+                    </div>
+                `;
+            } else {
+                warningsDiv.innerHTML = '';
+            }
+
+            // Populate changes table
+            const tbody = document.getElementById('previewTableBody');
+            tbody.innerHTML = plan.affectedChannels.map(ch => {
+                const currentNum = parseFloat(ch.channel_number);
+                const newNum = currentNum + plan.shiftAmount;
+                const hasWarning = plan.warnings.some(w => w.channel.id === ch.id);
+
+                return `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); ${hasWarning ? 'background: rgba(255, 107, 107, 0.05);' : ''}">
+                        <td style="padding: 8px;">${ch.name}${hasWarning ? ' ⚠️' : ''}</td>
+                        <td style="padding: 8px; text-align: center;">${currentNum}</td>
+                        <td style="padding: 8px; text-align: center;">→</td>
+                        <td style="padding: 8px; text-align: center; font-weight: bold; color: #667eea;">${newNum}</td>
+                        <td style="padding: 8px;">${ch.group_name || '(None)'}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Show modal
+            document.getElementById('shiftPreviewModal').style.display = 'flex';
+        }
+
+        async function closeShiftPreviewModal() {
+            document.getElementById('shiftPreviewModal').style.display = 'none';
+
+            // Restore hidden edit modal if it exists
+            if (hiddenEditModal) {
+                // Reload channels and refresh the edit modal data before showing it
+                await loadDispatcharrChannels();
+                refreshEditModalData();
+                hiddenEditModal.style.display = 'flex';
+                hiddenEditModal = null;
+            }
+
+            shiftPlanData = null;
+        }
+
+        /**
+         * Refreshes the data in the currently hidden edit modal with latest channel info
+         */
+        function refreshEditModalData() {
+            if (!hiddenEditModal || !pendingChannelData || !pendingChannelData.isEdit) {
+                return;
+            }
+
+            // Find the channel with latest data
+            const channelId = pendingChannelData.channelId;
+            const channel = dispatcharrChannels.find(ch => ch.id === channelId);
+
+            if (!channel) {
+                return; // Channel not found
+            }
+
+            // Update all input fields in the edit modal with current values
+            const nameInput = hiddenEditModal.querySelector('#editChannelName');
+            const callSignInput = hiddenEditModal.querySelector('#editChannelCallSign');
+            const gracenoteInput = hiddenEditModal.querySelector('#editChannelGracenoteId');
+            const numberInput = hiddenEditModal.querySelector('#editChannelNumber');
+
+            if (nameInput) nameInput.value = channel.name || '';
+            if (callSignInput) callSignInput.value = channel.call_sign || '';
+            if (gracenoteInput) gracenoteInput.value = channel.gracenote_id || '';
+            if (numberInput) numberInput.value = channel.channel_number || '';
+        }
+
+        /**
+         * Confirms and executes the channel shift
+         */
+        async function confirmChannelShift() {
+            if (!shiftPlanData) {
+                showNotification('No shift plan available', 'error');
+                return;
+            }
+
+            closeShiftPreviewModal();
+
+            // Execute shift
+            const result = await executeChannelShift(shiftPlanData);
+
+            if (result.cancelled) {
+                showNotification('Shift operation cancelled', 'info');
+
+                // Restore edit modal if it was hidden (refresh data first)
+                if (hiddenEditModal) {
+                    await loadDispatcharrChannels(); // Reload to get latest state
+                    refreshEditModalData(); // Update modal with latest data
+                    hiddenEditModal.style.display = 'flex';
+                    hiddenEditModal = null;
+                }
+
+                pendingChannelData = null;
+                return result;
+            }
+
+            if (!result.success) {
+                showNotification(
+                    `Shift failed: ${result.successCount} succeeded, ${result.errorCount} failed. Rolled back.`,
+                    'error'
+                );
+
+                // Restore edit modal if it was hidden (refresh data first after rollback)
+                if (hiddenEditModal) {
+                    await loadDispatcharrChannels(); // Reload to get post-rollback state
+                    refreshEditModalData(); // Update modal with latest data
+                    hiddenEditModal.style.display = 'flex';
+                    hiddenEditModal = null;
+                }
+
+                pendingChannelData = null;
+                return result;
+            }
+
+            // Shift successful!
+            // Don't show notification yet if we have pending operations (create/edit)
+            const hasPendingOp = !!pendingChannelData;
+            if (!hasPendingOp) {
+                showNotification(`✓ Successfully shifted ${result.successCount} channel(s)`, 'success');
+            }
+
+            // If there's pending channel data, handle it
+            if (pendingChannelData) {
+                if (pendingChannelData.isEdit) {
+                    // Edit flow - update the channel (will show its own notification)
+                    await updateChannelAfterShift(pendingChannelData);
+                } else {
+                    // Create flow - create the channel (will show combined notification)
+                    await createChannelAfterShift(pendingChannelData);
+                }
+                pendingChannelData = null;
+            }
+
+            // ALWAYS do a full reload after shift operations to reflect all changes
+            await loadDispatcharrChannels();
+
+            return result;
+        }
+
+        /**
+         * Updates a channel after successful shift (used in edit insert-and-shift flow)
+         * @param {Object} editInfo - Stored edit info from edit modal
+         */
+        async function updateChannelAfterShift(editInfo) {
+            const settings = await getSettings();
+
+            try {
+                showNotification('Updating channel...', 'info');
+
+                const response = await fetch(`/api/dispatcharr/channels/${editInfo.channelId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password,
+                        update_data: editInfo.updateData
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Get channel name for notification
+                    const channelName = editInfo.updateData.name || 'Channel';
+                    const channelNumber = editInfo.updateData.channel_number;
+                    showNotification(`✓ ${channelName} moved to ${channelNumber} successfully!`, 'success');
+
+                    // Update local channel data
+                    const channelIndex = dispatcharrChannels.findIndex(ch => ch.id == editInfo.channelId);
+                    if (channelIndex !== -1 && result.channel) {
+                        dispatcharrChannels[channelIndex] = result.channel;
+                        hasIncrementalUpdates = true;
+                    }
+
+                    // Close and remove the hidden edit modal permanently
+                    if (hiddenEditModal) {
+                        hiddenEditModal.remove();
+                        hiddenEditModal = null;
+                    }
+
+                    // Also close any other modals
+                    const modal = document.querySelector('.modal');
+                    if (modal) modal.remove();
+                } else {
+                    showNotification('Failed to update channel: ' + (result.error || 'Unknown error'), 'error');
+
+                    // On error, restore the edit modal so user can try again
+                    if (hiddenEditModal) {
+                        await loadDispatcharrChannels(); // Reload to get latest state
+                        refreshEditModalData(); // Update modal with latest data
+                        hiddenEditModal.style.display = 'flex';
+                        hiddenEditModal = null;
+                    }
+                }
+            } catch (error) {
+                showNotification('Error updating channel: ' + error.message, 'error');
+                console.error(error);
+
+                // On error, restore the edit modal so user can try again
+                if (hiddenEditModal) {
+                    await loadDispatcharrChannels(); // Reload to get latest state
+                    refreshEditModalData(); // Update modal with latest data
+                    hiddenEditModal.style.display = 'flex';
+                    hiddenEditModal = null;
+                }
+            }
+        }
+
+        /**
+         * Creates a channel after successful shift (used in create insert-and-shift flow)
+         * @param {Object} channelInfo - Stored channel info from creation modal
+         */
+        async function createChannelAfterShift(channelInfo) {
+            const settings = await getSettings();
+
+            try {
+                const channelData = {
+                    name: channelInfo.name,
+                    channel_number: channelInfo.channelNumber,
+                    tvc_guide_stationid: channelInfo.gracenoteId || '',
+                    tvg_id: channelInfo.tvgId || '',
+                    channel_group_id: channelInfo.groupId ? parseInt(channelInfo.groupId) : null,
+                    streams: createChannelStreams.map(s => s.id)
+                };
+
+                // Add logo if available from station data
+                if (createChannelStationData && createChannelStationData.logo_uri) {
+                    channelData.logo_uri = createChannelStationData.logo_uri;
+                }
+
+                showNotification('Creating channel...', 'info');
+
+                const response = await fetch('/api/dispatcharr/channels/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: settings.dispatcharr.url,
+                        username: settings.dispatcharr.username,
+                        password: settings.dispatcharr.password,
+                        channel: channelData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show success notification (combine shift + creation success)
+                    showNotification(`✓ Channel "${channelInfo.name}" created successfully at ${channelInfo.channelNumber}!`, 'success');
+
+                    // Close the hidden create modal permanently
+                    if (hiddenEditModal && hiddenEditModal.id === 'createChannelModal') {
+                        hiddenEditModal.remove();
+                        hiddenEditModal = null;
+                    } else {
+                        // Fallback: close via normal method
+                        closeCreateChannelModal();
+                    }
+                } else {
+                    showNotification(`Failed to create channel: ${data.error}`, 'error');
+
+                    // On error, restore the create modal so user can try again
+                    if (hiddenEditModal && hiddenEditModal.id === 'createChannelModal') {
+                        await loadDispatcharrChannels(); // Reload to get latest state
+                        hiddenEditModal.style.display = 'flex';
+                        hiddenEditModal = null;
+                    }
+                }
+            } catch (error) {
+                showNotification('Error creating channel: ' + error.message, 'error');
+                console.error(error);
+
+                // On error, restore the create modal so user can try again
+                if (hiddenEditModal && hiddenEditModal.id === 'createChannelModal') {
+                    await loadDispatcharrChannels(); // Reload to get latest state
+                    hiddenEditModal.style.display = 'flex';
+                    hiddenEditModal = null;
+                }
+            }
+        }
+
+        /**
+         * Executes the channel shift (processes HIGHEST TO LOWEST to avoid collisions!)
+         * @param {Object} plan - Shift plan data
+         * @returns {Promise<Object>} Execution result
+         */
+        async function executeChannelShift(plan) {
+            const settings = await getSettings();
+            if (!settings.dispatcharr || !settings.dispatcharr.url) {
+                showNotification('Please configure Dispatcharr settings first', 'error');
+                return { success: false, error: 'No Dispatcharr settings' };
+            }
+
+            // Sort HIGHEST TO LOWEST (reverse order) to avoid collisions!
+            const channelsToShift = [...plan.affectedChannels].sort((a, b) =>
+                parseFloat(b.channel_number) - parseFloat(a.channel_number)
+            );
+
+            let successCount = 0;
+            let errorCount = 0;
+            const errors = [];
+            const originalNumbers = new Map();
+
+            // Show progress modal
+            shiftCancelled = false;
+            document.getElementById('shiftProgressModal').style.display = 'flex';
+            document.getElementById('shiftCancelButton').disabled = false;
+            document.getElementById('shiftCancelButton').textContent = 'Cancel';
+
+            // Process each channel (highest to lowest!)
+            for (let i = 0; i < channelsToShift.length; i++) {
+                // Check if cancelled
+                if (shiftCancelled) {
+                    // Attempt rollback
+                    await rollbackChannelShift(originalNumbers);
+                    document.getElementById('shiftProgressModal').style.display = 'none';
+                    return { success: false, cancelled: true, successCount, errorCount };
+                }
+
+                const channel = channelsToShift[i];
+                const currentNum = parseFloat(channel.channel_number);
+                const newNum = currentNum + plan.shiftAmount;
+
+                // Store original number for potential rollback
+                originalNumbers.set(channel.id, currentNum);
+
+                // Update progress
+                updateShiftProgress(i + 1, channelsToShift.length, `Shifting ${channel.name}...`);
+
+                try {
+                    const response = await fetch(`/api/dispatcharr/channels/${channel.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: settings.dispatcharr.url,
+                            username: settings.dispatcharr.username,
+                            password: settings.dispatcharr.password,
+                            update_data: { channel_number: newNum }
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                        errors.push({ channel, error: data.error || 'Unknown error' });
+
+                        // Rollback on error
+                        await rollbackChannelShift(originalNumbers);
+                        document.getElementById('shiftProgressModal').style.display = 'none';
+                        showNotification(`Shift failed at ${channel.name}. Rolling back changes...`, 'error');
+                        return { success: false, successCount, errorCount, errors };
+                    }
+                } catch (error) {
+                    errorCount++;
+                    errors.push({ channel, error: error.message });
+
+                    // Rollback on error
+                    await rollbackChannelShift(originalNumbers);
+                    document.getElementById('shiftProgressModal').style.display = 'none';
+                    showNotification(`Shift failed at ${channel.name}. Rolling back changes...`, 'error');
+                    return { success: false, successCount, errorCount, errors };
+                }
+            }
+
+            // Hide progress modal
+            document.getElementById('shiftProgressModal').style.display = 'none';
+
+            return {
+                success: errorCount === 0,
+                successCount,
+                errorCount,
+                errors,
+                cancelled: false
+            };
+        }
+
+        /**
+         * Rolls back shifted channels to original numbers
+         * @param {Map} originalNumbers - Map of channel ID to original number
+         */
+        async function rollbackChannelShift(originalNumbers) {
+            if (originalNumbers.size === 0) return;
+
+            const settings = await getSettings();
+            showNotification('Rolling back changes...', 'info');
+
+            let rollbackCount = 0;
+            for (const [channelId, originalNumber] of originalNumbers) {
+                try {
+                    await fetch(`/api/dispatcharr/channels/${channelId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            url: settings.dispatcharr.url,
+                            username: settings.dispatcharr.username,
+                            password: settings.dispatcharr.password,
+                            update_data: { channel_number: originalNumber }
+                        })
+                    });
+                    rollbackCount++;
+                } catch (error) {
+                    console.error(`Failed to rollback channel ${channelId}:`, error);
+                }
+            }
+
+            showNotification(`Rolled back ${rollbackCount} channel(s)`, 'info');
+        }
+
+        /**
+         * Updates the shift progress UI
+         * @param {number} current - Current progress
+         * @param {number} total - Total count
+         * @param {string} status - Status message
+         */
+        function updateShiftProgress(current, total, status = '') {
+            const percentage = (current / total) * 100;
+
+            document.getElementById('shiftProgressText').textContent = `Processing ${current}/${total} channels...`;
+            document.getElementById('shiftProgressFill').style.width = `${percentage}%`;
+            document.getElementById('shiftProgressStatus').textContent = status;
+        }
+
+        /**
+         * Cancels an in-progress shift operation
+         */
+        function cancelShiftInProgress() {
+            shiftCancelled = true;
+            document.getElementById('shiftCancelButton').disabled = true;
+            document.getElementById('shiftCancelButton').textContent = 'Cancelling...';
+            document.getElementById('shiftProgressStatus').textContent = 'Cancelling and rolling back...';
+        }
+
+        // ========== END CHANNEL SHIFT FUNCTIONALITY ==========
+
         async function submitCreateChannel() {
             const name = document.getElementById('createChannelName').value.trim();
             const channelNumber = document.getElementById('createChannelNumber').value;
@@ -6485,6 +7219,41 @@
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
                 showNotification('Please configure Dispatcharr settings first', 'error');
                 return;
+            }
+
+            // INTELLIGENT SHIFT DETECTION: Check if the channel number is already taken
+            if (channelNumber) {
+                const parsedNumber = parseFloat(channelNumber);
+                await ensureChannelsLoaded();
+
+                // Check if this channel number is occupied
+                const isOccupied = dispatcharrChannels.some(ch => {
+                    const existingNum = parseFloat(ch.channel_number);
+                    return !isNaN(existingNum) && existingNum === parsedNumber;
+                });
+
+                if (isOccupied) {
+                    // Number is taken - automatically plan a shift
+                    const plan = await planChannelShift(parsedNumber, 1);
+
+                    if (plan.affectedChannels.length > 0) {
+                        // Show preview modal with option to shift
+                        showShiftPreviewModal(plan);
+
+                        // Store channel data for creation after shift
+                        pendingChannelData = {
+                            name,
+                            channelNumber: parsedNumber,
+                            groupId,
+                            gracenoteId,
+                            tvgId
+                        };
+
+                        // Exit here - creation will happen after user confirms shift
+                        return;
+                    }
+                    // If no channels to shift (shouldn't happen), fall through to normal creation
+                }
             }
 
             try {
