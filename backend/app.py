@@ -30,6 +30,9 @@ CORS(app)
 # Database configuration
 DB_PATH = os.environ.get('DATABASE_PATH', '/data/channelidentifiarr.db')
 
+# TODO why would the frontend path be relative to __file__? Check Dockerfile for clues
+FRONTEND_PATH = os.environ.get('FRONTEND_PATH', os.path.join(os.path.dirname(__file__), 'frontend'))
+
 # Check if database exists
 DB_EXISTS = os.path.exists(DB_PATH)
 if not DB_EXISTS:
@@ -245,9 +248,9 @@ def serve_frontend():
     if not DB_EXISTS:
         return serve_setup_page()
 
-    frontend_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'index.html')
-    if os.path.exists(frontend_path):
-        with open(frontend_path, 'r', encoding='utf-8') as f:
+    index_html = os.path.join(FRONTEND_PATH, 'index.html')
+    if os.path.exists(index_html):
+        with open(index_html, 'r', encoding='utf-8') as f:
             return f.read()
     else:
         # Return the HTML directly if file not found
