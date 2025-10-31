@@ -20,30 +20,12 @@ import tempfile
 from urllib.parse import urlparse
 from settings_manager import get_settings_manager
 
-DEFAULT_DATABASE_PATH = '/data/channelidentifiarr.db'
-DEFAULT_FRONTEND_PATH = os.path.join(os.path.dirname(__file__), 'frontend')
+DB_PATH = os.environ.get('DATABASE_PATH', '/data/channelidentifiarr.db')
 DEFAULT_LOG_LEVEL = 'INFO'
-
-# Configure logging
-log_level = os.environ.get('BACKEND_LOG_LEVEL', DEFAULT_LOG_LEVEL).upper()
-logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
-logger = logging.getLogger(__name__)
+FRONTEND_PATH = os.environ.get('FRONTEND_PATH', os.path.join(os.path.dirname(__file__), 'frontend'))
 
 app = Flask(__name__)
 CORS(app)
-
-# Database configuration
-DB_PATH = os.environ.get('DATABASE_PATH', DEFAULT_DATABASE_PATH)
-
-# Frontend path configuration
-FRONTEND_PATH = os.environ.get('FRONTEND_PATH', DEFAULT_FRONTEND_PATH)
-
-# Check if database exists
-DB_EXISTS = os.path.exists(DB_PATH)
-if not DB_EXISTS:
-    logger.warning(f"Database not found at {DB_PATH} - running in no-database mode")
-else:
-    logger.info(f"Database found at {DB_PATH}")
 
 # Dispatcharr configuration - will be received from frontend
 # Token management per connection
@@ -3359,12 +3341,15 @@ def test_emby_settings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    # Check if database exists
-    if not Path(DB_PATH).exists():
-        logger.error(f"Database not found at {DB_PATH}")
-        logger.info("Please mount the database or set DATABASE_PATH environment variable")
-    else:
-        logger.info(f"Using database at {DB_PATH}")
+    log_level = os.environ.get('BACKEND_LOG_LEVEL', DEFAULT_LOG_LEVEL).upper()
+    logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
+    logger = logging.getLogger(__name__)
 
-    # Run the development server
+    # Check if database exists
+    DB_EXISTS = os.path.exists(DB_PATH)
+    if not DB_EXISTS:
+        logger.warning(f"Database not found at {DB_PATH} - running in no-database mode")
+    else:
+        logger.info(f"Database found at {DB_PATH}")
+
     app.run(host='0.0.0.0', port=5000, debug=False)
