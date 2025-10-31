@@ -12,6 +12,8 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
+import dotenv
+dotenv.load_dotenv()
 
 class SettingsManager:
     """
