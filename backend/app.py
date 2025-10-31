@@ -20,9 +20,12 @@ import tempfile
 from urllib.parse import urlparse
 from settings_manager import get_settings_manager
 
+from dotenv import load_dotenv
+load_dotenv()
+
 DB_PATH = os.environ.get('DATABASE_PATH', '/data/channelidentifiarr.db')
-DEFAULT_LOG_LEVEL = 'INFO'
 FRONTEND_PATH = os.environ.get('FRONTEND_PATH', os.path.join(os.path.dirname(__file__), 'frontend'))
+LOG_LEVEL = os.environ.get('BACKEND_LOG_LEVEL', 'INFO')
 
 app = Flask(__name__)
 CORS(app)
@@ -3341,8 +3344,7 @@ def test_emby_settings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    log_level = os.environ.get('BACKEND_LOG_LEVEL', DEFAULT_LOG_LEVEL).upper()
-    logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
+    logging.basicConfig(level=LOG_LEVEL)
     logger = logging.getLogger(__name__)
 
     # Check if database exists
