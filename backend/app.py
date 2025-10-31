@@ -19,6 +19,7 @@ import shutil
 import tempfile
 from urllib.parse import urlparse
 from settings_manager import get_settings_manager
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -1496,11 +1497,26 @@ def get_dispatcharr_channels():
 
         logger.info(f"Fetching {len(logo_ids)} logos for {len(channels_data)} channels")
 
+        # Fetch logos in parallel using ThreadPoolExecutor
         logos_map = {}
-        for logo_id in logo_ids:
+        
+        def fetch_logo(logo_id):
+            """Helper function to fetch a single logo"""
             logo_data, _ = dispatcharr_api_request(url, username, password, 'GET', f'/api/channels/logos/{logo_id}/')
             if logo_data:
-                logos_map[logo_id] = logo_data.get('url', '')
+                return logo_id, logo_data.get('url', '')
+            return logo_id, None
+        
+        # Use ThreadPoolExecutor with 10 concurrent workers
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            # Submit all tasks
+            future_to_logo = {executor.submit(fetch_logo, logo_id): logo_id for logo_id in logo_ids}
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_logo):
+                logo_id, logo_url = future.result()
+                if logo_url:
+                    logos_map[logo_id] = logo_url
 
         # Process channels
         channels = []
