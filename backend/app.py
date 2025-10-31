@@ -20,18 +20,23 @@ import tempfile
 from urllib.parse import urlparse
 from settings_manager import get_settings_manager
 
+DEFAULT_DATABASE_PATH = '/data/channelidentifiarr.db'
+DEFAULT_FRONTEND_PATH = os.path.join(os.path.dirname(__file__), 'frontend')
+DEFAULT_LOG_LEVEL = 'INFO'
+
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+log_level = os.environ.get('BACKEND_LOG_LEVEL', DEFAULT_LOG_LEVEL).upper()
+logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
 # Database configuration
-DB_PATH = os.environ.get('DATABASE_PATH', '/data/channelidentifiarr.db')
+DB_PATH = os.environ.get('DATABASE_PATH', DEFAULT_DATABASE_PATH)
 
-# TODO why would the frontend path be relative to __file__? Check Dockerfile for clues
-FRONTEND_PATH = os.environ.get('FRONTEND_PATH', os.path.join(os.path.dirname(__file__), 'frontend'))
+# Frontend path configuration
+FRONTEND_PATH = os.environ.get('FRONTEND_PATH', DEFAULT_FRONTEND_PATH)
 
 # Check if database exists
 DB_EXISTS = os.path.exists(DB_PATH)
