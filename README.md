@@ -1,10 +1,17 @@
 # ChannelIdentifiarr
 
-**v0.5.8**
+**v0.6.0**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
-## Recent Updates (v0.5.8)
+## Recent Updates (v0.6.0)
+
+**New Features:**
+- **Clone Lineup** - Import entire real-world lineups (DirecTV, Dish, cable providers) from Gracenote database with pre-populated channel numbers, station IDs, call signs, and logos. Search by ZIP code across all supported countries.
+- **Selective Emby Logo Deletion** - Choose which logo types to delete (Primary, LogoLight, LogoLightColor) instead of removing all logos at once.
+- **Logo Map Caching** - Significantly improved performance when loading Dispatcharr channels by caching logo data, reducing load times from minutes to seconds on large logo libraries.
+
+## Previous Updates (v0.5.8)
 
 **New Feature:**
 - **Intelligent Channel Insertion** - Added ability to insert a channel at an occupied channel number with automatic shifting of existing channels upward until a gap is reached. The system intelligently detects when a selected channel number is already in use and offers the option to shift existing channels, eliminating the need for manual renumbering.

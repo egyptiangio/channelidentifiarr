@@ -398,15 +398,6 @@
             }
         }
 
-        @keyframes progress-slide {
-            0% {
-                background-position: 0% 0%;
-            }
-            100% {
-                background-position: 100% 0%;
-            }
-        }
-
         .error {
             background: rgba(244, 67, 54, 0.1);
             border: 1px solid rgba(244, 67, 54, 0.3);
@@ -573,7 +564,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.0</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.4.0-beta</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -753,46 +744,6 @@
                         <button onclick="testDatabaseConnection()" class="btn-secondary">🔗 Test Database</button>
                         <span id="databaseTestResult" style="margin-left: 15px;"></span>
                     </div>
-
-                    <hr style="margin: 25px 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);">
-
-                    <h4 style="margin-bottom: 10px; font-size: 1rem; color: #999;">Database Updates</h4>
-                    <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">Check for and download updated databases from remote maintainers.</p>
-
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 5px; color: #999;">Remote Database URL:</label>
-                        <input type="text" id="settingsRemoteDatabaseUrl" placeholder="https://example.com/channelidentifiarr.db" style="width: 100%;">
-                        <p style="color: #666; font-size: 0.85rem; margin-top: 5px;">URL to remote database file. A JSON metadata file (channelidentifiarr.json) must be available in the same directory.</p>
-                    </div>
-
-                    <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px;">
-                            <div>
-                                <div style="font-size: 0.85rem; color: #999; margin-bottom: 5px;">Local Version:</div>
-                                <div id="localDbVersion" style="font-size: 1rem; font-weight: bold; color: #4a9eff;">Loading...</div>
-                                <div id="localDbDate" style="font-size: 0.8rem; color: #666; margin-top: 2px;">-</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.85rem; color: #999; margin-bottom: 5px;">Remote Version:</div>
-                                <div id="remoteDbVersion" style="font-size: 1rem; font-weight: bold; color: #666;">-</div>
-                                <div id="remoteDbDate" style="font-size: 0.8rem; color: #666; margin-top: 2px;">-</div>
-                                <div id="remoteDbSize" style="font-size: 0.8rem; color: #666; margin-top: 2px;">-</div>
-                            </div>
-                        </div>
-                        <div id="updateStatus" style="font-size: 0.9rem; color: #4a9eff; text-align: center;"></div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                        <button onclick="checkForDatabaseUpdate()" class="btn-secondary" id="btnCheckUpdate">🔍 Check for Updates</button>
-                        <button onclick="downloadDatabaseUpdate()" class="btn-primary" id="btnDownloadUpdate" disabled style="opacity: 0.5;">⬇️ Download Update</button>
-                        <button onclick="restoreDatabaseBackup()" class="btn-secondary" id="btnRestoreBackup">🔙 Restore Backup</button>
-                    </div>
-                    <div id="downloadProgress" style="margin-top: 15px; display: none;">
-                        <div style="background: rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; height: 24px; position: relative;">
-                            <div id="downloadProgressBar" style="background: linear-gradient(90deg, #4a9eff, #6bb6ff); height: 100%; width: 0%; transition: width 0.3s;"></div>
-                            <div id="downloadProgressText" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.85rem; font-weight: bold;">0%</div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Dispatcharr Settings -->
@@ -833,23 +784,10 @@
                             <input type="checkbox" id="applyChannelName" style="margin-right: 10px;">
                             <span>Apply channel name</span>
                         </label>
-                        <div style="margin-bottom: 10px;">
-                            <label style="display: flex; align-items: center; margin-bottom: 10px;">
-                                <input type="checkbox" id="applyTvgId" style="margin-right: 10px;" onchange="toggleTvgIdSourceOptions()">
-                                <span>Apply TVG-ID (tvg_id)</span>
-                            </label>
-                            <div style="margin-left: 30px;">
-                                <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                                    <input type="radio" name="tvgIdSource" value="callsign" id="tvgIdSourceCallsign" style="margin-right: 10px;" disabled>
-                                    <span id="tvgIdSourceCallsignLabel" style="color: #666;">Use Call Sign</span>
-                                </label>
-                                <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                                    <input type="radio" name="tvgIdSource" value="gracenote" id="tvgIdSourceGracenote" style="margin-right: 10px;" disabled>
-                                    <span id="tvgIdSourceGracenoteLabel" style="color: #666;">Use Gracenote ID</span>
-                                </label>
-                                <div id="tvgIdSourceHelp" style="font-size: 0.8rem; color: #666; margin-top: 3px;">Select which value to populate into the TVG-ID field</div>
-                            </div>
-                        </div>
+                        <label style="display: flex; align-items: center; margin-bottom: 10px;">
+                            <input type="checkbox" id="applyCallSign" style="margin-right: 10px;">
+                            <span>Apply call sign as TVG-ID (tvg_id)</span>
+                        </label>
                         <label style="display: flex; align-items: center; margin-bottom: 10px;">
                             <input type="checkbox" id="applyLogo" checked style="margin-right: 10px;">
                             <span>Apply logo</span>
@@ -888,24 +826,17 @@
                     <p style="color: #666; font-size: 0.85rem; margin-bottom: 15px;">Configure default settings for creating new channels:</p>
 
                     <div style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 8px; color: #999; font-weight: 500;">Default Group for New Channels:</label>
-
-                        <!-- Current default group display -->
-                        <div id="currentDefaultGroupDisplay" style="background: rgba(74, 158, 255, 0.08); border: 1px solid rgba(74, 158, 255, 0.2); padding: 10px 12px; border-radius: 6px; margin-bottom: 12px;">
-                            <div style="font-size: 0.75rem; color: #999; margin-bottom: 3px;">Current default:</div>
-                            <div id="currentDefaultGroupName" style="font-size: 0.95rem; color: #4a9eff;">No Default Set</div>
-                        </div>
-
-                        <!-- Group selector -->
-                        <input type="text" id="settingsDefaultGroupFilter" placeholder="Type to search groups..." style="width: 100%; margin-bottom: 8px;" oninput="filterDefaultGroupSelector()">
+                        <label style="display: block; margin-bottom: 5px; color: #999;">Default Group:</label>
+                        <input type="text" id="settingsDefaultGroupFilter" placeholder="Type to filter groups..." style="width: 100%; margin-bottom: 8px;" oninput="filterDefaultGroupSelector()">
                         <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
                             <input type="checkbox" id="settingsDefaultGroupShowCustomOnly" onchange="filterDefaultGroupSelector()" style="margin-right: 8px;">
                             <span style="font-size: 0.9rem; color: #999;">Show only custom groups (no M3U)</span>
                         </label>
-                        <select id="settingsDefaultGroup" size="6" style="width: 100%; padding: 10px; border-radius: 4px; max-height: 180px; font-size: 0.95rem;" onchange="updateDefaultGroupDisplay()">
+                        <select id="settingsDefaultGroup" size="6" style="width: 100%; padding: 10px; border-radius: 4px; max-height: 180px;">
                             <option value="">-- No Default --</option>
                         </select>
-                        <div id="settingsDefaultGroupStatus" style="font-size: 0.85rem; color: #4a9eff; margin-top: 8px; font-weight: 500;"></div>
+                        <div id="settingsDefaultGroupStatus" style="font-size: 0.85rem; color: #999; margin-top: 5px;"></div>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 3px;">This group will be pre-selected when creating new channels</div>
                     </div>
 
                     <div style="margin-bottom: 15px;">
@@ -986,53 +917,33 @@
 
             <div class="dispatcharr-section">
                 <h2>📡 Dispatcharr Channels</h2>
-                <div class="dispatcharr-controls" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: nowrap; align-items: center; overflow-x: auto;">
-                    <button onclick="openCreateCustomChannelModal()" class="btn-primary" style="padding: 3px 6px; font-size: 11px;">➕ Create Channel</button>
-                    <button onclick="openCloneLineupModal()" class="btn-primary" style="padding: 3px 6px; font-size: 11px;">📋 Clone Lineup</button>
+                <div class="dispatcharr-controls" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center;">
+                    <button onclick="openCreateCustomChannelModal()" class="btn-primary">➕ Create Channel</button>
                     <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
-                    <button onclick="loadDispatcharrChannels()" style="padding: 3px 6px; font-size: 11px;">🔄 Refresh Channels</button>
+                    <button onclick="loadDispatcharrChannels()">🔄 Refresh Channels</button>
                     <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
                     <span style="color: #999; font-size: 0.9rem;">Select:</span>
-                    <button onclick="selectAll()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">All</button>
-                    <button onclick="selectMissingGracenote()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">Missing Gracenote ID</button>
-                    <button onclick="selectMissingLogo()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">Missing Logo</button>
-                    <button onclick="selectMissingTvgId()" class="btn-secondary" style="padding: 3px 6px; font-size: 11px;">Missing TVG-ID</button>
+                    <button onclick="selectAll()" class="btn-secondary" style="padding: 6px 12px;">All</button>
+                    <button onclick="selectMissingGracenote()" class="btn-secondary" style="padding: 6px 12px;">Missing Gracenote ID</button>
+                    <button onclick="selectMissingLogo()" class="btn-secondary" style="padding: 6px 12px;">Missing Logo</button>
+                    <button onclick="selectMissingTvgId()" class="btn-secondary" style="padding: 6px 12px;">Missing TVG-ID</button>
                     <div style="flex-grow: 1;"></div>
-                    <div style="border-left: 1px solid rgba(255,255,255,0.2); height: 30px; margin: 0 5px;"></div>
-                    <button onclick="matchSelectedStations()" class="btn-primary" id="matchSelectedBtn" disabled style="padding: 3px 6px; font-size: 11px;">🎯 Match Selected</button>
-                    <button onclick="bulkEditGroup()" class="btn-secondary" id="bulkEditGroupBtn" disabled style="padding: 3px 6px; font-size: 11px;">📝 Edit Selected</button>
-                    <button onclick="bulkDeleteChannels()" id="bulkDeleteBtn" disabled style="padding: 3px 6px; font-size: 11px; background: #dc2626; border-color: #dc2626; color: white;">🗑️ Delete Selected</button>
+                    <button onclick="matchSelectedStations()" class="btn-primary" id="matchSelectedBtn" disabled style="padding: 10px 20px; font-weight: bold;">🎯 Match Selected</button>
                 </div>
 
                 <!-- Dispatcharr channels table -->
                 <div class="results-table-container" style="margin-top: 20px;">
-                    <table class="results-table" id="dispatcharrTable" style="table-layout: fixed; width: 100%;">
+                    <table class="results-table" id="dispatcharrTable">
                         <thead>
                             <tr>
                                 <th style="width: 40px;"><input type="checkbox" id="selectAllChannels" onclick="toggleSelectAll()" title="Select/Deselect All"></th>
-                                <th style="width: 80px;">Channel #</th>
-                                <th style="width: 200px;">Name</th>
-                                <th style="width: 120px;">Call Sign</th>
-                                <th style="width: 120px;">Gracenote ID</th>
-                                <th style="width: 150px;">Group</th>
-                                <th style="width: 100px;">Logo</th>
-                                <th style="width: 200px;">Actions</th>
-                            </tr>
-                            <tr>
-                                <th></th>
-                                <th><input type="text" id="filterChannelNumber" placeholder="# or range" style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
-                                <th><input type="text" id="filterName" placeholder="Filter by name..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
-                                <th><input type="text" id="filterCallSign" placeholder="Filter..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
-                                <th><input type="text" id="filterGracenoteId" placeholder="Numeric only..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()" onkeypress="return event.charCode >= 48 && event.charCode <= 57"></th>
-                                <th><input type="text" id="filterGroup" placeholder="Filter by group..." style="width: 100%; padding: 4px; font-size: 12px;" oninput="filterDispatcharrChannels()"></th>
-                                <th>
-                                    <select id="filterLogo" style="width: 100%; padding: 4px; font-size: 12px;" onchange="filterDispatcharrChannels()">
-                                        <option value="">All</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </th>
-                                <th></th>
+                                <th>Channel #</th>
+                                <th>Name</th>
+                                <th>Call Sign</th>
+                                <th>Gracenote ID</th>
+                                <th>Group</th>
+                                <th>Logo</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="dispatcharrTableBody">
@@ -1119,40 +1030,10 @@
                 <div class="card" style="margin-bottom: 20px; max-width: 800px;">
                     <h3>🛠️ Other Channel Tools</h3>
                     <div style="display: grid; gap: 15px; margin-top: 20px;">
-                        <!-- Logo Deletion Tool -->
-                        <div style="border: 1px solid #444; border-radius: 8px; padding: 15px;">
-                            <div style="font-weight: 600; margin-bottom: 10px; font-size: 1rem;">
-                                🗑️ Delete Channel Logos
-                            </div>
-                            <div style="font-size: 0.85rem; color: #999; margin-bottom: 15px;">
-                                Select which logo types to remove from all Live TV channels
-                            </div>
-                            <div style="display: grid; gap: 8px; margin-bottom: 15px;">
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="logoTypePrimary" checked style="margin-right: 8px; cursor: pointer;">
-                                    <span>Primary</span>
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="logoTypeLogoLight" checked style="margin-right: 8px; cursor: pointer;">
-                                    <span>LogoLight</span>
-                                </label>
-                                <label style="display: flex; align-items: center; cursor: pointer;">
-                                    <input type="checkbox" id="logoTypeLogoLightColor" checked style="margin-right: 8px; cursor: pointer;">
-                                    <span>LogoLightColor</span>
-                                </label>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button onclick="selectAllLogoTypes()" class="btn-secondary" style="flex: 1; padding: 8px;">
-                                    ✓ Select All
-                                </button>
-                                <button onclick="deselectAllLogoTypes()" class="btn-secondary" style="flex: 1; padding: 8px;">
-                                    ✗ Deselect All
-                                </button>
-                                <button onclick="deleteSelectedEmbyLogos()" class="btn-primary" style="flex: 2; padding: 8px;">
-                                    🗑️ Delete Selected
-                                </button>
-                            </div>
-                        </div>
+                        <button onclick="deleteAllEmbyLogos()" class="btn-secondary" style="padding: 15px; text-align: left;">
+                            🗑️ Delete All Channel Logos
+                            <div style="font-size: 0.85rem; color: #999; margin-top: 5px;">Remove all logos from Live TV channels</div>
+                        </button>
 
                         <button onclick="clearAllEmbyChannelNumbers()" class="btn-secondary" style="padding: 15px; text-align: left;">
                             🔢 Clear All Channel Numbers
@@ -1226,9 +1107,6 @@
                             <button onclick="suggestChannelNumber('next')" class="btn-secondary" style="padding: 8px 12px; white-space: nowrap;">Highest + 1</button>
                         </div>
                         <div id="channelNumberSuggestion" style="font-size: 0.85rem; color: #999; margin-top: 5px;"></div>
-                        <div style="font-size: 0.8rem; color: #666; margin-top: 8px; padding: 8px; background: rgba(102, 126, 234, 0.05); border-radius: 4px; border-left: 3px solid rgba(102, 126, 234, 0.3);">
-                            💡 If you select an occupied channel number, you'll be given the option to insert the channel here and automatically shift existing channels up until a gap is found.
-                        </div>
                     </div>
 
                     <!-- Group Assignment -->
@@ -1319,7 +1197,7 @@
     <!-- Matching Modal Overlay -->
     <div id="matchingModal" class="modal" style="display: none;">
         <div class="modal-content" style="width: 90%; max-width: 900px;">
-            <div class="modal-header" style="position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div class="modal-header" style="position: sticky; top: 0; background: #1a1a2e; z-index: 10; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <div class="modal-title">🎯 Channel Matching</div>
                 <button class="close-button" onclick="closeMatchingModal()">×</button>
             </div>
@@ -1341,79 +1219,30 @@
                 <div id="matchingInterface">
                     <!-- Current Channel Being Matched -->
                     <div class="matching-card" style="background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                        <h3 style="margin: 0 0 15px 0;">Currently Matching:</h3>
-                        <div style="margin-bottom: 15px;">
-                            <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 8px;" id="currentChannelName">-</div>
-                            <div style="color: #999; font-size: 0.9rem; display: flex; gap: 15px; flex-wrap: wrap;">
-                                <span>Channel ID: <span id="currentChannelId">-</span></span>
-                                <span>Current Station ID: <span id="currentStationId" style="color: #ff6b6b;">None</span></span>
+                        <h3>Currently Matching:</h3>
+                        <div style="display: flex; align-items: center; margin-top: 15px;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 1.5rem; font-weight: bold;" id="currentChannelName">-</div>
+                                <div style="color: #999; margin-top: 5px;">
+                                    <span>Channel ID: <span id="currentChannelId">-</span></span> |
+                                    <span>Current Station ID: <span id="currentStationId" style="color: #ff6b6b;">None</span></span>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Parsed Info -->
-                        <div id="parsedInfo" style="padding: 12px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; border-left: 3px solid #667eea;">
-                            <div style="font-size: 0.85rem; color: #999; margin-bottom: 8px;">📋 Parsed Analysis:</div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 0.9rem;">
-                                <div><span style="color: #999;">Clean Name:</span> <strong id="parsedCleanName">-</strong></div>
-                                <div><span style="color: #999;">Country:</span> <strong id="parsedCountry">-</strong></div>
-                                <div><span style="color: #999;">Resolution:</span> <strong id="parsedResolution">-</strong></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Filter Section -->
-                    <div id="matchingFilters" style="margin-top: 20px; padding: 15px; background: rgba(102, 126, 234, 0.1); border: 1px solid rgba(102, 126, 234, 0.3); border-radius: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; cursor: pointer;" onclick="toggleMatchingFilters()">
-                            <h3 style="margin: 0; font-size: 1rem;">🔍 Filters <span style="color: #999; font-size: 0.85rem; font-weight: normal;">(from parsed data)</span></h3>
-                            <span id="filterToggleIcon" style="font-size: 1.2rem;">▶</span>
-                        </div>
-                        <div id="filterControls" style="display: none; margin-top: 15px;">
-                            <!-- Country Filter -->
-                            <div style="margin-bottom: 12px;">
-                                <label style="display: block; font-size: 0.9rem; color: #999; margin-bottom: 5px;">
-                                    Country <span id="countryAutoDetected" style="color: #667eea; font-size: 0.85rem;"></span>
-                                </label>
-                                <select id="filterCountry" onchange="filtersManuallyModified = true; applyMatchingFilters()" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
-                                    <option value="">All Countries</option>
-                                    <option value="USA">USA</option>
-                                    <option value="CAN">Canada</option>
-                                    <option value="GBR">United Kingdom</option>
-                                    <option value="AUS">Australia</option>
-                                    <option value="MEX">Mexico</option>
-                                </select>
-                            </div>
-
-                            <!-- Resolution Filter -->
-                            <div style="margin-bottom: 12px;">
-                                <label style="display: block; font-size: 0.9rem; color: #999; margin-bottom: 5px;">
-                                    Quality/Resolution <span id="resolutionAutoDetected" style="color: #667eea; font-size: 0.85rem;"></span>
-                                </label>
-                                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                        <input type="checkbox" id="filterSD" value="SD" onchange="filtersManuallyModified = true; applyMatchingFilters()" checked>
-                                        <span>SD</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                        <input type="checkbox" id="filterHD" value="HD" onchange="filtersManuallyModified = true; applyMatchingFilters()" checked>
-                                        <span>HD</span>
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                                        <input type="checkbox" id="filterUHD" value="UHD" onchange="filtersManuallyModified = true; applyMatchingFilters()" checked>
-                                        <span>UHD/4K</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- Filter Actions -->
-                            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button onclick="resetMatchingFilters()" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9rem;">Reset to Auto</button>
-                                <button onclick="clearAllMatchingFilters()" class="btn-secondary" style="padding: 6px 12px; font-size: 0.9rem;">Clear All</button>
+                        <div id="parsedInfo" style="margin-top: 15px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 6px;">
+                            <div style="font-size: 0.9rem; color: #999;">Parsed Analysis:</div>
+                            <div style="margin-top: 5px;">
+                                <span>Clean Name: <strong id="parsedCleanName">-</strong></span> |
+                                <span>Country: <strong id="parsedCountry">-</strong></span> |
+                                <span>Resolution: <strong id="parsedResolution">-</strong></span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Suggested Matches -->
-                    <div class="matching-suggestions" style="margin-top: 20px;">
+                    <div class="matching-suggestions">
                         <h3>Suggested Matches:</h3>
                         <div id="suggestedMatches" style="margin-top: 15px;">
                             <!-- Will be populated dynamically -->
@@ -1580,260 +1409,6 @@
         </div>
     </div>
 
-    <!-- Channel Shift Preview Modal -->
-    <div id="shiftPreviewModal" class="modal" style="display: none; z-index: 1100;">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
-            <div class="modal-header">
-                <div class="modal-title">🔄 Channel Number Occupied - Shift Existing Channels?</div>
-                <button class="close-button" onclick="closeShiftPreviewModal()">×</button>
-            </div>
-
-            <div style="padding: 20px; overflow-y: auto; flex: 1;">
-                <!-- Summary Section -->
-                <div style="background: rgba(102, 126, 234, 0.1); border: 1px solid #667eea; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h3 style="margin-top: 0; color: #667eea;">📊 Shift Summary</h3>
-                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px; font-size: 0.95rem;">
-                        <strong>Inserting at:</strong>
-                        <span id="previewInsertAt"></span>
-
-                        <strong>Shift amount:</strong>
-                        <span id="previewShiftAmount"></span>
-
-                        <strong>Affected channels:</strong>
-                        <span id="previewCount"></span>
-
-                        <strong>First gap at:</strong>
-                        <span id="previewGapAt"></span>
-
-                        <strong>Estimated time:</strong>
-                        <span id="previewTime"></span>
-                    </div>
-                </div>
-
-                <!-- Warnings Section -->
-                <div id="previewWarnings"></div>
-
-                <!-- Changes Table -->
-                <div style="margin-bottom: 15px;">
-                    <h3 style="margin-bottom: 10px;">Channel Changes:</h3>
-                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead style="position: sticky; top: 0; background: var(--bg-secondary); z-index: 1;">
-                                <tr>
-                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Channel Name</th>
-                                    <th style="padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">Current #</th>
-                                    <th style="padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);"></th>
-                                    <th style="padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">New #</th>
-                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1);">Group</th>
-                                </tr>
-                            </thead>
-                            <tbody id="previewTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="closeShiftPreviewModal()" class="btn-secondary">Cancel</button>
-                <button onclick="confirmChannelShift()" class="btn-primary">✓ Confirm Shift</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Channel Shift Progress Modal -->
-    <div id="shiftProgressModal" class="modal" style="display: none; z-index: 1100;">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <div class="modal-title">🔄 Shifting Channels</div>
-            </div>
-
-            <div style="padding: 25px;">
-                <p id="shiftProgressText" style="font-size: 1.1rem; margin-bottom: 15px; text-align: center;">Processing 0/0 channels...</p>
-
-                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; height: 30px; overflow: hidden; margin-bottom: 20px;">
-                    <div id="shiftProgressFill" style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
-                </div>
-
-                <div id="shiftProgressStatus" style="font-size: 0.9rem; color: #999; text-align: center; min-height: 20px;"></div>
-            </div>
-
-            <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                <button onclick="cancelShiftInProgress()" class="btn-secondary" id="shiftCancelButton">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Clone Lineup Modal -->
-    <div id="cloneLineupModal" class="modal" style="display: none; z-index: 1000;">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
-            <div class="modal-header">
-                <div class="modal-title">📋 Clone Real-World Lineup</div>
-                <button onclick="closeCloneLineupModal()" class="btn-secondary" style="position: absolute; right: 20px; top: 20px;">✕</button>
-            </div>
-
-            <!-- Step 1: Zip Code Search -->
-            <div id="cloneStep1" style="padding: 25px;">
-                <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Search for a Lineup</h3>
-                <p style="color: #999; font-size: 0.9rem; margin-bottom: 20px;">
-                    Import channels from real-world lineups (DirecTV, Dish, Cable providers, etc.)
-                </p>
-
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <input type="text" id="cloneZipCode" placeholder="Enter ZIP code"
-                           style="flex: 1; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;"
-                           onkeypress="if(event.key === 'Enter') searchLineupsByZip()">
-                    <select id="cloneCountry" style="padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;">
-                        <option value="">Loading...</option>
-                    </select>
-                    <button onclick="searchLineupsByZip()" class="btn-primary">🔍 Search</button>
-                </div>
-
-                <div id="cloneSearchResults" style="display: none;">
-                    <div id="cloneLineupList" style="max-height: 300px; overflow-y: auto;"></div>
-                </div>
-            </div>
-
-            <!-- Step 2: Lineup Preview -->
-            <div id="cloneStep2" style="display: none; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Preview Lineup</h3>
-
-                <div id="clonePreviewInfo" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <div id="clonePreviewName" style="font-weight: 600; margin-bottom: 10px;"></div>
-                    <div id="clonePreviewStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; color: #999; font-size: 0.9rem;"></div>
-                </div>
-
-                <div id="clonePreviewChannels" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; font-size: 0.85rem; color: #ccc;">
-                    <div id="cloneChannelSamples"></div>
-                </div>
-
-                <div style="margin-top: 20px; text-align: center;">
-                    <button onclick="showCloneConfiguration()" class="btn-primary">Continue to Configuration →</button>
-                </div>
-            </div>
-
-            <!-- Step 3: Configuration -->
-            <div id="cloneStep3" style="display: none; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Import Configuration</h3>
-
-                <!-- Quality Filters -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 10px;">Include Quality Types:</label>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="cloneIncludeHd" checked style="margin-right: 8px;">
-                            <span>HD (HDTV)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="cloneIncludeSd" checked style="margin-right: 8px;">
-                            <span>SD (SDTV)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="cloneIncludeUhd" checked style="margin-right: 8px;">
-                            <span>4K (UHDTV)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="cloneIncludeUnknown" checked style="margin-right: 8px;">
-                            <span>Unknown Quality</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Channel Offset -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 10px;">Channel Number Offset:</label>
-                    <input type="number" id="cloneChannelOffset" value="0" min="0" max="10000"
-                           style="width: 150px; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;">
-                    <span style="color: #999; font-size: 0.85rem; margin-left: 10px;">Add this value to all channel numbers (e.g., 2000 shifts 1-999 to 2001-2999)</span>
-                </div>
-
-                <!-- Data Usage Options -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 10px;">Use from Gracenote Database:</label>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="cloneUseLogos" checked style="margin-right: 8px;">
-                            <span>Channel Logos</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="cloneUseCallSign" checked style="margin-right: 8px;">
-                            <span>Call Sign (TVG-ID)</span>
-                        </label>
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="checkbox" id="cloneUseStationId" checked style="margin-right: 8px;">
-                            <span>Station ID (Gracenote)</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Default Group -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 10px;">Assign to Group (optional):</label>
-                    <input type="text" id="cloneGroupFilter" placeholder="Type to filter groups..." style="width: 100%; margin-bottom: 8px; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;" oninput="filterGroupsInClone()">
-                    <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                        <input type="checkbox" id="cloneShowCustomOnly" onchange="filterGroupsInClone()" style="margin-right: 8px;">
-                        <span style="font-size: 0.9rem; color: #999;">Show only custom groups (no M3U associations)</span>
-                    </label>
-                    <select id="cloneDefaultGroup" size="5" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; max-height: 150px;">
-                        <option value="">-- No Group --</option>
-                    </select>
-                    <div id="cloneGroupFilterStatus" style="font-size: 0.85rem; color: #999; margin-top: 5px;"></div>
-                </div>
-
-                <!-- Channel Number Conflict -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 10px;">If channel number already exists in lineup:</label>
-                    <select id="cloneNumberConflict" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;">
-                        <option value="skip" selected>Skip (do not import this channel)</option>
-                        <option value="overwrite">Overwrite (replace existing channel)</option>
-                    </select>
-                </div>
-
-                <!-- Existing Station Conflict -->
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 10px;">If station already exists elsewhere in Dispatcharr:</label>
-                    <select id="cloneStationConflict" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;">
-                        <option value="skip" selected>Skip (do not import this channel)</option>
-                        <option value="move">Move existing channel to lineup location</option>
-                        <option value="create">Create again (duplicate station)</option>
-                    </select>
-                </div>
-
-                <!-- Warning -->
-                <div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <div style="font-weight: 600; margin-bottom: 5px;">⚠️ Fresh Install Recommended</div>
-                    <div style="font-size: 0.85rem; color: #ffd43b;">
-                        Since channel number conflicts may be encountered, this feature works best with a clean Dispatcharr installation. Review your settings before importing.
-                    </div>
-                </div>
-
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="hideCloneConfiguration()" class="btn-secondary">← Back to Preview</button>
-                    <button onclick="startCloneImport()" class="btn-primary">🚀 Start Import</button>
-                </div>
-            </div>
-
-            <!-- Step 4: Import Progress -->
-            <div id="cloneStep4" style="display: none; padding: 25px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Import in Progress</h3>
-
-                <div style="margin-bottom: 20px;">
-                    <div id="cloneProgressText" style="font-size: 1rem; margin-bottom: 10px; text-align: center;">Preparing import...</div>
-
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 8px; height: 30px; overflow: hidden; margin-bottom: 15px;">
-                        <div id="cloneProgressFill" style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
-                    </div>
-
-                    <div id="cloneProgressStatus" style="font-size: 0.9rem; color: #999; min-height: 60px; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;"></div>
-                </div>
-
-                <div style="text-align: center;">
-                    <button onclick="cancelCloneImport()" class="btn-secondary" id="cloneCancelButton">Cancel Import</button>
-                    <button onclick="closeCloneLineupModal()" class="btn-primary" id="cloneFinishButton" style="display: none;">✓ Finish</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         let currentResults = [];
         let sortColumn = null;
@@ -1846,10 +1421,6 @@
         let currentMatchIndex = 0;
         let matchingResults = [];
         let isMatching = false;
-
-        // Track if changes were made in modals (for conditional reload)
-        let channelChangedInModal = false;
-        let hasIncrementalUpdates = false; // Track if we did immediate row updates (skip full reload)
 
         // Custom Notification System
         function showNotification(message, type = 'info') {
@@ -1998,8 +1569,6 @@
                 document.getElementById('settingsTab').style.display = 'block';
                 // Auto-load playlists when entering settings tab
                 loadPlaylistsForSettings();
-                // Auto-check for database updates if remote URL is configured
-                autoCheckDatabaseUpdate();
             }
         }
 
@@ -2184,45 +1753,20 @@
             }
         }
 
-        function selectAllLogoTypes() {
-            document.getElementById('logoTypePrimary').checked = true;
-            document.getElementById('logoTypeLogoLight').checked = true;
-            document.getElementById('logoTypeLogoLightColor').checked = true;
-        }
-
-        function deselectAllLogoTypes() {
-            document.getElementById('logoTypePrimary').checked = false;
-            document.getElementById('logoTypeLogoLight').checked = false;
-            document.getElementById('logoTypeLogoLightColor').checked = false;
-        }
-
-        async function deleteSelectedEmbyLogos() {
+        async function deleteAllEmbyLogos() {
             if (!checkEmbySettings()) {
                 showNotification('Please configure Emby settings first', 'error');
                 return;
             }
 
-            // Get selected logo types
-            const logoTypes = [];
-            if (document.getElementById('logoTypePrimary').checked) logoTypes.push('Primary');
-            if (document.getElementById('logoTypeLogoLight').checked) logoTypes.push('LogoLight');
-            if (document.getElementById('logoTypeLogoLightColor').checked) logoTypes.push('LogoLightColor');
-
-            if (logoTypes.length === 0) {
-                showNotification('Please select at least one logo type to delete', 'error');
-                return;
-            }
-
-            // Build confirmation message
-            const logoTypesList = logoTypes.join(', ');
-            const confirmMessage = `This will delete the following logo types from all channels:\n\n${logoTypesList}\n\nLogos will be re-downloaded when channels are accessed.\n\nContinue?`;
-
-            if (!await showConfirm(confirmMessage)) {
+            if (!await showConfirm('This will delete ALL channel logos from Emby.\n\nLogos will be re-downloaded when channels are accessed.\n\nContinue?')) {
                 return;
             }
 
             const settings = await getSettings();
 
+            // Show initial notification
+            const notificationId = Date.now();
             showNotification('🗑️ Starting logo deletion...', 'info');
 
             try {
@@ -2232,8 +1776,7 @@
                     body: JSON.stringify({
                         url: settings.emby.url,
                         username: settings.emby.username,
-                        password: settings.emby.password,
-                        logoTypes: logoTypes
+                        password: settings.emby.password
                     })
                 });
 
@@ -2252,7 +1795,7 @@
                             const data = JSON.parse(line.slice(6));
 
                             if (data.done) {
-                                showNotification(`✅ Successfully deleted ${logoTypesList} logos from ${data.channels_processed} channels`, 'success');
+                                showNotification(`✅ Successfully deleted logos from ${data.channels_processed} channels`, 'success');
                             } else {
                                 showNotification(`🗑️ Deleting logos...\n\nProcessing: ${data.progress} of ${data.total}\n${data.channel}`, 'info');
                             }
@@ -2505,100 +2048,6 @@
             updateMatchButtons();
         }
 
-        function filterDispatcharrChannels() {
-            // Get filter values
-            const channelNumberFilter = document.getElementById('filterChannelNumber').value.trim();
-            const nameFilter = document.getElementById('filterName').value.toLowerCase().trim();
-            const callSignFilter = document.getElementById('filterCallSign').value.toLowerCase().trim();
-            const gracenoteIdFilter = document.getElementById('filterGracenoteId').value.trim();
-            const groupFilter = document.getElementById('filterGroup').value.toLowerCase().trim();
-            const logoFilter = document.getElementById('filterLogo').value;
-
-            // Parse channel number filter (support ranges like "100-200")
-            let channelNumberMin = null;
-            let channelNumberMax = null;
-            if (channelNumberFilter) {
-                if (channelNumberFilter.includes('-')) {
-                    const parts = channelNumberFilter.split('-').map(p => parseFloat(p.trim()));
-                    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-                        channelNumberMin = Math.min(parts[0], parts[1]);
-                        channelNumberMax = Math.max(parts[0], parts[1]);
-                    }
-                } else {
-                    const num = parseFloat(channelNumberFilter);
-                    if (!isNaN(num)) {
-                        channelNumberMin = num;
-                        channelNumberMax = num;
-                    }
-                }
-            }
-
-            // Get all table rows
-            const tableBody = document.getElementById('dispatcharrTableBody');
-            const rows = tableBody.querySelectorAll('tr');
-
-            rows.forEach(row => {
-                // Skip rows that don't have a channel ID (like empty state rows)
-                const channelId = row.getAttribute('data-channel-id');
-                if (!channelId) {
-                    return;
-                }
-
-                // Find the channel data
-                const channel = dispatcharrChannels.find(ch => ch.id == channelId);
-                if (!channel) {
-                    return;
-                }
-
-                // Apply filters
-                let channelNumberMatch = true;
-                if (channelNumberMin !== null && channelNumberMax !== null) {
-                    const channelNum = parseFloat(channel.channel_number);
-                    channelNumberMatch = !isNaN(channelNum) && channelNum >= channelNumberMin && channelNum <= channelNumberMax;
-                }
-
-                const nameMatch = !nameFilter || (channel.name && channel.name.toLowerCase().includes(nameFilter));
-                const callSignMatch = !callSignFilter || (channel.call_sign && channel.call_sign.toLowerCase().includes(callSignFilter));
-                const gracenoteIdMatch = !gracenoteIdFilter || (channel.gracenote_id && channel.gracenote_id.includes(gracenoteIdFilter));
-
-                // For group filter, need to look up group name
-                let groupMatch = true;
-                if (groupFilter) {
-                    const group = dispatcharrGroups.find(g => g.id === channel.group_id);
-                    const groupName = group ? group.name : '';
-                    groupMatch = groupName.toLowerCase().includes(groupFilter);
-                }
-
-                // Logo filter - check if logo_url exists and is not a generic placeholder
-                let logoMatch = true;
-                if (logoFilter === 'yes') {
-                    // Has logo: logo_url must exist, not be empty, and not be a generic placeholder
-                    const hasLogo = channel.logo_url &&
-                                   typeof channel.logo_url === 'string' &&
-                                   channel.logo_url.trim().length > 0 &&
-                                   !channel.logo_url.includes('generic');
-                    logoMatch = hasLogo;
-                } else if (logoFilter === 'no') {
-                    // No logo: logo_url is undefined, null, empty string, whitespace, or generic placeholder
-                    const hasLogo = channel.logo_url &&
-                                   typeof channel.logo_url === 'string' &&
-                                   channel.logo_url.trim().length > 0 &&
-                                   !channel.logo_url.includes('generic');
-                    logoMatch = !hasLogo;
-                }
-
-                // Show or hide row based on all filters
-                if (channelNumberMatch && nameMatch && callSignMatch && gracenoteIdMatch && groupMatch && logoMatch) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Update button states based on visible checked rows
-            updateMatchButtons();
-        }
-
         async function smartChannelMatch() {
             if (!await showConfirm('This will attempt to automatically match all channels without Gracenote IDs. Continue?')) {
                 return;
@@ -2638,22 +2087,12 @@
                 return;
             }
 
-            // Reset change tracking flag
-            channelChangedInModal = false;
-
             // Create edit modal
             const modal = document.createElement('div');
             modal.className = 'modal';
             modal.onclick = (e) => {
                 if (e.target === modal) {
                     modal.remove();
-                    // Improved refresh strategy: skip reload if we already did incremental updates
-                    if (hasIncrementalUpdates) {
-                        hasIncrementalUpdates = false;
-                    } else if (channelChangedInModal) {
-                        loadDispatcharrChannels();
-                    }
-                    channelChangedInModal = false;
                 }
             };
 
@@ -2664,7 +2103,7 @@
                             <div class="modal-title">Edit Channel ${channel.channel_number}</div>
                             <div style="color: #999; margin-top: 5px;">Channel ID: ${channel.id}</div>
                         </div>
-                        <button class="close-button" onclick="this.closest('.modal').remove(); if (hasIncrementalUpdates) { hasIncrementalUpdates = false; } else if (channelChangedInModal) { loadDispatcharrChannels(); } channelChangedInModal = false;">×</button>
+                        <button class="close-button" onclick="this.closest('.modal').remove()">×</button>
                     </div>
 
                     <div style="margin-top: 20px;">
@@ -2686,15 +2125,12 @@
                         <div style="margin-bottom: 15px;">
                             <label style="display: block; margin-bottom: 5px; color: #999;">Channel Number:</label>
                             <input type="text" id="editChannelNumber" value="${escapeHtml(channel.channel_number || '')}" style="width: 100%;">
-                            <div style="font-size: 0.8rem; color: #666; margin-top: 8px; padding: 8px; background: rgba(102, 126, 234, 0.05); border-radius: 4px; border-left: 3px solid rgba(102, 126, 234, 0.3);">
-                                💡 If you select an occupied channel number, you'll be given the option to insert the channel here and automatically shift existing channels up until a gap is found. Your current position (${channel.channel_number}) will remain vacant.
-                            </div>
                         </div>
 
                         <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: space-between;">
                             <button onclick="deleteDispatcharrChannel(${channel.id})" class="btn-secondary" style="background: #ff6b6b; border-color: #ff6b6b;">🗑️ Delete Channel</button>
                             <div style="display: flex; gap: 10px;">
-                                <button onclick="this.closest('.modal').remove(); if (hasIncrementalUpdates) { hasIncrementalUpdates = false; } else if (channelChangedInModal) { loadDispatcharrChannels(); } channelChangedInModal = false;" class="btn-secondary">Cancel</button>
+                                <button onclick="this.closest('.modal').remove()" class="btn-secondary">Cancel</button>
                                 <button onclick="saveChannelEdits(${channel.id})" class="btn-primary">💾 Save Changes</button>
                             </div>
                         </div>
@@ -2719,61 +2155,14 @@
                 return;
             }
 
-            // Find original channel
-            const originalChannel = dispatcharrChannels.find(ch => ch.id === channelId);
-            if (!originalChannel) {
-                showNotification('Channel not found', 'error');
-                return;
-            }
-
             // Get edited values
-            const newChannelNumber = document.getElementById('editChannelNumber').value;
-
             const updateData = {
                 name: document.getElementById('editChannelName').value,
                 call_sign: document.getElementById('editChannelCallSign').value,
                 gracenote_id: document.getElementById('editChannelGracenoteId').value,
-                channel_number: newChannelNumber
+                channel_number: document.getElementById('editChannelNumber').value
             };
 
-            // INTELLIGENT SHIFT DETECTION: Check if channel number changed and if new number is occupied
-            const originalNum = parseFloat(originalChannel.channel_number);
-            const newNum = parseFloat(newChannelNumber);
-
-            if (!isNaN(newNum) && originalNum !== newNum) {
-                await ensureChannelsLoaded();
-
-                // Check if the new channel number is occupied (exclude the channel being edited)
-                const isOccupied = dispatcharrChannels.some(ch => {
-                    if (ch.id === channelId) return false; // Exclude the channel being edited
-                    const existingNum = parseFloat(ch.channel_number);
-                    return !isNaN(existingNum) && existingNum === newNum;
-                });
-
-                if (isOccupied) {
-                    // New number is taken - automatically plan a shift
-                    // EXCLUDE the channel being edited from the shift (it's being moved, not shifted)
-                    const plan = await planChannelShift(newNum, 1, channelId);
-
-                    if (plan.affectedChannels.length > 0) {
-                        // Show preview modal with option to shift
-                        showShiftPreviewModal(plan);
-
-                        // Store channel edit data for after shift
-                        pendingChannelData = {
-                            channelId: channelId,
-                            updateData: updateData,
-                            isEdit: true
-                        };
-
-                        // Exit here - update will happen after user confirms shift
-                        return;
-                    }
-                    // If no channels to shift (shouldn't happen), fall through to normal update
-                }
-            }
-
-            // Normal update (no shift)
             try {
                 const response = await fetch(`/api/dispatcharr/channels/${channelId}`, {
                     method: 'PATCH',
@@ -2792,18 +2181,10 @@
 
                 if (result.success) {
                     showNotification('Channel updated successfully!', 'success');
-
-                    // Update local channel data with the updated channel from API
-                    const channelIndex = dispatcharrChannels.findIndex(ch => ch.id == channelId);
-                    if (channelIndex !== -1 && result.channel) {
-                        dispatcharrChannels[channelIndex] = result.channel;
-                        // Update just this channel's row immediately (improved refresh strategy)
-                        updateSingleChannelRow(channelId);
-                        hasIncrementalUpdates = true;
-                    }
-
-                    // Close modal (skip reload since we already updated the row)
+                    // Close modal
                     document.querySelector('.modal').remove();
+                    // Reload channels to show updated data
+                    loadDispatcharrChannels();
                 } else {
                     showNotification('Failed to update channel: ' + (result.error || 'Unknown error'), 'error');
                 }
@@ -2852,8 +2233,6 @@
 
                 if (result.success) {
                     showNotification('Channel deleted successfully!', 'success');
-                    // Mark that changes were made
-                    channelChangedInModal = true;
                     // Close ALL modals (edit modal + confirmation modal)
                     document.querySelectorAll('.modal').forEach(modal => {
                         modal.style.display = 'none';
@@ -2921,9 +2300,6 @@
                 return;
             }
 
-            // Reset change tracking flag
-            channelChangedInModal = false;
-
             currentStreamManagerChannel = channel;
             const settings = await getSettings();
 
@@ -2978,13 +2354,6 @@
             modal.onclick = (e) => {
                 if (e.target === modal) {
                     modal.remove();
-                    // Improved refresh strategy: skip reload if we already did incremental updates
-                    if (hasIncrementalUpdates) {
-                        hasIncrementalUpdates = false;
-                    } else if (channelChangedInModal) {
-                        loadDispatcharrChannels();
-                    }
-                    channelChangedInModal = false;
                 }
             };
 
@@ -2995,7 +2364,7 @@
                             <div class="modal-title">Manage Streams - ${escapeHtml(channel.name)}</div>
                             <div style="color: #999; margin-top: 5px;">Channel ${channel.channel_number}</div>
                         </div>
-                        <button class="close-button" onclick="this.closest('.modal').remove(); if (hasIncrementalUpdates) { hasIncrementalUpdates = false; } else if (channelChangedInModal) { loadDispatcharrChannels(); } channelChangedInModal = false;">×</button>
+                        <button class="close-button" onclick="this.closest('.modal').remove()">×</button>
                     </div>
 
                     <div style="flex: 1; overflow-y: auto; margin-top: 20px;">
@@ -3353,9 +2722,8 @@
                     const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === currentStreamManagerChannel.id);
                     if (channelIndex !== -1) {
                         dispatcharrChannels[channelIndex].streams = currentChannelStreams;
-                        // Update just this channel's row immediately (improved refresh strategy)
+                        // Update just this channel's row for instant feedback (much faster than full re-render)
                         updateSingleChannelRow(currentStreamManagerChannel.id);
-                        hasIncrementalUpdates = true;
                     }
                 }
             } catch (error) {
@@ -3800,14 +3168,9 @@
                 // Database settings
                 if (settings.database) {
                     document.getElementById('settingsDatabasePath').value = settings.database.path || '/data/channelidentifiarr.db';
-                    document.getElementById('settingsRemoteDatabaseUrl').value = settings.database.remoteUrl || '';
                 } else {
                     document.getElementById('settingsDatabasePath').value = '/data/channelidentifiarr.db';
-                    document.getElementById('settingsRemoteDatabaseUrl').value = '';
                 }
-
-                // Load local database version on page load
-                loadLocalDatabaseVersion();
 
                 // Dispatcharr settings
                 if (settings.dispatcharr) {
@@ -3827,33 +3190,8 @@
                 if (settings.matching) {
                     document.getElementById('applyStationId').checked = settings.matching.applyStationId !== false;
                     document.getElementById('applyChannelName').checked = settings.matching.applyChannelName === true;
+                    document.getElementById('applyCallSign').checked = settings.matching.applyCallSign === true;
                     document.getElementById('applyLogo').checked = settings.matching.applyLogo !== false;
-
-                    // Handle legacy applyCallSign setting - convert to applyTvgId
-                    let applyTvgIdValue = false;
-                    let tvgIdSourceValue = 'callsign';
-
-                    if (settings.matching.applyTvgId !== undefined) {
-                        applyTvgIdValue = settings.matching.applyTvgId;
-                        tvgIdSourceValue = settings.matching.tvgIdSource || 'callsign';
-                    } else if (settings.matching.applyCallSign === true) {
-                        // Legacy: if applyCallSign was true, enable applyTvgId with callsign source
-                        applyTvgIdValue = true;
-                        tvgIdSourceValue = 'callsign';
-                    }
-
-                    // Set the master checkbox
-                    document.getElementById('applyTvgId').checked = applyTvgIdValue;
-
-                    // Set the appropriate radio button
-                    if (tvgIdSourceValue === 'callsign') {
-                        document.getElementById('tvgIdSourceCallsign').checked = true;
-                    } else if (tvgIdSourceValue === 'gracenote') {
-                        document.getElementById('tvgIdSourceGracenote').checked = true;
-                    }
-
-                    // Enable/disable radio buttons based on master checkbox
-                    toggleTvgIdSourceOptions();
                 }
 
                 // Stream management settings
@@ -3919,38 +3257,10 @@
             return false; // Prevent default anchor behavior
         }
 
-        function toggleTvgIdSourceOptions() {
-            const applyTvgId = document.getElementById('applyTvgId').checked;
-            const callsignRadio = document.getElementById('tvgIdSourceCallsign');
-            const gracenoteRadio = document.getElementById('tvgIdSourceGracenote');
-            const callsignLabel = document.getElementById('tvgIdSourceCallsignLabel');
-            const gracenoteLabel = document.getElementById('tvgIdSourceGracenoteLabel');
-
-            if (applyTvgId) {
-                // Enable radio buttons
-                callsignRadio.disabled = false;
-                gracenoteRadio.disabled = false;
-                callsignLabel.style.color = '#fff';
-                gracenoteLabel.style.color = '#fff';
-
-                // If neither is selected, default to callsign
-                if (!callsignRadio.checked && !gracenoteRadio.checked) {
-                    callsignRadio.checked = true;
-                }
-            } else {
-                // Disable radio buttons
-                callsignRadio.disabled = true;
-                gracenoteRadio.disabled = true;
-                callsignLabel.style.color = '#666';
-                gracenoteLabel.style.color = '#666';
-            }
-        }
-
         async function saveAllSettings() {
             const settings = {
                 database: {
-                    path: document.getElementById('settingsDatabasePath').value,
-                    remoteUrl: document.getElementById('settingsRemoteDatabaseUrl').value
+                    path: document.getElementById('settingsDatabasePath').value
                 },
                 dispatcharr: {
                     url: document.getElementById('settingsDispatcharrUrl').value,
@@ -3965,9 +3275,8 @@
                 matching: {
                     applyStationId: document.getElementById('applyStationId').checked,
                     applyChannelName: document.getElementById('applyChannelName').checked,
-                    applyLogo: document.getElementById('applyLogo').checked,
-                    applyTvgId: document.getElementById('applyTvgId').checked,
-                    tvgIdSource: document.querySelector('input[name="tvgIdSource"]:checked')?.value || 'callsign'
+                    applyCallSign: document.getElementById('applyCallSign').checked,
+                    applyLogo: document.getElementById('applyLogo').checked
                 },
                 streamManagement: {
                     maxResults: parseInt(document.getElementById('streamSearchMaxResults').value) || 10,
@@ -4051,8 +3360,6 @@
             .then(data => {
                 if (data.status === 'healthy') {
                     document.getElementById('databaseTestResult').innerHTML = `<span style="color: #51cf66;">✅ Connected! (${data.stations_count.toLocaleString()} stations)</span>`;
-                    // Load local version
-                    loadLocalDatabaseVersion();
                 } else {
                     document.getElementById('databaseTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Database error</span>';
                 }
@@ -4060,296 +3367,6 @@
             .catch(err => {
                 document.getElementById('databaseTestResult').innerHTML = '<span style="color: #ff6b6b;">❌ Connection failed</span>';
             });
-        }
-
-        async function loadLocalDatabaseVersion() {
-            try {
-                const response = await fetch('/api/database/metadata');
-                const data = await response.json();
-
-                if (response.ok && data.version) {
-                    document.getElementById('localDbVersion').textContent = data.version || 'Unknown';
-                    document.getElementById('localDbDate').textContent = data.effective_date ? `Date: ${data.effective_date}` : '-';
-                } else {
-                    document.getElementById('localDbVersion').textContent = 'Error loading';
-                    document.getElementById('localDbDate').textContent = '-';
-                }
-            } catch (err) {
-                console.error('Error loading local DB version:', err);
-                document.getElementById('localDbVersion').textContent = 'Error';
-            }
-        }
-
-        async function autoCheckDatabaseUpdate() {
-            // Silently check for updates if remote URL is configured
-            const remoteUrl = document.getElementById('settingsRemoteDatabaseUrl').value.trim();
-
-            if (!remoteUrl) {
-                return; // No remote URL configured, skip check
-            }
-
-            const statusDiv = document.getElementById('updateStatus');
-            const downloadBtn = document.getElementById('btnDownloadUpdate');
-
-            // Show subtle loading indicator
-            statusDiv.textContent = 'Checking for updates...';
-            statusDiv.style.color = '#666';
-
-            // Reset remote display
-            document.getElementById('remoteDbVersion').textContent = '-';
-            document.getElementById('remoteDbDate').textContent = '-';
-            document.getElementById('remoteDbSize').textContent = '-';
-            downloadBtn.disabled = true;
-            downloadBtn.style.opacity = '0.5';
-
-            try {
-                const response = await fetch('/api/database/check-remote', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ remote_url: remoteUrl })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Update remote version display
-                    document.getElementById('remoteDbVersion').textContent = data.remote.version;
-                    document.getElementById('remoteDbDate').textContent = `Date: ${data.remote.date}`;
-                    document.getElementById('remoteDbSize').textContent = `Size: ${data.file_size_mb} MB`;
-
-                    if (data.update_available) {
-                        statusDiv.textContent = '⚠️ Update available!';
-                        statusDiv.style.color = '#51cf66';
-                        document.getElementById('remoteDbVersion').style.color = '#51cf66';
-                        downloadBtn.disabled = false;
-                        downloadBtn.style.opacity = '1';
-                    } else {
-                        statusDiv.textContent = '✅ You have the latest version';
-                        statusDiv.style.color = '#4a9eff';
-                        document.getElementById('remoteDbVersion').style.color = '#666';
-                    }
-                } else {
-                    statusDiv.textContent = 'Check failed (click Check for Updates to retry)';
-                    statusDiv.style.color = '#999';
-                }
-            } catch (err) {
-                console.error('Auto-check for updates error:', err);
-                statusDiv.textContent = '';
-            }
-        }
-
-        async function checkForDatabaseUpdate() {
-            const remoteUrl = document.getElementById('settingsRemoteDatabaseUrl').value.trim();
-
-            if (!remoteUrl) {
-                showNotification('Please enter a remote database URL', 'error');
-                return;
-            }
-
-            // Save remote URL to settings
-            await saveAllSettings();
-
-            const checkBtn = document.getElementById('btnCheckUpdate');
-            const downloadBtn = document.getElementById('btnDownloadUpdate');
-            const statusDiv = document.getElementById('updateStatus');
-
-            checkBtn.disabled = true;
-            checkBtn.textContent = '🔍 Checking...';
-            statusDiv.textContent = 'Checking for updates...';
-            statusDiv.style.color = '#999';
-
-            // Reset remote display
-            document.getElementById('remoteDbVersion').textContent = '-';
-            document.getElementById('remoteDbDate').textContent = '-';
-            document.getElementById('remoteDbSize').textContent = '-';
-            downloadBtn.disabled = true;
-            downloadBtn.style.opacity = '0.5';
-
-            try {
-                const response = await fetch('/api/database/check-remote', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ remote_url: remoteUrl })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Update remote version display
-                    document.getElementById('remoteDbVersion').textContent = data.remote.version;
-                    document.getElementById('remoteDbDate').textContent = `Date: ${data.remote.date}`;
-                    document.getElementById('remoteDbSize').textContent = `Size: ${data.file_size_mb} MB`;
-
-                    if (data.update_available) {
-                        statusDiv.textContent = '⚠️ Update available!';
-                        statusDiv.style.color = '#51cf66';
-                        document.getElementById('remoteDbVersion').style.color = '#51cf66';
-                        downloadBtn.disabled = false;
-                        downloadBtn.style.opacity = '1';
-                        showNotification(`Update available: ${data.remote.version} (${data.remote.date})`, 'success');
-                    } else {
-                        statusDiv.textContent = '✅ You have the latest version';
-                        statusDiv.style.color = '#4a9eff';
-                        document.getElementById('remoteDbVersion').style.color = '#666';
-                        showNotification('You have the latest version', 'info');
-                    }
-                } else {
-                    statusDiv.textContent = '❌ ' + (data.error || 'Failed to check for updates');
-                    statusDiv.style.color = '#ff6b6b';
-                    showNotification(data.error || 'Failed to check for updates', 'error');
-                }
-            } catch (err) {
-                console.error('Error checking for updates:', err);
-                statusDiv.textContent = '❌ Connection error';
-                statusDiv.style.color = '#ff6b6b';
-                showNotification('Error checking for updates', 'error');
-            } finally {
-                checkBtn.disabled = false;
-                checkBtn.textContent = '🔍 Check for Updates';
-            }
-        }
-
-        async function downloadDatabaseUpdate() {
-            const remoteUrl = document.getElementById('settingsRemoteDatabaseUrl').value.trim();
-
-            if (!remoteUrl) {
-                showNotification('Please enter a remote database URL', 'error');
-                return;
-            }
-
-            // Confirm download
-            const remoteVersion = document.getElementById('remoteDbVersion').textContent;
-            const remoteSize = document.getElementById('remoteDbSize').textContent;
-
-            if (!confirm(`Download and install database update?\n\nVersion: ${remoteVersion}\n${remoteSize}\n\nYour current database will be backed up automatically before updating.`)) {
-                return;
-            }
-
-            const downloadBtn = document.getElementById('btnDownloadUpdate');
-            const checkBtn = document.getElementById('btnCheckUpdate');
-            const restoreBtn = document.getElementById('btnRestoreBackup');
-            const statusDiv = document.getElementById('updateStatus');
-            const progressDiv = document.getElementById('downloadProgress');
-
-            // Disable all buttons
-            downloadBtn.disabled = true;
-            checkBtn.disabled = true;
-            restoreBtn.disabled = true;
-            downloadBtn.textContent = '⬇️ Downloading...';
-
-            statusDiv.textContent = 'Creating backup and downloading update...';
-            statusDiv.style.color = '#999';
-
-            // Show progress bar with indeterminate state
-            progressDiv.style.display = 'block';
-            const progressBar = document.getElementById('downloadProgressBar');
-            const progressText = document.getElementById('downloadProgressText');
-            progressBar.style.width = '100%';
-            progressBar.style.background = 'repeating-linear-gradient(90deg, #4a9eff, #6bb6ff 40px, #4a9eff 80px)';
-            progressBar.style.backgroundSize = '200% 100%';
-            progressBar.style.animation = 'progress-slide 8s linear infinite';
-            progressText.textContent = 'Downloading... (this may take several minutes for large files)';
-
-            try {
-                const response = await fetch('/api/database/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ remote_url: remoteUrl })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Reset progress bar to completion state
-                    progressBar.style.animation = 'none';
-                    progressBar.style.background = 'linear-gradient(90deg, #4a9eff, #6bb6ff)';
-                    progressBar.style.width = '100%';
-                    progressText.textContent = 'Complete!';
-
-                    statusDiv.textContent = `✅ Database updated to ${data.new_version}`;
-                    statusDiv.style.color = '#51cf66';
-
-                    // Update local version display
-                    document.getElementById('localDbVersion').textContent = data.new_version;
-                    document.getElementById('localDbDate').textContent = `Date: ${data.new_date}`;
-
-                    showNotification(`Database updated successfully to ${data.new_version}`, 'success');
-
-                    // Hide progress after a moment
-                    setTimeout(() => {
-                        progressDiv.style.display = 'none';
-                    }, 2000);
-                } else {
-                    statusDiv.textContent = '❌ ' + (data.error || 'Update failed');
-                    statusDiv.style.color = '#ff6b6b';
-                    showNotification(data.error || 'Failed to update database', 'error');
-                    progressDiv.style.display = 'none';
-                }
-            } catch (err) {
-                console.error('Error updating database:', err);
-                statusDiv.textContent = '❌ Update failed';
-                statusDiv.style.color = '#ff6b6b';
-                showNotification('Error updating database', 'error');
-                progressDiv.style.display = 'none';
-            } finally {
-                downloadBtn.disabled = false;
-                checkBtn.disabled = false;
-                restoreBtn.disabled = false;
-                downloadBtn.textContent = '⬇️ Download Update';
-            }
-        }
-
-        async function restoreDatabaseBackup() {
-            if (!confirm('Restore database from backup?\n\nThis will replace your current database with the backup copy. Any changes made since the backup will be lost.')) {
-                return;
-            }
-
-            const restoreBtn = document.getElementById('btnRestoreBackup');
-            const checkBtn = document.getElementById('btnCheckUpdate');
-            const downloadBtn = document.getElementById('btnDownloadUpdate');
-            const statusDiv = document.getElementById('updateStatus');
-
-            restoreBtn.disabled = true;
-            checkBtn.disabled = true;
-            downloadBtn.disabled = true;
-            restoreBtn.textContent = '🔙 Restoring...';
-
-            statusDiv.textContent = 'Restoring from backup...';
-            statusDiv.style.color = '#999';
-
-            try {
-                const response = await fetch('/api/database/restore', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    statusDiv.textContent = `✅ Database restored to ${data.restored_version}`;
-                    statusDiv.style.color = '#51cf66';
-
-                    // Update local version display
-                    document.getElementById('localDbVersion').textContent = data.restored_version;
-                    document.getElementById('localDbDate').textContent = `Date: ${data.restored_date}`;
-
-                    showNotification(`Database restored successfully to ${data.restored_version}`, 'success');
-                } else {
-                    statusDiv.textContent = '❌ ' + (data.error || 'Restore failed');
-                    statusDiv.style.color = '#ff6b6b';
-                    showNotification(data.error || 'Failed to restore database', 'error');
-                }
-            } catch (err) {
-                console.error('Error restoring database:', err);
-                statusDiv.textContent = '❌ Restore failed';
-                statusDiv.style.color = '#ff6b6b';
-                showNotification('Error restoring database', 'error');
-            } finally {
-                restoreBtn.disabled = false;
-                checkBtn.disabled = false;
-                downloadBtn.disabled = false;
-                restoreBtn.textContent = '🔙 Restore Backup';
-            }
         }
 
         function testDispatcharrSettings() {
@@ -4534,35 +3551,6 @@
             filterDefaultGroupSelector();
         }
 
-        function updateDefaultGroupDisplay() {
-            const select = document.getElementById('settingsDefaultGroup');
-            const displayBox = document.getElementById('currentDefaultGroupDisplay');
-            const displayName = document.getElementById('currentDefaultGroupName');
-            const statusDiv = document.getElementById('settingsDefaultGroupStatus');
-
-            if (!select || !displayBox || !displayName) return;
-
-            const selectedValue = select.value;
-            const selectedOption = select.options[select.selectedIndex];
-
-            if (!selectedValue) {
-                // No default set
-                displayName.textContent = 'No Default Set';
-                displayBox.style.background = 'rgba(128, 128, 128, 0.05)';
-                displayBox.style.borderColor = 'rgba(128, 128, 128, 0.15)';
-                displayName.style.color = '#999';
-                statusDiv.textContent = '';
-            } else {
-                // Default group selected
-                const groupName = selectedOption.textContent;
-                displayName.textContent = groupName;
-                displayBox.style.background = 'rgba(74, 158, 255, 0.08)';
-                displayBox.style.borderColor = 'rgba(74, 158, 255, 0.2)';
-                displayName.style.color = '#4a9eff';
-                statusDiv.textContent = `✓ Default group will be applied to new channels`;
-            }
-        }
-
         function filterDefaultGroupSelector() {
             const filter = document.getElementById('settingsDefaultGroupFilter').value.toLowerCase();
             const showCustomOnly = document.getElementById('settingsDefaultGroupShowCustomOnly').checked;
@@ -4593,9 +3581,6 @@
                 }
                 select.appendChild(option);
             });
-
-            // Update the display box
-            updateDefaultGroupDisplay();
         }
 
         // Helper function to check if two ranges overlap
@@ -5233,99 +4218,6 @@
             await matchNextChannel();
         }
 
-        // Matching Filter Functions (unified filters with full manual control)
-        let autoDetectedFilters = {country: '', resolution: ''};  // Store auto-detected values
-        let filtersManuallyModified = false;  // Track if user manually changed filters
-
-        // Normalize resolution values between database format and UI format
-        function normalizeResolutionToUI(dbValue) {
-            if (!dbValue) return '';
-            const upper = dbValue.toUpperCase();
-            if (upper === 'HDTV') return 'HD';
-            if (upper === 'SDTV') return 'SD';
-            if (upper === 'UHDTV' || upper === '4K') return 'UHD';
-            return dbValue; // Fallback to original
-        }
-
-        function normalizeResolutionToDB(uiValue) {
-            if (!uiValue) return '';
-            const upper = uiValue.toUpperCase();
-            if (upper === 'HD') return 'HDTV';
-            if (upper === 'SD') return 'SDTV';
-            if (upper === 'UHD') return 'UHDTV';
-            return uiValue; // Fallback to original
-        }
-
-        function toggleMatchingFilters() {
-            const controls = document.getElementById('filterControls');
-            const icon = document.getElementById('filterToggleIcon');
-            if (controls.style.display === 'none') {
-                controls.style.display = 'block';
-                icon.textContent = '▼';
-            } else {
-                controls.style.display = 'none';
-                icon.textContent = '▶';
-            }
-        }
-
-        function getMatchingFilters() {
-            // Get currently selected filters from UI and convert to database format
-            const country = document.getElementById('filterCountry').value;
-            const resolutions = [];
-            if (document.getElementById('filterSD').checked) resolutions.push(normalizeResolutionToDB('SD'));
-            if (document.getElementById('filterHD').checked) resolutions.push(normalizeResolutionToDB('HD'));
-            if (document.getElementById('filterUHD').checked) resolutions.push(normalizeResolutionToDB('UHD'));
-
-            return {
-                country: country,
-                resolutions: resolutions
-            };
-        }
-
-        function applyMatchingFilters() {
-            // Re-run matching with current filters
-            if (isMatching && matchingQueue[currentMatchIndex]) {
-                matchNextChannel();  // Refresh suggestions for current channel
-            }
-        }
-
-        function resetMatchingFilters() {
-            // Reset manual modification flag to allow auto-detection
-            filtersManuallyModified = false;
-
-            // Reset to auto-detected values
-            document.getElementById('filterCountry').value = autoDetectedFilters.country || '';
-
-            // Reset resolution checkboxes based on auto-detected value (normalize DB format to UI)
-            const autoResolution = autoDetectedFilters.resolution;
-            if (autoResolution) {
-                const normalizedResolution = normalizeResolutionToUI(autoResolution);
-                // Only check the auto-detected resolution
-                document.getElementById('filterSD').checked = (normalizedResolution === 'SD');
-                document.getElementById('filterHD').checked = (normalizedResolution === 'HD');
-                document.getElementById('filterUHD').checked = (normalizedResolution === 'UHD');
-            } else {
-                // No auto-detection - check all
-                document.getElementById('filterSD').checked = true;
-                document.getElementById('filterHD').checked = true;
-                document.getElementById('filterUHD').checked = true;
-            }
-
-            applyMatchingFilters();
-        }
-
-        function clearAllMatchingFilters() {
-            // Mark as manually modified since user is clearing filters
-            filtersManuallyModified = true;
-
-            // Clear all filters (show everything)
-            document.getElementById('filterCountry').value = '';
-            document.getElementById('filterSD').checked = true;
-            document.getElementById('filterHD').checked = true;
-            document.getElementById('filterUHD').checked = true;
-            applyMatchingFilters();
-        }
-
         async function matchNextChannel() {
             if (!isMatching || currentMatchIndex >= matchingQueue.length) {
                 finishMatching();
@@ -5342,18 +4234,11 @@
             document.getElementById('currentChannelId').textContent = channel.id;
             document.getElementById('currentStationId').textContent = channel.gracenote_id || 'None';
 
-            // Clear manual search input and results when moving to next channel
-            document.getElementById('manualSearchInput').value = '';
-            document.getElementById('manualSearchResults').innerHTML = '';
-
             // Get suggested matches
             try {
                 // Show loading indicator
                 const container = document.getElementById('suggestedMatches');
                 container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;"><span style="font-size: 2rem;">🔄</span><br/>Searching database for matches...</p>';
-
-                // Get current filter values (unified filters with full manual control)
-                const filters = getMatchingFilters();
 
                 const response = await fetch('/api/match/suggest', {
                     method: 'POST',
@@ -5361,58 +4246,17 @@
                     body: JSON.stringify({
                         channel_name: channel.name,
                         channel_id: channel.id,
-                        existing_station_id: channel.gracenote_id || null,
-                        filter_country: filters.country,
-                        filter_resolutions: filters.resolutions
+                        existing_station_id: channel.gracenote_id || null
                     })
                 });
 
                 const data = await response.json();
 
-                // Update parsed info and populate filters from parsed data (for every channel)
+                // Update parsed info
                 if (data.parsed) {
                     document.getElementById('parsedCleanName').textContent = data.parsed.clean_name || '-';
                     document.getElementById('parsedCountry').textContent = data.parsed.country || 'Not detected';
                     document.getElementById('parsedResolution').textContent = data.parsed.resolution || 'Not detected';
-
-                    // Store auto-detected values
-                    autoDetectedFilters = {
-                        country: data.parsed.country || '',
-                        resolution: data.parsed.resolution || ''
-                    };
-
-                    // Only auto-populate filters if user hasn't manually modified them
-                    if (!filtersManuallyModified) {
-                        // Populate filter UI with auto-detected values for this channel
-                        if (autoDetectedFilters.country) {
-                            document.getElementById('filterCountry').value = autoDetectedFilters.country;
-                            document.getElementById('countryAutoDetected').textContent = `(auto: ${autoDetectedFilters.country})`;
-                        } else {
-                            document.getElementById('filterCountry').value = '';
-                            document.getElementById('countryAutoDetected').textContent = '';
-                        }
-
-                        if (autoDetectedFilters.resolution) {
-                            // Normalize database format to UI format for comparison
-                            const normalizedResolution = normalizeResolutionToUI(autoDetectedFilters.resolution);
-                            // Check only the auto-detected resolution
-                            document.getElementById('filterSD').checked = (normalizedResolution === 'SD');
-                            document.getElementById('filterHD').checked = (normalizedResolution === 'HD');
-                            document.getElementById('filterUHD').checked = (normalizedResolution === 'UHD');
-                            document.getElementById('resolutionAutoDetected').textContent = `(auto: ${normalizedResolution})`;
-                        } else {
-                            // No resolution detected - show all
-                            document.getElementById('filterSD').checked = true;
-                            document.getElementById('filterHD').checked = true;
-                            document.getElementById('filterUHD').checked = true;
-                            document.getElementById('resolutionAutoDetected').textContent = '';
-                        }
-                    } else {
-                        // User has manual filters - just update the auto-detected labels for reference
-                        document.getElementById('countryAutoDetected').textContent = autoDetectedFilters.country ? `(auto: ${autoDetectedFilters.country})` : '';
-                        const normalizedResolution = normalizeResolutionToUI(autoDetectedFilters.resolution);
-                        document.getElementById('resolutionAutoDetected').textContent = normalizedResolution ? `(auto: ${normalizedResolution})` : '';
-                    }
                 }
 
                 // Display suggested matches - user must manually accept
@@ -5465,7 +4309,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <button onclick="acceptMatch('${match.station.station_id}')"
+                            <button onclick="acceptMatch('${match.station.station_id}', ${JSON.stringify(channel).replace(/"/g, '&quot;')})"
                                     class="btn-primary" style="padding: 8px 20px;">
                                 ✅ ${isExisting ? 'Keep & Update' : 'Accept Match'}
                             </button>
@@ -5477,14 +4321,7 @@
             container.innerHTML = html;
         }
 
-        async function acceptMatch(stationId) {
-            // Always use current channel from matching queue to prevent stale references
-            const channel = matchingQueue[currentMatchIndex];
-            if (!channel) {
-                showNotification('Error: No channel selected', 'error');
-                return;
-            }
-
+        async function acceptMatch(stationId, channel) {
             const settings = await getSettings();
 
             if (!settings.dispatcharr || !settings.dispatcharr.url) {
@@ -5504,8 +4341,8 @@
                         apply_options: settings.matching || {
                             applyStationId: true,
                             applyChannelName: false,
-                            applyLogo: true,
-                            tvgIdSource: 'none'
+                            applyCallSign: false,
+                            applyLogo: true
                         }
                     })
                 });
@@ -5513,20 +4350,6 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Show logo status message if present (no delay needed in matching workflow)
-                    if (result.logo_message) {
-                        showNotification(result.logo_message, 'info');
-                    }
-
-                    // Update local channel data with the updated channel from API
-                    const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === channel.id);
-                    if (channelIndex !== -1 && result.channel) {
-                        dispatcharrChannels[channelIndex] = result.channel;
-                        // Update just this channel's row immediately (improved refresh strategy)
-                        updateSingleChannelRow(channel.id);
-                        hasIncrementalUpdates = true;
-                    }
-
                     // Record result
                     matchingResults.push({
                         channel: channel,
@@ -5534,9 +4357,8 @@
                         status: 'matched'
                     });
 
-                    // Move to next channel - reset manual filter flag
+                    // Move to next channel
                     currentMatchIndex++;
-                    filtersManuallyModified = false;
                     await matchNextChannel();
                 } else {
                     showNotification('Failed to apply match: ' + (result.error || 'Unknown error'));
@@ -5553,9 +4375,7 @@
                 status: 'skipped'
             });
 
-            // Move to next channel - reset manual filter flag
             currentMatchIndex++;
-            filtersManuallyModified = false;
             matchNextChannel();
         }
 
@@ -5605,9 +4425,9 @@
 
             document.getElementById('matchingSummary').innerHTML = summaryHtml;
 
-            // Set flag to reload channels when modal closes
+            // Auto-refresh Dispatcharr channels in background if any were matched
             if (matched > 0) {
-                channelChangedInModal = true;
+                loadDispatcharrChannels();
             }
         }
 
@@ -5616,19 +4436,7 @@
             if (!query) return;
 
             try {
-                // Get current filter values (unified filters with full manual control)
-                const filters = getMatchingFilters();
-
-                // Build query string with filters
-                let queryParams = `q=${encodeURIComponent(query)}&limit=10`;
-                if (filters.country) {
-                    queryParams += `&country=${encodeURIComponent(filters.country)}`;
-                }
-                if (filters.resolutions.length > 0) {
-                    queryParams += `&quality=${encodeURIComponent(filters.resolutions.join(','))}`;
-                }
-
-                const response = await fetch(`/api/search/stations?${queryParams}`);
+                const response = await fetch(`/api/search/stations?q=${encodeURIComponent(query)}&limit=10`);
                 const data = await response.json();
 
                 const container = document.getElementById('manualSearchResults');
@@ -5649,7 +4457,7 @@
                                         ${station.call_sign || 'No call sign'} | ID: ${station.station_id}
                                     </div>
                                 </div>
-                                <button onclick="acceptMatch('${station.station_id}')"
+                                <button onclick="acceptMatch('${station.station_id}', ${JSON.stringify(matchingQueue[currentMatchIndex]).replace(/"/g, '&quot;')})"
                                         class="btn-secondary" style="padding: 5px 15px; font-size: 0.9rem;">
                                     Select
                                 </button>
@@ -5760,31 +4568,16 @@
         // New multi-select and matching functions
         function toggleSelectAll() {
             const selectAll = document.getElementById('selectAllChannels');
-            // Only select visible checkboxes (those in displayed rows)
-            const visibleRows = document.querySelectorAll('#dispatcharrTableBody tr:not([style*="display: none"])');
-            visibleRows.forEach(row => {
-                const checkbox = row.querySelector('.channel-checkbox');
-                if (checkbox) {
-                    checkbox.checked = selectAll.checked;
-                }
-            });
+            const checkboxes = document.querySelectorAll('.channel-checkbox');
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
             updateMatchButtons();
         }
 
         function updateMatchButtons() {
             const selectedChannels = document.querySelectorAll('.channel-checkbox:checked').length;
             const matchBtn = document.getElementById('matchSelectedBtn');
-            const bulkEditBtn = document.getElementById('bulkEditGroupBtn');
-            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-
             if (matchBtn) {
                 matchBtn.disabled = selectedChannels === 0;
-            }
-            if (bulkEditBtn) {
-                bulkEditBtn.disabled = selectedChannels === 0;
-            }
-            if (bulkDeleteBtn) {
-                bulkDeleteBtn.disabled = selectedChannels === 0;
             }
         }
 
@@ -5840,330 +4633,6 @@
             updateMatchButtons();
         }
 
-        async function bulkDeleteChannels() {
-            const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
-                .map(cb => parseInt(cb.dataset.channelId));
-
-            if (selectedIds.length === 0) {
-                showNotification('No channels selected!', 'error');
-                return;
-            }
-
-            const confirmMsg = `⚠️ WARNING: You are about to DELETE ${selectedIds.length} channel(s).\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to proceed?`;
-            if (!await showConfirm(confirmMsg)) {
-                return;
-            }
-
-            const settings = await getSettings();
-            if (!settings.dispatcharr || !settings.dispatcharr.url) {
-                showNotification('Please configure Dispatcharr settings first', 'error');
-                return;
-            }
-
-            showNotification(`Deleting ${selectedIds.length} channel(s)...`, 'info');
-
-            let successCount = 0;
-            let errorCount = 0;
-
-            for (const channelId of selectedIds) {
-                try {
-                    const response = await fetch(`/api/dispatcharr/channels/${channelId}/delete`, {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            url: settings.dispatcharr.url,
-                            username: settings.dispatcharr.username,
-                            password: settings.dispatcharr.password
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        successCount++;
-                    } else {
-                        errorCount++;
-                    }
-                } catch (error) {
-                    errorCount++;
-                }
-            }
-
-            // Show results
-            if (errorCount === 0) {
-                showNotification(`✓ Successfully deleted ${successCount} channel(s)`, 'success');
-            } else {
-                showNotification(`Completed: ${successCount} deleted, ${errorCount} failed`, 'error');
-            }
-
-            // Reload channels
-            await loadDispatcharrChannels();
-        }
-
-        async function bulkEditGroup() {
-            const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
-                .map(cb => parseInt(cb.dataset.channelId));
-
-            if (selectedIds.length === 0) {
-                showNotification('No channels selected!', 'error');
-                return;
-            }
-
-            // Load groups if not already loaded
-            if (!dispatcharrGroups || dispatcharrGroups.length === 0) {
-                await loadDispatcharrGroups();
-            }
-
-            // Store groups for filtering
-            window.bulkEditGroupsList = [...dispatcharrGroups];
-
-            const modalHtml = `
-                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; color: #333;">
-                    <h3 style="margin-top: 0;">Bulk Edit Group</h3>
-                    <p style="color: #666;">Change group for ${selectedIds.length} selected channel(s)</p>
-
-                    <div style="margin: 20px 0;">
-                        <label style="display: block; margin-bottom: 5px; color: #333;">Select New Group:</label>
-
-                        <!-- Filter Input -->
-                        <input type="text" id="bulkEditGroupFilter" placeholder="Type to filter groups..."
-                            style="width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 4px;"
-                            oninput="filterBulkEditGroups()">
-
-                        <!-- Create New Group Button -->
-                        <button onclick="toggleBulkCreateGroupForm()" class="btn-secondary"
-                            style="width: 100%; margin-bottom: 8px; padding: 8px; font-size: 0.9rem; background: #667eea; border-color: #667eea; color: white;">
-                            ➕ Create New Group
-                        </button>
-
-                        <!-- Inline Group Creation Form -->
-                        <div id="bulkInlineGroupCreateForm" style="display: none; background: rgba(102, 126, 234, 0.1); border: 1px solid #667eea; padding: 12px; border-radius: 6px; margin-bottom: 8px;">
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <input type="text" id="bulkNewGroupName" placeholder="Enter group name (e.g., NEWS)"
-                                    style="flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"
-                                    onkeypress="if(event.key==='Enter') createGroupInlineBulk()">
-                                <button onclick="createGroupInlineBulk()" class="btn-primary" style="padding: 8px 16px; white-space: nowrap;">Create</button>
-                                <button onclick="cancelCreateGroupInlineBulk()" class="btn-secondary" style="padding: 8px 16px;">Cancel</button>
-                            </div>
-                            <div id="bulkInlineGroupStatus" style="font-size: 0.85rem; margin-top: 8px;"></div>
-                        </div>
-
-                        <!-- Show Custom Only Checkbox -->
-                        <label style="display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;">
-                            <input type="checkbox" id="bulkEditShowCustomOnly" onchange="filterBulkEditGroups()" style="margin-right: 8px;">
-                            <span style="font-size: 0.9rem; color: #666;">Show only custom groups (no M3U associations)</span>
-                        </label>
-
-                        <!-- Group Select Dropdown -->
-                        <select id="bulkEditGroupSelect" size="5"
-                            style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; max-height: 150px;">
-                            <option value="">-- Remove Group --</option>
-                        </select>
-
-                        <!-- Filter Status -->
-                        <div id="bulkGroupFilterStatus" style="font-size: 0.85rem; color: #666; margin-top: 5px;"></div>
-                    </div>
-
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button onclick="closeBulkEditGroupModal()" class="btn-secondary" style="padding: 8px 16px;">Cancel</button>
-                        <button onclick="applyBulkGroupEdit()" class="btn-primary" style="padding: 8px 16px;">Apply Changes</button>
-                    </div>
-                </div>
-            `;
-
-            // Show modal
-            const modalBg = document.createElement('div');
-            modalBg.id = 'bulkEditGroupModal';
-            modalBg.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000;';
-            modalBg.innerHTML = modalHtml;
-            document.body.appendChild(modalBg);
-
-            // Initialize the filter
-            filterBulkEditGroups();
-        }
-
-        function filterBulkEditGroups() {
-            const filter = document.getElementById('bulkEditGroupFilter').value.toLowerCase();
-            const showCustomOnly = document.getElementById('bulkEditShowCustomOnly').checked;
-            const select = document.getElementById('bulkEditGroupSelect');
-
-            let filtered = window.bulkEditGroupsList.filter(g => {
-                // Text filter
-                const matchesText = g.name.toLowerCase().includes(filter);
-
-                // Custom groups filter (groups with no M3U associations)
-                const isCustomGroup = !g.m3u_account_count || g.m3u_account_count === 0;
-                const matchesCustomFilter = !showCustomOnly || isCustomGroup;
-
-                return matchesText && matchesCustomFilter;
-            });
-
-            select.innerHTML = '<option value="">-- Remove Group --</option>';
-
-            filtered.forEach(group => {
-                const option = document.createElement('option');
-                option.value = group.id;
-
-                // Add indicator for M3U-associated groups
-                const m3uIndicator = group.m3u_account_count > 0 ? ` 📡(${group.m3u_account_count})` : '';
-                option.textContent = group.name + m3uIndicator;
-
-                select.appendChild(option);
-            });
-
-            const customOnlyText = showCustomOnly ? ' custom' : '';
-            const statusText = showCustomOnly && filtered.length === 0
-                ? 'No custom groups found (all groups have M3U associations)'
-                : `Showing ${filtered.length}${customOnlyText} of ${window.bulkEditGroupsList.length} groups`;
-
-            document.getElementById('bulkGroupFilterStatus').textContent = statusText;
-        }
-
-        function toggleBulkCreateGroupForm() {
-            const form = document.getElementById('bulkInlineGroupCreateForm');
-            const isVisible = form.style.display !== 'none';
-            form.style.display = isVisible ? 'none' : 'block';
-
-            if (!isVisible) {
-                document.getElementById('bulkNewGroupName').focus();
-            }
-        }
-
-        async function createGroupInlineBulk() {
-            const groupName = document.getElementById('bulkNewGroupName').value.trim();
-            const statusDiv = document.getElementById('bulkInlineGroupStatus');
-
-            if (!groupName) {
-                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Group name is required</span>';
-                return;
-            }
-
-            const settings = await getSettings();
-            if (!settings.dispatcharr || !settings.dispatcharr.url) {
-                statusDiv.innerHTML = '<span style="color: #ff6b6b;">⚠️ Please configure Dispatcharr settings first</span>';
-                return;
-            }
-
-            statusDiv.innerHTML = '<span style="color: #999;">Creating group...</span>';
-
-            try {
-                const response = await fetch('/api/dispatcharr/groups', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: settings.dispatcharr.url,
-                        username: settings.dispatcharr.username,
-                        password: settings.dispatcharr.password,
-                        name: groupName
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    statusDiv.innerHTML = '<span style="color: #51cf66;">✅ Group created!</span>';
-
-                    // Reload groups and refresh UI
-                    await loadDispatcharrGroups();
-                    window.bulkEditGroupsList = [...dispatcharrGroups];
-
-                    // Refresh the filter
-                    filterBulkEditGroups();
-
-                    // Select the newly created group
-                    const select = document.getElementById('bulkEditGroupSelect');
-                    const newOption = Array.from(select.options).find(opt => opt.textContent.startsWith(groupName));
-                    if (newOption) {
-                        newOption.selected = true;
-                    }
-
-                    // Hide the form after success
-                    setTimeout(() => {
-                        document.getElementById('bulkInlineGroupCreateForm').style.display = 'none';
-                        document.getElementById('bulkNewGroupName').value = '';
-                    }, 1500);
-                } else {
-                    statusDiv.innerHTML = `<span style="color: #ff6b6b;">⚠️ Error: ${data.error || 'Failed to create group'}</span>`;
-                }
-            } catch (error) {
-                statusDiv.innerHTML = `<span style="color: #ff6b6b;">⚠️ Error: ${error.message}</span>`;
-            }
-        }
-
-        function cancelCreateGroupInlineBulk() {
-            document.getElementById('bulkInlineGroupCreateForm').style.display = 'none';
-            document.getElementById('bulkNewGroupName').value = '';
-            document.getElementById('bulkInlineGroupStatus').innerHTML = '';
-        }
-
-        function closeBulkEditGroupModal() {
-            const modal = document.getElementById('bulkEditGroupModal');
-            if (modal) {
-                modal.remove();
-            }
-        }
-
-        async function applyBulkGroupEdit() {
-            const groupId = document.getElementById('bulkEditGroupSelect').value;
-            const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
-                .map(cb => parseInt(cb.dataset.channelId));
-
-            closeBulkEditGroupModal();
-
-            const settings = await getSettings();
-            if (!settings.dispatcharr || !settings.dispatcharr.url) {
-                showNotification('Please configure Dispatcharr settings first', 'error');
-                return;
-            }
-
-            showNotification(`Updating ${selectedIds.length} channel(s)...`, 'info');
-
-            let successCount = 0;
-            let errorCount = 0;
-
-            for (const channelId of selectedIds) {
-                try {
-                    const response = await fetch(`/api/dispatcharr/channels/${channelId}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            url: settings.dispatcharr.url,
-                            username: settings.dispatcharr.username,
-                            password: settings.dispatcharr.password,
-                            update_data: {
-                                group_id: groupId ? parseInt(groupId) : null
-                            }
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        successCount++;
-                        // Update local channel data
-                        const channelIndex = dispatcharrChannels.findIndex(ch => ch.id === channelId);
-                        if (channelIndex !== -1 && data.channel) {
-                            dispatcharrChannels[channelIndex] = data.channel;
-                        }
-                    } else {
-                        errorCount++;
-                    }
-                } catch (error) {
-                    errorCount++;
-                }
-            }
-
-            // Show results
-            if (errorCount === 0) {
-                showNotification(`✓ Successfully updated ${successCount} channel(s)`, 'success');
-            } else {
-                showNotification(`Completed: ${successCount} updated, ${errorCount} failed`, 'error');
-            }
-
-            // Reload channels to show changes
-            await loadDispatcharrChannels();
-        }
-
         async function matchSelectedStations() {
             const selectedIds = Array.from(document.querySelectorAll('.channel-checkbox:checked'))
                 .map(cb => parseInt(cb.dataset.channelId));
@@ -6199,12 +4668,6 @@
             matchingResults = [];
             isMatching = true;
 
-            // Reset change tracking flag
-            channelChangedInModal = false;
-
-            // Reset filter flag for first channel
-            filtersManuallyModified = false;
-
             // Show matching modal
             document.getElementById('matchingModal').style.display = 'flex';
             document.getElementById('matchingInterface').style.display = 'block';
@@ -6218,13 +4681,6 @@
             isMatching = false;
             matchingQueue = [];
             currentMatchIndex = 0;
-            // Improved refresh strategy: skip reload if we already did incremental updates
-            if (hasIncrementalUpdates) {
-                hasIncrementalUpdates = false;
-            } else if (channelChangedInModal) {
-                loadDispatcharrChannels();
-            }
-            channelChangedInModal = false;
         }
 
         // Load database metadata
@@ -6380,14 +4836,8 @@
                 // Render sidebar
                 renderChannelSidebar();
 
-                // Show modal and reset scroll position
-                const modal = document.getElementById('createChannelModal');
-                modal.style.display = 'flex';
-                // Reset scroll to top
-                const modalContent = modal.querySelector('.modal-content');
-                if (modalContent) {
-                    modalContent.scrollTop = 0;
-                }
+                // Show modal
+                document.getElementById('createChannelModal').style.display = 'flex';
             } catch (error) {
                 showNotification(`Failed to load station details: ${error.message}`, 'error');
                 console.error('Error opening create channel modal:', error);
@@ -6429,14 +4879,8 @@
                 // Render sidebar
                 renderChannelSidebar();
 
-                // Show modal and reset scroll position
-                const modal = document.getElementById('createChannelModal');
-                modal.style.display = 'flex';
-                // Reset scroll to top
-                const modalContent = modal.querySelector('.modal-content');
-                if (modalContent) {
-                    modalContent.scrollTop = 0;
-                }
+                // Show modal
+                document.getElementById('createChannelModal').style.display = 'flex';
             } catch (error) {
                 showNotification(`Failed to open custom channel modal: ${error.message}`, 'error');
                 console.error('Error opening custom channel modal:', error);
@@ -6833,604 +5277,6 @@
             await applyRange(start, end);
         }
 
-        // ========== CHANNEL SHIFT FUNCTIONALITY ==========
-
-        // Global state for shift operations
-        let shiftPlanData = null;
-        let shiftCancelled = false;
-        let pendingChannelData = null; // Store channel data for creation after shift
-        let hiddenEditModal = null; // Store reference to temporarily hidden edit modal
-
-        /**
-         * Plans a channel shift operation and shows preview modal
-         * @param {number} insertAt - Channel number to insert at
-         * @param {number} shiftAmount - Amount to shift by (default 1)
-         * @param {number} excludeChannelId - Optional channel ID to exclude from shift (for edit mode)
-         * @returns {Promise<Object>} Shift plan data
-         */
-        async function planChannelShift(insertAt, shiftAmount = 1, excludeChannelId = null) {
-            await ensureChannelsLoaded();
-
-            const plan = {
-                insertNumber: parseFloat(insertAt),
-                shiftAmount: shiftAmount,
-                affectedChannels: [],
-                warnings: [],
-                estimatedTime: 0,
-                gapAt: null,
-                excludedChannelId: excludeChannelId
-            };
-
-            // Get all channels >= insertAt (including decimals)
-            // EXCLUDE the source channel if this is an edit operation
-            const candidateChannels = dispatcharrChannels
-                .filter(ch => {
-                    const num = parseFloat(ch.channel_number);
-                    // Exclude the channel being edited (it's being moved, not shifted)
-                    if (excludeChannelId && ch.id === excludeChannelId) {
-                        return false;
-                    }
-                    return !isNaN(num) && num >= plan.insertNumber;
-                })
-                .sort((a, b) => parseFloat(a.channel_number) - parseFloat(b.channel_number));
-
-            // Find where to stop (first gap)
-            plan.gapAt = findShiftStopPoint(candidateChannels, plan.insertNumber, plan.shiftAmount);
-
-            // Filter channels up to gap
-            plan.affectedChannels = candidateChannels.filter(ch =>
-                parseFloat(ch.channel_number) < plan.gapAt
-            );
-
-            // Validate Smart Range boundaries (warning mode - allow but warn)
-            plan.warnings = validateSmartRangeBoundaries(plan.affectedChannels, plan.shiftAmount);
-
-            // Estimate time (roughly 150ms per channel)
-            plan.estimatedTime = plan.affectedChannels.length * 0.15;
-
-            return plan;
-        }
-
-        /**
-         * Finds the point where shifting should stop (first gap)
-         * @param {Array} channels - Sorted channels in ascending order
-         * @param {number} insertAt - Starting point
-         * @param {number} shiftAmount - Shift amount
-         * @returns {number} Channel number where gap occurs
-         */
-        function findShiftStopPoint(channels, insertAt, shiftAmount) {
-            let expected = parseFloat(insertAt);
-
-            for (const ch of channels) {
-                const num = parseFloat(ch.channel_number);
-
-                // If there's a gap (channel number > expected), return the gap position
-                if (num > expected) {
-                    return expected;
-                }
-
-                // Move expected to next position after this channel
-                expected = num + shiftAmount;
-            }
-
-            // No gap found - return Infinity to shift all
-            return Infinity;
-        }
-
-        /**
-         * Validates Smart Range boundaries and generates warnings
-         * @param {Array} channels - Channels to be shifted
-         * @param {number} shiftAmount - Shift amount
-         * @returns {Array} Array of warning objects
-         */
-        function validateSmartRangeBoundaries(channels, shiftAmount) {
-            const warnings = [];
-
-            if (!customRangesData || customRangesData.length === 0) {
-                return warnings;
-            }
-
-            for (const ch of channels) {
-                const currentNum = parseFloat(ch.channel_number);
-                const newNum = currentNum + shiftAmount;
-
-                // Find Smart Range for this channel's current position
-                const range = customRangesData.find(r =>
-                    currentNum >= r.start && currentNum <= r.end
-                );
-
-                if (range && newNum > range.end) {
-                    warnings.push({
-                        type: 'range_overflow',
-                        channel: ch,
-                        range: range,
-                        currentNumber: currentNum,
-                        newNumber: newNum,
-                        message: `${ch.name} (${currentNum}) will exceed ${range.name} range boundary (${range.end}) → becomes ${newNum}`
-                    });
-                }
-            }
-
-            return warnings;
-        }
-
-        /**
-         * Shows the shift preview modal with plan data
-         * @param {Object} plan - Shift plan data
-         */
-        function showShiftPreviewModal(plan) {
-            shiftPlanData = plan;
-
-            // Hide any open edit modal temporarily (so shift preview is visible)
-            const editModals = document.querySelectorAll('.modal');
-            for (const modal of editModals) {
-                if (modal.id !== 'shiftPreviewModal' && modal.id !== 'shiftProgressModal' && modal.style.display !== 'none') {
-                    hiddenEditModal = modal;
-                    modal.style.display = 'none';
-                    break;
-                }
-            }
-
-            // Populate summary
-            document.getElementById('previewInsertAt').textContent = plan.insertNumber;
-            document.getElementById('previewShiftAmount').textContent = `+${plan.shiftAmount}`;
-            document.getElementById('previewCount').textContent = `${plan.affectedChannels.length} channel(s)`;
-            document.getElementById('previewGapAt').textContent = plan.gapAt === Infinity ? 'No gap found (shift all)' : plan.gapAt;
-            document.getElementById('previewTime').textContent = `~${plan.estimatedTime.toFixed(1)}s`;
-
-            // Show warnings
-            const warningsDiv = document.getElementById('previewWarnings');
-            if (plan.warnings.length > 0) {
-                warningsDiv.innerHTML = `
-                    <div style="background: rgba(255, 107, 107, 0.1); border: 1px solid #ff6b6b; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <h3 style="margin-top: 0; color: #ff6b6b;">⚠️ Warnings (${plan.warnings.length})</h3>
-                        <ul style="margin: 0; padding-left: 20px;">
-                            ${plan.warnings.map(w => `<li style="margin: 5px 0;">${w.message}</li>`).join('')}
-                        </ul>
-                        <p style="margin: 10px 0 0 0; font-size: 0.9rem; color: #999;">
-                            These channels will be shifted beyond their Smart Range boundaries. You can still proceed if desired.
-                        </p>
-                    </div>
-                `;
-            } else {
-                warningsDiv.innerHTML = '';
-            }
-
-            // Populate changes table
-            const tbody = document.getElementById('previewTableBody');
-            tbody.innerHTML = plan.affectedChannels.map(ch => {
-                const currentNum = parseFloat(ch.channel_number);
-                const newNum = currentNum + plan.shiftAmount;
-                const hasWarning = plan.warnings.some(w => w.channel.id === ch.id);
-
-                return `
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); ${hasWarning ? 'background: rgba(255, 107, 107, 0.05);' : ''}">
-                        <td style="padding: 8px;">${ch.name}${hasWarning ? ' ⚠️' : ''}</td>
-                        <td style="padding: 8px; text-align: center;">${currentNum}</td>
-                        <td style="padding: 8px; text-align: center;">→</td>
-                        <td style="padding: 8px; text-align: center; font-weight: bold; color: #667eea;">${newNum}</td>
-                        <td style="padding: 8px;">${ch.group_name || '(None)'}</td>
-                    </tr>
-                `;
-            }).join('');
-
-            // Show modal
-            document.getElementById('shiftPreviewModal').style.display = 'flex';
-        }
-
-        async function closeShiftPreviewModal() {
-            document.getElementById('shiftPreviewModal').style.display = 'none';
-
-            // Restore hidden edit modal if it exists
-            if (hiddenEditModal) {
-                // Reload channels and refresh the edit modal data before showing it
-                await loadDispatcharrChannels();
-                refreshEditModalData();
-                hiddenEditModal.style.display = 'flex';
-                hiddenEditModal = null;
-            }
-
-            shiftPlanData = null;
-        }
-
-        /**
-         * Refreshes the data in the currently hidden edit modal with latest channel info
-         */
-        function refreshEditModalData() {
-            if (!hiddenEditModal || !pendingChannelData || !pendingChannelData.isEdit) {
-                return;
-            }
-
-            // Find the channel with latest data
-            const channelId = pendingChannelData.channelId;
-            const channel = dispatcharrChannels.find(ch => ch.id === channelId);
-
-            if (!channel) {
-                return; // Channel not found
-            }
-
-            // Update all input fields in the edit modal with current values
-            const nameInput = hiddenEditModal.querySelector('#editChannelName');
-            const callSignInput = hiddenEditModal.querySelector('#editChannelCallSign');
-            const gracenoteInput = hiddenEditModal.querySelector('#editChannelGracenoteId');
-            const numberInput = hiddenEditModal.querySelector('#editChannelNumber');
-
-            if (nameInput) nameInput.value = channel.name || '';
-            if (callSignInput) callSignInput.value = channel.call_sign || '';
-            if (gracenoteInput) gracenoteInput.value = channel.gracenote_id || '';
-            if (numberInput) numberInput.value = channel.channel_number || '';
-        }
-
-        /**
-         * Confirms and executes the channel shift
-         */
-        async function confirmChannelShift() {
-            if (!shiftPlanData) {
-                showNotification('No shift plan available', 'error');
-                return;
-            }
-
-            closeShiftPreviewModal();
-
-            // Execute shift
-            const result = await executeChannelShift(shiftPlanData);
-
-            if (result.cancelled) {
-                showNotification('Shift operation cancelled', 'info');
-
-                // Restore edit modal if it was hidden (refresh data first)
-                if (hiddenEditModal) {
-                    await loadDispatcharrChannels(); // Reload to get latest state
-                    refreshEditModalData(); // Update modal with latest data
-                    hiddenEditModal.style.display = 'flex';
-                    hiddenEditModal = null;
-                }
-
-                pendingChannelData = null;
-                return result;
-            }
-
-            if (!result.success) {
-                showNotification(
-                    `Shift failed: ${result.successCount} succeeded, ${result.errorCount} failed. Rolled back.`,
-                    'error'
-                );
-
-                // Restore edit modal if it was hidden (refresh data first after rollback)
-                if (hiddenEditModal) {
-                    await loadDispatcharrChannels(); // Reload to get post-rollback state
-                    refreshEditModalData(); // Update modal with latest data
-                    hiddenEditModal.style.display = 'flex';
-                    hiddenEditModal = null;
-                }
-
-                pendingChannelData = null;
-                return result;
-            }
-
-            // Shift successful!
-            // Don't show notification yet if we have pending operations (create/edit)
-            const hasPendingOp = !!pendingChannelData;
-            if (!hasPendingOp) {
-                showNotification(`✓ Successfully shifted ${result.successCount} channel(s)`, 'success');
-            }
-
-            // If there's pending channel data, handle it
-            if (pendingChannelData) {
-                if (pendingChannelData.isEdit) {
-                    // Edit flow - update the channel (will show its own notification)
-                    await updateChannelAfterShift(pendingChannelData);
-                } else {
-                    // Create flow - create the channel (will show combined notification)
-                    await createChannelAfterShift(pendingChannelData);
-                }
-                pendingChannelData = null;
-            }
-
-            // ALWAYS do a full reload after shift operations to reflect all changes
-            await loadDispatcharrChannels();
-
-            return result;
-        }
-
-        /**
-         * Updates a channel after successful shift (used in edit insert-and-shift flow)
-         * @param {Object} editInfo - Stored edit info from edit modal
-         */
-        async function updateChannelAfterShift(editInfo) {
-            const settings = await getSettings();
-
-            try {
-                showNotification('Updating channel...', 'info');
-
-                const response = await fetch(`/api/dispatcharr/channels/${editInfo.channelId}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: settings.dispatcharr.url,
-                        username: settings.dispatcharr.username,
-                        password: settings.dispatcharr.password,
-                        update_data: editInfo.updateData
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Get channel name for notification
-                    const channelName = editInfo.updateData.name || 'Channel';
-                    const channelNumber = editInfo.updateData.channel_number;
-                    showNotification(`✓ ${channelName} moved to ${channelNumber} successfully!`, 'success');
-
-                    // Update local channel data
-                    const channelIndex = dispatcharrChannels.findIndex(ch => ch.id == editInfo.channelId);
-                    if (channelIndex !== -1 && result.channel) {
-                        dispatcharrChannels[channelIndex] = result.channel;
-                        hasIncrementalUpdates = true;
-                    }
-
-                    // Close and remove the hidden edit modal permanently
-                    if (hiddenEditModal) {
-                        hiddenEditModal.remove();
-                        hiddenEditModal = null;
-                    }
-
-                    // Also close any other modals
-                    const modal = document.querySelector('.modal');
-                    if (modal) modal.remove();
-                } else {
-                    showNotification('Failed to update channel: ' + (result.error || 'Unknown error'), 'error');
-
-                    // On error, restore the edit modal so user can try again
-                    if (hiddenEditModal) {
-                        await loadDispatcharrChannels(); // Reload to get latest state
-                        refreshEditModalData(); // Update modal with latest data
-                        hiddenEditModal.style.display = 'flex';
-                        hiddenEditModal = null;
-                    }
-                }
-            } catch (error) {
-                showNotification('Error updating channel: ' + error.message, 'error');
-                console.error(error);
-
-                // On error, restore the edit modal so user can try again
-                if (hiddenEditModal) {
-                    await loadDispatcharrChannels(); // Reload to get latest state
-                    refreshEditModalData(); // Update modal with latest data
-                    hiddenEditModal.style.display = 'flex';
-                    hiddenEditModal = null;
-                }
-            }
-        }
-
-        /**
-         * Creates a channel after successful shift (used in create insert-and-shift flow)
-         * @param {Object} channelInfo - Stored channel info from creation modal
-         */
-        async function createChannelAfterShift(channelInfo) {
-            const settings = await getSettings();
-
-            try {
-                const channelData = {
-                    name: channelInfo.name,
-                    channel_number: channelInfo.channelNumber,
-                    tvc_guide_stationid: channelInfo.gracenoteId || '',
-                    tvg_id: channelInfo.tvgId || '',
-                    channel_group_id: channelInfo.groupId ? parseInt(channelInfo.groupId) : null,
-                    streams: createChannelStreams.map(s => s.id)
-                };
-
-                // Add logo if available from station data
-                if (createChannelStationData && createChannelStationData.logo_uri) {
-                    channelData.logo_uri = createChannelStationData.logo_uri;
-                }
-
-                showNotification('Creating channel...', 'info');
-
-                const response = await fetch('/api/dispatcharr/channels/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        url: settings.dispatcharr.url,
-                        username: settings.dispatcharr.username,
-                        password: settings.dispatcharr.password,
-                        channel: channelData
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Show success notification (combine shift + creation success)
-                    showNotification(`✓ Channel "${channelInfo.name}" created successfully at ${channelInfo.channelNumber}!`, 'success');
-
-                    // Close the hidden create modal permanently
-                    if (hiddenEditModal && hiddenEditModal.id === 'createChannelModal') {
-                        hiddenEditModal.remove();
-                        hiddenEditModal = null;
-                    } else {
-                        // Fallback: close via normal method
-                        closeCreateChannelModal();
-                    }
-                } else {
-                    showNotification(`Failed to create channel: ${data.error}`, 'error');
-
-                    // On error, restore the create modal so user can try again
-                    if (hiddenEditModal && hiddenEditModal.id === 'createChannelModal') {
-                        await loadDispatcharrChannels(); // Reload to get latest state
-                        hiddenEditModal.style.display = 'flex';
-                        hiddenEditModal = null;
-                    }
-                }
-            } catch (error) {
-                showNotification('Error creating channel: ' + error.message, 'error');
-                console.error(error);
-
-                // On error, restore the create modal so user can try again
-                if (hiddenEditModal && hiddenEditModal.id === 'createChannelModal') {
-                    await loadDispatcharrChannels(); // Reload to get latest state
-                    hiddenEditModal.style.display = 'flex';
-                    hiddenEditModal = null;
-                }
-            }
-        }
-
-        /**
-         * Executes the channel shift (processes HIGHEST TO LOWEST to avoid collisions!)
-         * @param {Object} plan - Shift plan data
-         * @returns {Promise<Object>} Execution result
-         */
-        async function executeChannelShift(plan) {
-            const settings = await getSettings();
-            if (!settings.dispatcharr || !settings.dispatcharr.url) {
-                showNotification('Please configure Dispatcharr settings first', 'error');
-                return { success: false, error: 'No Dispatcharr settings' };
-            }
-
-            // Sort HIGHEST TO LOWEST (reverse order) to avoid collisions!
-            const channelsToShift = [...plan.affectedChannels].sort((a, b) =>
-                parseFloat(b.channel_number) - parseFloat(a.channel_number)
-            );
-
-            let successCount = 0;
-            let errorCount = 0;
-            const errors = [];
-            const originalNumbers = new Map();
-
-            // Show progress modal
-            shiftCancelled = false;
-            document.getElementById('shiftProgressModal').style.display = 'flex';
-            document.getElementById('shiftCancelButton').disabled = false;
-            document.getElementById('shiftCancelButton').textContent = 'Cancel';
-
-            // Process each channel (highest to lowest!)
-            for (let i = 0; i < channelsToShift.length; i++) {
-                // Check if cancelled
-                if (shiftCancelled) {
-                    // Attempt rollback
-                    await rollbackChannelShift(originalNumbers);
-                    document.getElementById('shiftProgressModal').style.display = 'none';
-                    return { success: false, cancelled: true, successCount, errorCount };
-                }
-
-                const channel = channelsToShift[i];
-                const currentNum = parseFloat(channel.channel_number);
-                const newNum = currentNum + plan.shiftAmount;
-
-                // Store original number for potential rollback
-                originalNumbers.set(channel.id, currentNum);
-
-                // Update progress
-                updateShiftProgress(i + 1, channelsToShift.length, `Shifting ${channel.name}...`);
-
-                try {
-                    const response = await fetch(`/api/dispatcharr/channels/${channel.id}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            url: settings.dispatcharr.url,
-                            username: settings.dispatcharr.username,
-                            password: settings.dispatcharr.password,
-                            update_data: { channel_number: newNum }
-                        })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.success) {
-                        successCount++;
-                    } else {
-                        errorCount++;
-                        errors.push({ channel, error: data.error || 'Unknown error' });
-
-                        // Rollback on error
-                        await rollbackChannelShift(originalNumbers);
-                        document.getElementById('shiftProgressModal').style.display = 'none';
-                        showNotification(`Shift failed at ${channel.name}. Rolling back changes...`, 'error');
-                        return { success: false, successCount, errorCount, errors };
-                    }
-                } catch (error) {
-                    errorCount++;
-                    errors.push({ channel, error: error.message });
-
-                    // Rollback on error
-                    await rollbackChannelShift(originalNumbers);
-                    document.getElementById('shiftProgressModal').style.display = 'none';
-                    showNotification(`Shift failed at ${channel.name}. Rolling back changes...`, 'error');
-                    return { success: false, successCount, errorCount, errors };
-                }
-            }
-
-            // Hide progress modal
-            document.getElementById('shiftProgressModal').style.display = 'none';
-
-            return {
-                success: errorCount === 0,
-                successCount,
-                errorCount,
-                errors,
-                cancelled: false
-            };
-        }
-
-        /**
-         * Rolls back shifted channels to original numbers
-         * @param {Map} originalNumbers - Map of channel ID to original number
-         */
-        async function rollbackChannelShift(originalNumbers) {
-            if (originalNumbers.size === 0) return;
-
-            const settings = await getSettings();
-            showNotification('Rolling back changes...', 'info');
-
-            let rollbackCount = 0;
-            for (const [channelId, originalNumber] of originalNumbers) {
-                try {
-                    await fetch(`/api/dispatcharr/channels/${channelId}`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            url: settings.dispatcharr.url,
-                            username: settings.dispatcharr.username,
-                            password: settings.dispatcharr.password,
-                            update_data: { channel_number: originalNumber }
-                        })
-                    });
-                    rollbackCount++;
-                } catch (error) {
-                    console.error(`Failed to rollback channel ${channelId}:`, error);
-                }
-            }
-
-            showNotification(`Rolled back ${rollbackCount} channel(s)`, 'info');
-        }
-
-        /**
-         * Updates the shift progress UI
-         * @param {number} current - Current progress
-         * @param {number} total - Total count
-         * @param {string} status - Status message
-         */
-        function updateShiftProgress(current, total, status = '') {
-            const percentage = (current / total) * 100;
-
-            document.getElementById('shiftProgressText').textContent = `Processing ${current}/${total} channels...`;
-            document.getElementById('shiftProgressFill').style.width = `${percentage}%`;
-            document.getElementById('shiftProgressStatus').textContent = status;
-        }
-
-        /**
-         * Cancels an in-progress shift operation
-         */
-        function cancelShiftInProgress() {
-            shiftCancelled = true;
-            document.getElementById('shiftCancelButton').disabled = true;
-            document.getElementById('shiftCancelButton').textContent = 'Cancelling...';
-            document.getElementById('shiftProgressStatus').textContent = 'Cancelling and rolling back...';
-        }
-
-        // ========== END CHANNEL SHIFT FUNCTIONALITY ==========
-
         async function submitCreateChannel() {
             const name = document.getElementById('createChannelName').value.trim();
             const channelNumber = document.getElementById('createChannelNumber').value;
@@ -7449,41 +5295,6 @@
                 return;
             }
 
-            // INTELLIGENT SHIFT DETECTION: Check if the channel number is already taken
-            if (channelNumber) {
-                const parsedNumber = parseFloat(channelNumber);
-                await ensureChannelsLoaded();
-
-                // Check if this channel number is occupied
-                const isOccupied = dispatcharrChannels.some(ch => {
-                    const existingNum = parseFloat(ch.channel_number);
-                    return !isNaN(existingNum) && existingNum === parsedNumber;
-                });
-
-                if (isOccupied) {
-                    // Number is taken - automatically plan a shift
-                    const plan = await planChannelShift(parsedNumber, 1);
-
-                    if (plan.affectedChannels.length > 0) {
-                        // Show preview modal with option to shift
-                        showShiftPreviewModal(plan);
-
-                        // Store channel data for creation after shift
-                        pendingChannelData = {
-                            name,
-                            channelNumber: parsedNumber,
-                            groupId,
-                            gracenoteId,
-                            tvgId
-                        };
-
-                        // Exit here - creation will happen after user confirms shift
-                        return;
-                    }
-                    // If no channels to shift (shouldn't happen), fall through to normal creation
-                }
-            }
-
             try {
                 // Create channel payload
                 const channelData = {
@@ -7498,9 +5309,6 @@
                 // Add logo if available from station data
                 if (createChannelStationData && createChannelStationData.logo_uri) {
                     channelData.logo_uri = createChannelStationData.logo_uri;
-                    console.log('[Create Channel] Adding logo_uri to channel data:', channelData.logo_uri);
-                } else {
-                    console.log('[Create Channel] No logo_uri in station data. createChannelStationData:', createChannelStationData);
                 }
 
                 showNotification('Creating channel...', 'info');
@@ -7519,16 +5327,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Show logo status message first if present
-                    if (data.logo_message) {
-                        showNotification(data.logo_message, 'info');
-                    }
-
-                    // Then show success message (delayed slightly so logo message appears first)
-                    setTimeout(() => {
-                        showNotification('Channel created successfully!', 'success');
-                    }, 300);
-
+                    showNotification('Channel created successfully!', 'success');
                     closeCreateChannelModal();
 
                     // Refresh Dispatcharr channels if on that tab
@@ -7810,494 +5609,12 @@
             });
         }
 
-        // ============================================================
-        // Clone Lineup Functions
-        // ============================================================
-
-        let cloneLineupState = {
-            selectedLineupId: null,
-            selectedLineupName: null,
-            previewData: null,
-            streamReader: null,
-            importInProgress: false
-        };
-
-        // Populate clone country dropdown from database
-        async function populateCloneCountries() {
-            try {
-                const response = await fetch('/api/metadata');
-                const data = await response.json();
-
-                const cloneCountrySelect = document.getElementById('cloneCountry');
-                cloneCountrySelect.innerHTML = ''; // Clear all options
-
-                // Country name mappings
-                const countryNames = {
-                    'AIA': 'Anguilla', 'ARG': 'Argentina', 'AUS': 'Australia', 'AUT': 'Austria',
-                    'BEL': 'Belgium', 'BLZ': 'Belize', 'BMU': 'Bermuda', 'BRA': 'Brazil',
-                    'BRB': 'Barbados', 'CAN': 'Canada', 'CHE': 'Switzerland', 'CHL': 'Chile',
-                    'COL': 'Colombia', 'CRI': 'Costa Rica', 'CYM': 'Cayman Islands', 'DEU': 'Germany',
-                    'DNK': 'Denmark', 'DOM': 'Dominican Republic', 'ECU': 'Ecuador', 'ESP': 'Spain',
-                    'FIN': 'Finland', 'FRA': 'France', 'GBR': 'United Kingdom', 'GRC': 'Greece',
-                    'HND': 'Honduras', 'IRL': 'Ireland', 'ISL': 'Iceland', 'ITA': 'Italy',
-                    'JAM': 'Jamaica', 'LUX': 'Luxembourg', 'MEX': 'Mexico', 'NLD': 'Netherlands',
-                    'NOR': 'Norway', 'NZL': 'New Zealand', 'PAN': 'Panama', 'PER': 'Peru',
-                    'PRT': 'Portugal', 'SWE': 'Sweden', 'TCA': 'Turks and Caicos',
-                    'TTO': 'Trinidad and Tobago', 'URY': 'Uruguay', 'VEN': 'Venezuela'
-                };
-
-                // Add USA first if it exists
-                if (data.countries.includes('USA')) {
-                    const usaOption = document.createElement('option');
-                    usaOption.value = 'USA';
-                    usaOption.textContent = 'USA - United States';
-                    usaOption.selected = true;
-                    cloneCountrySelect.appendChild(usaOption);
-
-                    // Add divider
-                    const divider = document.createElement('option');
-                    divider.disabled = true;
-                    divider.textContent = '──────────';
-                    cloneCountrySelect.appendChild(divider);
-                }
-
-                // Add all countries alphabetically (excluding USA since it's already added)
-                data.countries.sort().forEach(country => {
-                    if (country !== 'USA') {
-                        const option = document.createElement('option');
-                        option.value = country;
-                        option.textContent = countryNames[country]
-                            ? `${country} - ${countryNames[country]}`
-                            : country;
-                        cloneCountrySelect.appendChild(option);
-                    }
-                });
-            } catch (error) {
-                console.error('Failed to populate clone countries:', error);
-                // Fallback to USA only
-                const cloneCountrySelect = document.getElementById('cloneCountry');
-                cloneCountrySelect.innerHTML = '<option value="USA">USA - United States</option>';
-            }
-        }
-
-        async function openCloneLineupModal() {
-            // Reset state
-            cloneLineupState = {
-                selectedLineupId: null,
-                selectedLineupName: null,
-                previewData: null,
-                streamReader: null,
-                importInProgress: false
-            };
-
-            // Reset UI
-            document.getElementById('cloneZipCode').value = '';
-            document.getElementById('cloneSearchResults').style.display = 'none';
-            document.getElementById('cloneStep1').style.display = 'block';
-            document.getElementById('cloneStep2').style.display = 'none';
-            document.getElementById('cloneStep3').style.display = 'none';
-            document.getElementById('cloneStep4').style.display = 'none';
-
-            // Populate countries and groups
-            await populateCloneCountries();
-            filterGroupsInClone();
-
-            // Show modal
-            document.getElementById('cloneLineupModal').style.display = 'flex';
-        }
-
-        function filterGroupsInClone() {
-            const filterText = document.getElementById('cloneGroupFilter').value.toLowerCase();
-            const showCustomOnly = document.getElementById('cloneShowCustomOnly').checked;
-            const select = document.getElementById('cloneDefaultGroup');
-
-            // Get default group from settings
-            const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-            const defaultGroupId = settings.channelCreation?.defaultGroup;
-
-            // Clear and rebuild
-            select.innerHTML = '<option value="">-- No Group --</option>';
-
-            let filteredCount = 0;
-            let defaultFound = false;
-
-            dispatcharrGroups.forEach(group => {
-                // Filter by text
-                if (filterText && !group.name.toLowerCase().includes(filterText)) {
-                    return;
-                }
-
-                // Filter by custom only
-                if (showCustomOnly && group.m3u_playlists && group.m3u_playlists.length > 0) {
-                    return;
-                }
-
-                const option = document.createElement('option');
-                option.value = group.id;
-                option.textContent = group.name;
-
-                // Select default group if matches
-                if (defaultGroupId && group.id === defaultGroupId) {
-                    option.selected = true;
-                    defaultFound = true;
-                }
-
-                select.appendChild(option);
-                filteredCount++;
-            });
-
-            // Update status
-            const statusDiv = document.getElementById('cloneGroupFilterStatus');
-            if (filteredCount === 0) {
-                statusDiv.textContent = 'No groups match your filter';
-                statusDiv.style.color = '#ff6b6b';
-            } else if (filterText || showCustomOnly) {
-                statusDiv.textContent = `Showing ${filteredCount} of ${dispatcharrGroups.length} groups`;
-                statusDiv.style.color = '#999';
-            } else {
-                statusDiv.textContent = `${dispatcharrGroups.length} groups available`;
-                statusDiv.style.color = '#999';
-            }
-        }
-
-        function closeCloneLineupModal() {
-            // Cancel any active stream
-            if (cloneLineupState.streamReader) {
-                try {
-                    cloneLineupState.streamReader.cancel();
-                } catch (error) {
-                    console.error('Error cancelling stream:', error);
-                }
-                cloneLineupState.streamReader = null;
-            }
-
-            document.getElementById('cloneLineupModal').style.display = 'none';
-
-            // Reload channels if import was completed
-            if (cloneLineupState.importInProgress === 'completed') {
-                loadDispatcharrChannels();
-            }
-        }
-
-        async function searchLineupsByZip() {
-            const zipCode = document.getElementById('cloneZipCode').value.trim();
-            const country = document.getElementById('cloneCountry').value;
-
-            if (!zipCode) {
-                showNotification('Please enter a ZIP code', 'warning');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/lineups/search-by-zip?zip=${encodeURIComponent(zipCode)}&country=${country}`);
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to search lineups');
-                }
-
-                if (data.lineups.length === 0) {
-                    showNotification('No lineups found for this ZIP code', 'info');
-                    document.getElementById('cloneSearchResults').style.display = 'none';
-                    return;
-                }
-
-                // Group lineups by type
-                const groupedLineups = {};
-                data.lineups.forEach(lineup => {
-                    const type = lineup.type || 'OTHER';
-                    if (!groupedLineups[type]) {
-                        groupedLineups[type] = [];
-                    }
-                    groupedLineups[type].push(lineup);
-                });
-
-                // Render lineup list
-                const listContainer = document.getElementById('cloneLineupList');
-                listContainer.innerHTML = '';
-
-                const typeOrder = ['CABLE', 'SATELLITE', 'VMVPD', 'OTA', 'OTHER'];
-                typeOrder.forEach(type => {
-                    if (!groupedLineups[type]) return;
-
-                    const typeHeader = document.createElement('div');
-                    typeHeader.style.cssText = 'font-weight: 600; margin-top: 15px; margin-bottom: 8px; color: #667eea; font-size: 0.9rem;';
-                    typeHeader.textContent = type;
-                    listContainer.appendChild(typeHeader);
-
-                    groupedLineups[type].forEach(lineup => {
-                        const lineupItem = document.createElement('div');
-                        lineupItem.style.cssText = 'padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;';
-                        lineupItem.innerHTML = `
-                            <div style="font-weight: 600;">${lineup.name || lineup.lineup_id}</div>
-                            <div style="font-size: 0.85rem; color: #999; margin-top: 4px;">${lineup.channel_count} channels • ${lineup.location || ''}</div>
-                        `;
-                        lineupItem.onmouseover = () => lineupItem.style.background = 'rgba(102, 126, 234, 0.2)';
-                        lineupItem.onmouseout = () => lineupItem.style.background = 'rgba(0,0,0,0.3)';
-                        lineupItem.onclick = () => selectLineup(lineup.lineup_id, lineup.name || lineup.lineup_id);
-                        listContainer.appendChild(lineupItem);
-                    });
-                });
-
-                document.getElementById('cloneSearchResults').style.display = 'block';
-                showNotification(`Found ${data.lineups.length} lineup(s)`, 'success');
-
-            } catch (error) {
-                console.error('Error searching lineups:', error);
-                showNotification(error.message, 'error');
-            }
-        }
-
-        async function selectLineup(lineupId, lineupName) {
-            cloneLineupState.selectedLineupId = lineupId;
-            cloneLineupState.selectedLineupName = lineupName;
-
-            try {
-                const response = await fetch(`/api/lineups/${encodeURIComponent(lineupId)}/preview`);
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to load lineup preview');
-                }
-
-                cloneLineupState.previewData = data;
-
-                // Render preview
-                document.getElementById('clonePreviewName').textContent = lineupName;
-
-                const stats = document.getElementById('clonePreviewStats');
-                stats.innerHTML = `
-                    <div><strong>${data.total_channels}</strong> Total Channels</div>
-                    <div><strong>${data.quality_breakdown.HDTV || 0}</strong> HD</div>
-                    <div><strong>${data.quality_breakdown.SDTV || 0}</strong> SD</div>
-                    <div><strong>${data.quality_breakdown.UHDTV || 0}</strong> 4K</div>
-                    <div><strong>${data.quality_breakdown.UNKNOWN || 0}</strong> Unknown</div>
-                `;
-
-                const samples = document.getElementById('cloneChannelSamples');
-                samples.innerHTML = data.channels.map(ch =>
-                    `<div style="padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">${ch.channel_number} - ${ch.station_name || ch.call_sign || 'Unknown'} ${ch.video_type ? `(${ch.video_type})` : ''}</div>`
-                ).join('');
-
-                // Show preview step
-                document.getElementById('cloneStep2').style.display = 'block';
-                document.getElementById('cloneStep2').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-            } catch (error) {
-                console.error('Error loading lineup preview:', error);
-                showNotification(error.message, 'error');
-            }
-        }
-
-        function showCloneConfiguration() {
-            document.getElementById('cloneStep3').style.display = 'block';
-            document.getElementById('cloneStep3').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        function hideCloneConfiguration() {
-            document.getElementById('cloneStep3').style.display = 'none';
-            document.getElementById('cloneStep2').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        async function startCloneImport() {
-            // Validate quality filters
-            const includeHd = document.getElementById('cloneIncludeHd').checked;
-            const includeSd = document.getElementById('cloneIncludeSd').checked;
-            const includeUhd = document.getElementById('cloneIncludeUhd').checked;
-            const includeUnknown = document.getElementById('cloneIncludeUnknown').checked;
-
-            if (!includeHd && !includeSd && !includeUhd && !includeUnknown) {
-                showNotification('Please select at least one quality type', 'warning');
-                return;
-            }
-
-            // Gather configuration
-            const config = {
-                // Quality filters
-                includeSd: includeSd,
-                includeHd: includeHd,
-                includeUhd: includeUhd,
-                includeUnknown: includeUnknown,
-                // Channel settings
-                channelOffset: parseInt(document.getElementById('cloneChannelOffset').value) || 0,
-                // Data usage
-                useLogos: document.getElementById('cloneUseLogos').checked,
-                useCallSign: document.getElementById('cloneUseCallSign').checked,
-                useStationId: document.getElementById('cloneUseStationId').checked,
-                // Group assignment
-                defaultGroupId: parseInt(document.getElementById('cloneDefaultGroup').value) || null,
-                // Conflict handling
-                numberConflict: document.getElementById('cloneNumberConflict').value,
-                stationConflict: document.getElementById('cloneStationConflict').value
-            };
-
-            // Show progress step
-            document.getElementById('cloneStep1').style.display = 'none';
-            document.getElementById('cloneStep2').style.display = 'none';
-            document.getElementById('cloneStep3').style.display = 'none';
-            document.getElementById('cloneStep4').style.display = 'block';
-            document.getElementById('cloneCancelButton').style.display = 'inline-block';
-            document.getElementById('cloneFinishButton').style.display = 'none';
-
-            // Reset progress UI
-            document.getElementById('cloneProgressText').textContent = 'Preparing import...';
-            document.getElementById('cloneProgressFill').style.width = '0%';
-            document.getElementById('cloneProgressStatus').innerHTML = '';
-
-            cloneLineupState.importInProgress = true;
-
-            // Start SSE import with fetch streaming
-            const url = `/api/lineups/${encodeURIComponent(cloneLineupState.selectedLineupId)}/import`;
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || 'Failed to start import');
-                }
-
-                // Read SSE stream from response body
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
-
-                // Store reader for cancellation
-                cloneLineupState.streamReader = reader;
-
-                const processStream = async () => {
-                    try {
-                        while (true) {
-                            const { done, value } = await reader.read();
-
-                            if (done) {
-                                break;
-                            }
-
-                            // Decode and add to buffer
-                            buffer += decoder.decode(value, { stream: true });
-
-                            // Process complete SSE messages (delimited by \n\n)
-                            const messages = buffer.split('\n\n');
-                            buffer = messages.pop() || ''; // Keep incomplete message in buffer
-
-                            for (const message of messages) {
-                                if (!message.trim()) continue;
-
-                                // Parse SSE format: "data: {...}\n"
-                                const dataMatch = message.match(/data: (.+)/);
-                                if (!dataMatch) continue;
-
-                                try {
-                                    const data = JSON.parse(dataMatch[1]);
-
-                                    if (data.status === 'progress') {
-                                        // Update progress
-                                        const percent = Math.round((data.processed / data.total) * 100);
-                                        document.getElementById('cloneProgressText').textContent = `Processing ${data.processed}/${data.total} channels (${percent}%)`;
-                                        document.getElementById('cloneProgressFill').style.width = percent + '%';
-
-                                        if (data.message) {
-                                            const statusDiv = document.getElementById('cloneProgressStatus');
-                                            statusDiv.innerHTML = `<div style="margin-bottom: 4px;">${data.message}</div>` + statusDiv.innerHTML;
-                                            statusDiv.scrollTop = 0;
-                                        }
-                                    } else if (data.status === 'complete') {
-                                        // Import complete
-                                        document.getElementById('cloneProgressText').textContent = 'Import Complete!';
-                                        document.getElementById('cloneProgressFill').style.width = '100%';
-
-                                        const statusDiv = document.getElementById('cloneProgressStatus');
-                                        statusDiv.innerHTML = `
-                                            <div style="color: #51cf66; font-weight: 600; margin-top: 10px;">✓ Successfully imported ${data.created} channels</div>
-                                            ${data.skipped > 0 ? `<div style="color: #ffd43b; margin-top: 4px;">⚠ Skipped ${data.skipped} channels (duplicates or errors)</div>` : ''}
-                                            ${data.errors > 0 ? `<div style="color: #ff6b6b; margin-top: 4px;">✗ ${data.errors} errors</div>` : ''}
-                                        ` + statusDiv.innerHTML;
-
-                                        document.getElementById('cloneCancelButton').style.display = 'none';
-                                        document.getElementById('cloneFinishButton').style.display = 'inline-block';
-
-                                        cloneLineupState.importInProgress = 'completed';
-                                        showNotification(`Import complete: ${data.created} channels created`, 'success');
-                                    } else if (data.status === 'error') {
-                                        // Error occurred
-                                        document.getElementById('cloneProgressText').textContent = 'Import Failed';
-                                        const statusDiv = document.getElementById('cloneProgressStatus');
-                                        statusDiv.innerHTML = `<div style="color: #ff6b6b; font-weight: 600;">Error: ${data.error}</div>` + statusDiv.innerHTML;
-
-                                        document.getElementById('cloneCancelButton').textContent = 'Close';
-                                        cloneLineupState.importInProgress = false;
-                                        showNotification('Import failed: ' + data.error, 'error');
-                                    }
-                                } catch (error) {
-                                    console.error('Error parsing SSE data:', error);
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        if (error.name === 'AbortError') {
-                            console.log('Stream cancelled by user');
-                        } else {
-                            console.error('Stream error:', error);
-                            if (cloneLineupState.importInProgress === true) {
-                                document.getElementById('cloneProgressText').textContent = 'Connection Error';
-                                const statusDiv = document.getElementById('cloneProgressStatus');
-                                statusDiv.innerHTML = `<div style="color: #ff6b6b; font-weight: 600;">Connection lost. Import may have been interrupted.</div>` + statusDiv.innerHTML;
-                                document.getElementById('cloneCancelButton').textContent = 'Close';
-                                cloneLineupState.importInProgress = false;
-                                showNotification('Connection error during import', 'error');
-                            }
-                        }
-                    }
-                };
-
-                // Start processing stream
-                processStream();
-
-            } catch (error) {
-                console.error('Error starting import:', error);
-                showNotification(error.message, 'error');
-                cloneLineupState.importInProgress = false;
-            }
-        }
-
-        function cancelCloneImport() {
-            if (cloneLineupState.streamReader) {
-                try {
-                    cloneLineupState.streamReader.cancel();
-                } catch (error) {
-                    console.error('Error cancelling stream:', error);
-                }
-                cloneLineupState.streamReader = null;
-            }
-
-            if (cloneLineupState.importInProgress === true) {
-                document.getElementById('cloneProgressText').textContent = 'Import Cancelled';
-                const statusDiv = document.getElementById('cloneProgressStatus');
-                statusDiv.innerHTML = `<div style="color: #ffd43b; font-weight: 600;">Import cancelled by user</div>` + statusDiv.innerHTML;
-                cloneLineupState.importInProgress = false;
-            }
-
-            closeCloneLineupModal();
-        }
-
-        // ============================================================
-        // End Clone Lineup Functions
-        // ============================================================
-
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', async function() {
-            // PRIORITY: Show tabs as quickly as possible
-            await updateTabVisibility();
-
-            // Then load everything else in the background
-            await loadSettings();
+            await loadSettings(); // Wait for settings to load first
             loadDatabaseMetadata();
             populateEmbyCountries();
+            // Tab visibility is now updated at the end of loadSettings()
         });
     </script>
 </body>
