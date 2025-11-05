@@ -24,9 +24,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 load_dotenv()
 
-DB_PATH = os.environ.get('DATABASE_PATH', '/data/channelidentifiarr.db')
-FRONTEND_PATH = os.environ.get('FRONTEND_PATH', os.path.join(os.path.dirname(__file__), 'frontend'))
-LOG_LEVEL = os.environ.get('BACKEND_LOG_LEVEL', 'INFO')
+DB_PATH = os.environ.get('CHANNELIDENTIFIARR_DATABASE_PATH', '/data/channelidentifiarr.db')
+FRONTEND_PATH = os.environ.get('CHANNELIDENTIFIARR_FRONTEND_PATH', os.path.join(os.path.dirname(__file__), 'frontend'))
+LOG_LEVEL = os.environ.get('CHANNELIDENTIFIARR_BACKEND_LOG_LEVEL', 'INFO')
 
 app = Flask(__name__)
 CORS(app)

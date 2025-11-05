@@ -10,7 +10,7 @@ services:
     environment:
       # Optional environment variables with default values. Override these in your .env file.
       - TZ=${TZ:-America/New_York}
-      - BACKEND_LOG_LEVEL=${BACKEND_LOG_LEVEL:-INFO}
-      - DATABASE_PATH=${DATABASE_PATH:-/data/channelidentifiarr.db}
-      - FRONTEND_PATH=${FRONTEND_PATH:-frontend}
-      - SETTINGS_PATH=${SETTINGS_PATH:-/data/settings.json}
+      - CHANNELIDENTIFIARR_BACKEND_LOG_LEVEL=${CHANNELIDENTIFIARR_BACKEND_LOG_LEVEL:-INFO}
+      - CHANNELIDENTIFIARR_DATABASE_PATH=${CHANNELIDENTIFIARR_DATABASE_PATH:-/data/channelidentifiarr.db}
+      - CHANNELIDENTIFIARR_FRONTEND_PATH=${CHANNELIDENTIFIARR_FRONTEND_PATH:-frontend}
+      - CHANNELIDENTIFIARR_SETTINGS_PATH=${CHANNELIDENTIFIARR_SETTINGS_PATH:-/data/settings.json}
