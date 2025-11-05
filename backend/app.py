@@ -22,22 +22,15 @@ from urllib.parse import urlparse
 from settings_manager import get_settings_manager
 import gevent
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from dotenv import load_dotenv
+load_dotenv()
+
+DB_PATH = os.environ.get('CHANNELIDENTIFIARR_DATABASE_PATH', '/data/channelidentifiarr.db')
+FRONTEND_PATH = os.environ.get('CHANNELIDENTIFIARR_FRONTEND_PATH', os.path.join(os.path.dirname(__file__), 'frontend'))
+LOG_LEVEL = os.environ.get('CHANNELIDENTIFIARR_BACKEND_LOG_LEVEL', 'INFO')
 
 app = Flask(__name__)
 CORS(app)
-
-# Database configuration
-DB_PATH = os.environ.get('DATABASE_PATH', '/data/channelidentifiarr.db')
-
-# Check if database exists
-DB_EXISTS = os.path.exists(DB_PATH)
-if not DB_EXISTS:
-    logger.warning(f"Database not found at {DB_PATH} - running in no-database mode")
-else:
-    logger.info(f"Database found at {DB_PATH}")
 
 # Dispatcharr configuration - will be received from frontend
 # Token management per connection
@@ -254,9 +247,9 @@ def serve_frontend():
     if not DB_EXISTS:
         return serve_setup_page()
 
-    frontend_path = os.path.join(os.path.dirname(__file__), 'frontend', 'index.html')
-    if os.path.exists(frontend_path):
-        with open(frontend_path, 'r') as f:
+    index_html = os.path.join(FRONTEND_PATH, 'index.html')
+    if os.path.exists(index_html):
+        with open(index_html, 'r', encoding='utf-8') as f:
             return f.read()
     else:
         # Return the HTML directly if file not found
@@ -3772,12 +3765,14 @@ def test_emby_settings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    # Check if database exists
-    if not Path(DB_PATH).exists():
-        logger.error(f"Database not found at {DB_PATH}")
-        logger.info("Please mount the database or set DATABASE_PATH environment variable")
-    else:
-        logger.info(f"Using database at {DB_PATH}")
+    logging.basicConfig(level=LOG_LEVEL)
+    logger = logging.getLogger(__name__)
 
-    # Run the development server
+    # Check if database exists
+    DB_EXISTS = os.path.exists(DB_PATH)
+    if not DB_EXISTS:
+        logger.warning(f"Database not found at {DB_PATH} - running in no-database mode")
+    else:
+        logger.info(f"Database found at {DB_PATH}")
+
     app.run(host='0.0.0.0', port=5000, debug=False)
