@@ -20,6 +20,7 @@ import shutil
 import tempfile
 from urllib.parse import urlparse
 from settings_manager import get_settings_manager
+import gevent
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -490,7 +491,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.6.2</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.6.3</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -1097,6 +1098,13 @@ def import_lineup(lineup_id):
     """Import channels from a lineup into Dispatcharr"""
     try:
         data = request.json
+        logger.info(f"Received import request - data type: {type(data)}, data: {data}")
+
+        # Ensure data is a dict
+        if not isinstance(data, dict):
+            logger.error(f"Expected dict, got {type(data)}: {data}")
+            return jsonify({'error': 'Invalid request format'}), 400
+
         dispatcharr_url = data.get('dispatcharrUrl', '').rstrip('/')
         dispatcharr_username = data.get('dispatcharrUsername')
         dispatcharr_password = data.get('dispatcharrPassword')
@@ -1112,7 +1120,7 @@ def import_lineup(lineup_id):
 
         # Conflict handling
         number_conflict = data.get('numberConflict', 'skip')  # skip/overwrite
-        station_conflict = data.get('stationConflict', 'skip')  # skip/move/create
+        station_conflict = data.get('stationConflict', 'create')  # skip/move/create
 
         # Quality filters
         include_sd = data.get('includeSd', True)
@@ -1191,10 +1199,19 @@ def import_lineup(lineup_id):
         if not existing_channels_result:
             return jsonify({'error': f'Failed to get existing channels: {error}'}), 500
 
+        # Handle both dict with 'results' key and direct list response
+        if isinstance(existing_channels_result, dict) and 'results' in existing_channels_result:
+            existing_channels = existing_channels_result['results']
+        elif isinstance(existing_channels_result, list):
+            existing_channels = existing_channels_result
+        else:
+            logger.error(f"Unexpected existing_channels_result type: {type(existing_channels_result)}")
+            return jsonify({'error': 'Unexpected response format from Dispatcharr'}), 500
+
         # Build lookup for existing channels by number and station_id
         existing_by_number = {}
         existing_by_station_id = {}
-        for ch in existing_channels_result.get('results', []):
+        for ch in existing_channels:
             ch_num = str(ch.get('channel_number', ''))
             if ch_num:
                 if ch_num not in existing_by_number:
@@ -1218,19 +1235,37 @@ def import_lineup(lineup_id):
                     channel_name = channel['station_name']
 
                     # Send progress update
-                    yield f"data: {json.dumps({'progress': idx + 1, 'total': total_channels, 'channel': channel_name})}\n\n"
+                    yield f"data: {json.dumps({'status': 'progress', 'processed': idx + 1, 'total': total_channels, 'message': f'Importing {channel_name}'})}\n\n"
+                    gevent.sleep(0)  # Force gevent to flush the SSE stream
 
                     # Check for duplicates
                     existing_at_number = existing_by_number.get(channel_num, [])
                     existing_with_station = existing_by_station_id.get(station_id)
 
-                    if duplicate_handling == 'skip':
+                    # Handle number conflicts first
+                    if existing_at_number:
+                        if number_conflict == 'skip':
+                            # Skip if number is already taken
+                            channels_skipped += 1
+                            continue
+                        elif number_conflict == 'overwrite':
+                            # Delete existing channel(s) at this number
+                            for existing_ch in existing_at_number:
+                                _, del_error = dispatcharr_api_request(
+                                    dispatcharr_url, dispatcharr_username, dispatcharr_password,
+                                    'DELETE', f'/api/channels/channels/{existing_ch["id"]}/'
+                                )
+                                if del_error:
+                                    logger.error(f"Failed to delete existing channel at {channel_num}: {del_error}")
+
+                    # Handle station conflicts
+                    if station_conflict == 'skip':
                         # Skip if station already exists anywhere
                         if existing_with_station:
                             channels_skipped += 1
                             continue
 
-                    elif duplicate_handling == 'move':
+                    elif station_conflict == 'move':
                         # If station exists, move it to new number
                         if existing_with_station:
                             old_channel_id = existing_with_station['id']
@@ -1258,7 +1293,7 @@ def import_lineup(lineup_id):
                         create_data['channel_group_id'] = default_group_id
 
                     # Upload logo if enabled and available
-                    if upload_logos and channel.get('logo_uri'):
+                    if use_logos and channel.get('logo_uri'):
                         logo_data = {'name': f"{channel_name} Logo", 'url': channel['logo_uri']}
                         logo_result, logo_error = dispatcharr_api_request(
                             dispatcharr_url, dispatcharr_username, dispatcharr_password,
@@ -1283,12 +1318,16 @@ def import_lineup(lineup_id):
                     channels_failed += 1
 
             # Send completion
-            yield f"data: {json.dumps({{'done': True, 'channels_created': channels_created, 'channels_skipped': channels_skipped, 'channels_moved': channels_moved, 'channels_failed': channels_failed}})}\n\n"
+            yield f"data: {json.dumps({'status': 'complete', 'created': channels_created, 'skipped': channels_skipped + channels_moved, 'errors': channels_failed})}\n\n"
+            gevent.sleep(0)  # Force final flush
 
-        return Response(generate(), mimetype='text/event-stream')
+        response = Response(generate(), mimetype='text/event-stream')
+        response.headers['Cache-Control'] = 'no-cache'
+        response.headers['X-Accel-Buffering'] = 'no'
+        return response
 
     except Exception as e:
-        logger.error(f"Lineup import error: {str(e)}")
+        logger.exception(f"Lineup import error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/station/<station_id>')

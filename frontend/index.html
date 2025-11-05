@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.2</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.3</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1792,9 +1792,9 @@
                 <div style="margin-bottom: 20px;">
                     <label style="font-weight: 600; display: block; margin-bottom: 10px;">If station already exists elsewhere in Dispatcharr:</label>
                     <select id="cloneStationConflict" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px;">
-                        <option value="skip" selected>Skip (do not import this channel)</option>
+                        <option value="skip">Skip (do not import this channel)</option>
                         <option value="move">Move existing channel to lineup location</option>
-                        <option value="create">Create again (duplicate station)</option>
+                        <option value="create" selected>Create again (duplicate station)</option>
                     </select>
                 </div>
 
@@ -7927,8 +7927,9 @@
                     return;
                 }
 
-                // Filter by custom only
-                if (showCustomOnly && group.m3u_playlists && group.m3u_playlists.length > 0) {
+                // Filter by custom only (groups with no M3U associations)
+                const isCustomGroup = !group.m3u_account_count || group.m3u_account_count === 0;
+                if (showCustomOnly && !isCustomGroup) {
                     return;
                 }
 
@@ -8145,6 +8146,8 @@
                 numberConflict: document.getElementById('cloneNumberConflict').value,
                 stationConflict: document.getElementById('cloneStationConflict').value
             };
+
+            console.log('Config object type:', typeof config, 'Value:', config);
 
             // Show progress step
             document.getElementById('cloneStep1').style.display = 'none';
