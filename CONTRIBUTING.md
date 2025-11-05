@@ -26,10 +26,10 @@ From the root project dir: ```docker build .```
 1. **Download** `channelidentifiarr.db`
 2. **Create a `.env` file**. Example:
     ```env
-    BACKEND_LOG_LEVEL=DEBUG
-    DATABASE_PATH=./channelidentifiarr.db
-    FRONTEND_PATH=frontend
-    SETTINGS_PATH=./settings.json
+    CHANNELIDENTIFIARR_BACKEND_LOG_LEVEL=DEBUG
+    CHANNELIDENTIFIARR_DATABASE_PATH=./channelidentifiarr.db
+    CHANNELIDENTIFIARR_FRONTEND_PATH=frontend
+    CHANNELIDENTIFIARR_SETTINGS_PATH=./settings.json
     ```
 
 ### ▶️ Running in VSCode
