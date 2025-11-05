@@ -19,7 +19,6 @@ import shutil
 import tempfile
 from urllib.parse import urlparse
 from settings_manager import get_settings_manager
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -38,7 +37,6 @@ dispatcharr_sessions = {}
 # Logo cache (populated on-demand when collisions occur)
 logo_cache = {
     'urls': {},  # url -> logo_id mapping
-    'ids': {},   # logo_id -> url mapping (for reverse lookup)
     'expires_at': None,
     'session_key': None
 }
@@ -1338,13 +1336,11 @@ def get_logo_cache(url, username, password):
         else:
             break
 
-    # Build URL -> ID and ID -> URL mappings
+    # Build URL -> ID mapping
     url_map = {logo['url']: logo['id'] for logo in all_logos}
-    id_map = {logo['id']: logo['url'] for logo in all_logos}
 
     # Update cache
     logo_cache['urls'] = url_map
-    logo_cache['ids'] = id_map
     logo_cache['expires_at'] = now + timedelta(minutes=5)
     logo_cache['session_key'] = session_key
 
@@ -1491,14 +1487,20 @@ def get_dispatcharr_channels():
             for group in groups_data:
                 groups_map[group.get('id')] = group.get('name', 'Unknown')
 
-        # Get logo URLs using cache (builds cache if needed, expires after 5 min)
-        # This prevents fetching logos individually on every channel load
-        get_logo_cache(url, username, password)  # Ensure cache is populated
-        
-        # Use cached logo mappings
-        logos_map = logo_cache['ids']  # id -> url mapping
-        
-        logger.info(f"Using cached logos for {len(channels_data)} channels ({len(logos_map)} logos in cache)")
+        # Get only logos assigned to channels (prevents timeout with 100k+ logo libraries)
+        logo_ids = set()
+        for ch in channels_data:
+            logo_id = ch.get('logo_id')
+            if logo_id:
+                logo_ids.add(logo_id)
+
+        logger.info(f"Fetching {len(logo_ids)} logos for {len(channels_data)} channels")
+
+        logos_map = {}
+        for logo_id in logo_ids:
+            logo_data, _ = dispatcharr_api_request(url, username, password, 'GET', f'/api/channels/logos/{logo_id}/')
+            if logo_data:
+                logos_map[logo_id] = logo_data.get('url', '')
 
         # Process channels
         channels = []
