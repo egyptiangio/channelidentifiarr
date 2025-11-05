@@ -1,10 +1,15 @@
 # ChannelIdentifiarr
 
-**v0.6.0**
+**v0.6.1**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
-## Recent Updates (v0.6.0)
+## Recent Updates (v0.6.1)
+
+**Bug Fix:**
+- **Clone Lineup** - Fixed "Dispatcharr credentials required" error. The frontend now correctly includes Dispatcharr credentials from settings when importing a lineup.
+
+## Previous Updates (v0.6.0)
 
 **New Features:**
 - **Clone Lineup** - Import entire real-world lineups (DirecTV, Dish, cable providers) from Gracenote database with pre-populated channel numbers, station IDs, call signs, and logos. Search by ZIP code across all supported countries.

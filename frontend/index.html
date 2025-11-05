@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.0</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.1</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -8100,6 +8100,17 @@
         }
 
         async function startCloneImport() {
+            // Load Dispatcharr credentials from settings
+            const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
+            const dispatcharrUrl = settings.dispatcharr?.url;
+            const dispatcharrUsername = settings.dispatcharr?.username;
+            const dispatcharrPassword = settings.dispatcharr?.password;
+
+            if (!dispatcharrUrl || !dispatcharrUsername || !dispatcharrPassword) {
+                showNotification('Please configure Dispatcharr credentials in Settings first', 'error');
+                return;
+            }
+
             // Validate quality filters
             const includeHd = document.getElementById('cloneIncludeHd').checked;
             const includeSd = document.getElementById('cloneIncludeSd').checked;
@@ -8113,6 +8124,10 @@
 
             // Gather configuration
             const config = {
+                // Dispatcharr credentials
+                dispatcharrUrl: dispatcharrUrl,
+                dispatcharrUsername: dispatcharrUsername,
+                dispatcharrPassword: dispatcharrPassword,
                 // Quality filters
                 includeSd: includeSd,
                 includeHd: includeHd,
