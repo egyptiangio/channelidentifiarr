@@ -1,10 +1,15 @@
 # ChannelIdentifiarr
 
-**v0.6.1**
+**v0.6.2**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
-## Recent Updates (v0.6.1)
+## Recent Updates (v0.6.2)
+
+**Bug Fix:**
+- **Clone Lineup** - Fixed credentials loading from backend settings instead of localStorage.
+
+## Previous Updates (v0.6.1)
 
 **Bug Fix:**
 - **Clone Lineup** - Fixed "Dispatcharr credentials required" error. The frontend now correctly includes Dispatcharr credentials from settings when importing a lineup.

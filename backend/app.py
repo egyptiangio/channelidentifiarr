@@ -490,7 +490,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.6.1</p>
+            <p><strong>Channel Identifiarr Web</strong> v0.6.2</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>

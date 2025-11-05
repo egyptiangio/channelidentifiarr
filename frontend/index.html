@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.1</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.2</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -8100,8 +8100,8 @@
         }
 
         async function startCloneImport() {
-            // Load Dispatcharr credentials from settings
-            const settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
+            // Load Dispatcharr credentials from backend settings
+            const settings = await getSettings();
             const dispatcharrUrl = settings.dispatcharr?.url;
             const dispatcharrUsername = settings.dispatcharr?.username;
             const dispatcharrPassword = settings.dispatcharr?.password;
