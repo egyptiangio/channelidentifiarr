@@ -4,6 +4,9 @@ Thank you for your interest. We welcome contributions.
 
 ---
 
+## Building the Docker image
+From the root project dir: ```docker build .```
+
 ## Backend Development with VSCode and UV
 
 ### 🖥️ UV Setup
