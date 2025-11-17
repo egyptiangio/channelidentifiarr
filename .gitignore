@@ -65,6 +65,9 @@ settings.json
 *.old
 *.cache
 
+# Version management script (local tool)
+bump-version.sh
+
 # Planning and roadmap documents
 *_PLAN.md
 *roadmap*
