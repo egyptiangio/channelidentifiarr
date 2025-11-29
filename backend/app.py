@@ -20,6 +20,7 @@ import shutil
 import tempfile
 from urllib.parse import urlparse
 from settings_manager import get_settings_manager
+from config import VERSION
 import gevent
 
 # Configure logging
@@ -491,7 +492,7 @@ def serve_setup_page():
         </div>
 
         <div class="footer">
-            <p><strong>Channel Identifiarr Web</strong> v0.6.5</p>
+            <p><strong>Channel Identifiarr Web</strong> v''' + VERSION + '''</p>
             <p>Part of the Dispatcharr ecosystem</p>
         </div>
     </div>
@@ -518,6 +519,11 @@ def health_check():
             'status': 'error',
             'message': str(e)
         }), 500
+
+@app.route('/api/version')
+def get_version():
+    """Get application version"""
+    return jsonify({'version': VERSION})
 
 @app.route('/api/database/metadata')
 def get_database_metadata():
@@ -2634,7 +2640,7 @@ def emby_authenticate(url, username, password):
         auth_url = f"{url}/emby/Users/AuthenticateByName"
         headers = {
             'Content-Type': 'application/json',
-            'X-Emby-Authorization': 'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="0.6.5"'
+            'X-Emby-Authorization': f'MediaBrowser Client="ChannelIdentifiarr", Device="Web", DeviceId="channelidentifiarr", Version="{VERSION}"'
         }
         auth_data = {
             'Username': username,
@@ -3047,7 +3053,7 @@ def clear_emby_channel_numbers():
                 channel_data['ChannelNumber'] = ''
 
                 # Update channel
-                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version=0.6.5&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
+                query_params = f"X-Emby-Client=Emby+Web&X-Emby-Device-Name=ChannelIdentifiarr&X-Emby-Device-Id=channelidentifiarr&X-Emby-Client-Version={VERSION}&X-Emby-Token={token}&X-Emby-Language=en-us&reqformat=json"
                 update_result, error = emby_api_request(url, token, 'POST', f'/emby/Items/{channel_id}?{query_params}', channel_data)
 
                 if update_result is not None:

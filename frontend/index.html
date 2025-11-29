@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.5</span>
+                <span id="appVersion" style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;"></span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -3461,9 +3461,21 @@
             }
         }
 
+        // Load app version from API
+        async function loadAppVersion() {
+            try {
+                const response = await fetch('/api/version');
+                const data = await response.json();
+                document.getElementById('appVersion').textContent = 'v' + data.version;
+            } catch (error) {
+                console.error('Failed to load version:', error);
+            }
+        }
+
         // Initialize on page load
         window.addEventListener('DOMContentLoaded', () => {
             applySavedTheme();
+            loadAppVersion();
             loadStats();
             loadMetadata();
             // Populate matching filter country dropdown dynamically
