@@ -1,10 +1,10 @@
 # ChannelIdentifiarr
 
-**v0.6.4**
+**v0.6.5**
 
 Web-based TV channel lineup search and Dispatcherr/Emby integration.
 
-## Recent Updates (v0.6.4)
+## Recent Updates (v0.6.5)
 
 **Bug Fix:**
 - **Clone Lineup** - Fixed import failure with empty Dispatcharr installations. Changed validation from `if not existing_channels_result` to `if existing_channels_result is None` to correctly handle empty channel lists `[]` as valid responses rather than errors.

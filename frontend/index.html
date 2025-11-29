@@ -573,7 +573,7 @@
                 <div class="subtitle">Gracenote Station Database Search</div>
             </div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.4</span>
+                <span style="font-size: 0.85em; color: var(--text-muted); opacity: 0.7;">v0.6.5</span>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
                     <span id="themeIcon">🌙</span>
                 </button>
@@ -1375,11 +1375,6 @@
                                 </label>
                                 <select id="filterCountry" onchange="filtersManuallyModified = true; applyMatchingFilters()" style="width: 100%; padding: 8px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.2); color: white;">
                                     <option value="">All Countries</option>
-                                    <option value="USA">USA</option>
-                                    <option value="CAN">Canada</option>
-                                    <option value="GBR">United Kingdom</option>
-                                    <option value="AUS">Australia</option>
-                                    <option value="MEX">Mexico</option>
                                 </select>
                             </div>
 
@@ -1850,6 +1845,76 @@
         // Track if changes were made in modals (for conditional reload)
         let channelChangedInModal = false;
         let hasIncrementalUpdates = false; // Track if we did immediate row updates (skip full reload)
+
+        // Cached metadata for country dropdowns
+        let cachedMetadata = null;
+
+        // Shared country name mappings
+        const COUNTRY_NAMES = {
+            'AIA': 'Anguilla', 'ARG': 'Argentina', 'AUS': 'Australia', 'AUT': 'Austria',
+            'BEL': 'Belgium', 'BLZ': 'Belize', 'BMU': 'Bermuda', 'BRA': 'Brazil',
+            'BRB': 'Barbados', 'CAN': 'Canada', 'CHE': 'Switzerland', 'CHL': 'Chile',
+            'COL': 'Colombia', 'CRI': 'Costa Rica', 'CYM': 'Cayman Islands', 'DEU': 'Germany',
+            'DNK': 'Denmark', 'DOM': 'Dominican Republic', 'ECU': 'Ecuador', 'ESP': 'Spain',
+            'FIN': 'Finland', 'FRA': 'France', 'GBR': 'United Kingdom', 'GRC': 'Greece',
+            'HND': 'Honduras', 'IRL': 'Ireland', 'ISL': 'Iceland', 'ITA': 'Italy',
+            'JAM': 'Jamaica', 'LUX': 'Luxembourg', 'MEX': 'Mexico', 'NLD': 'Netherlands',
+            'NOR': 'Norway', 'NZL': 'New Zealand', 'PAN': 'Panama', 'PER': 'Peru',
+            'PRT': 'Portugal', 'SWE': 'Sweden', 'TCA': 'Turks and Caicos',
+            'TTO': 'Trinidad and Tobago', 'URY': 'Uruguay', 'USA': 'United States',
+            'VEN': 'Venezuela'
+        };
+
+        // Helper function to populate country dropdowns dynamically
+        // Options: { preserveFirst: true, selectUSA: false, showFullName: true }
+        async function populateCountryDropdown(selectElementId, options = {}) {
+            const { preserveFirst = true, selectUSA = false, showFullName = true } = options;
+            try {
+                // Fetch and cache metadata if not already cached
+                if (!cachedMetadata) {
+                    const response = await fetch('/api/metadata');
+                    cachedMetadata = await response.json();
+                }
+
+                const selectElement = document.getElementById(selectElementId);
+                if (!selectElement) return;
+
+                // Clear options (preserve first if requested)
+                const startIndex = preserveFirst ? 1 : 0;
+                while (selectElement.options.length > startIndex) {
+                    selectElement.remove(startIndex);
+                }
+
+                // Add USA first if it exists
+                if (cachedMetadata.countries.includes('USA')) {
+                    const usaOption = document.createElement('option');
+                    usaOption.value = 'USA';
+                    usaOption.textContent = showFullName ? 'USA - United States' : 'USA';
+                    if (selectUSA) usaOption.selected = true;
+                    selectElement.appendChild(usaOption);
+
+                    // Add divider
+                    const divider = document.createElement('option');
+                    divider.disabled = true;
+                    divider.textContent = '──────────';
+                    selectElement.appendChild(divider);
+                }
+
+                // Add all countries alphabetically (excluding USA)
+                cachedMetadata.countries.sort().forEach(country => {
+                    if (country !== 'USA') {
+                        const option = document.createElement('option');
+                        option.value = country;
+                        option.textContent = showFullName
+                            ? `${country} - ${COUNTRY_NAMES[country] || country}`
+                            : country;
+                        selectElement.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error(`Failed to populate ${selectElementId}:`, error);
+            }
+        }
 
         // Custom Notification System
         function showNotification(message, type = 'info') {
@@ -3401,6 +3466,8 @@
             applySavedTheme();
             loadStats();
             loadMetadata();
+            // Populate matching filter country dropdown dynamically
+            populateCountryDropdown('filterCountry');
 
             // Enable search on Enter key
             document.getElementById('searchInput').addEventListener('keypress', (e) => {
@@ -3481,6 +3548,7 @@
                 console.error('Failed to load metadata:', error);
             }
         }
+
 
         async function loadStats() {
             try {
@@ -6246,92 +6314,7 @@
 
         // Populate Emby country dropdown from database
         async function populateEmbyCountries() {
-            try {
-                const response = await fetch('/api/metadata');
-                const data = await response.json();
-
-                const embyCountrySelect = document.getElementById('embyCountrySelect');
-
-                // Clear existing options except "Any Country"
-                while (embyCountrySelect.options.length > 1) {
-                    embyCountrySelect.remove(1);
-                }
-
-                // Add USA first if it exists
-                if (data.countries.includes('USA')) {
-                    const usaOption = document.createElement('option');
-                    usaOption.value = 'USA';
-                    usaOption.textContent = 'USA - United States';
-                    usaOption.selected = true;  // Set USA as default
-                    embyCountrySelect.appendChild(usaOption);
-
-                    // Add divider
-                    const divider = document.createElement('option');
-                    divider.disabled = true;
-                    divider.textContent = '──────────';
-                    embyCountrySelect.appendChild(divider);
-                }
-
-                // Country name mappings
-                const countryNames = {
-                    'AIA': 'Anguilla',
-                    'ARG': 'Argentina',
-                    'AUS': 'Australia',
-                    'AUT': 'Austria',
-                    'BEL': 'Belgium',
-                    'BLZ': 'Belize',
-                    'BMU': 'Bermuda',
-                    'BRA': 'Brazil',
-                    'BRB': 'Barbados',
-                    'CAN': 'Canada',
-                    'CHE': 'Switzerland',
-                    'CHL': 'Chile',
-                    'COL': 'Colombia',
-                    'CRI': 'Costa Rica',
-                    'CYM': 'Cayman Islands',
-                    'DEU': 'Germany',
-                    'DNK': 'Denmark',
-                    'DOM': 'Dominican Republic',
-                    'ECU': 'Ecuador',
-                    'ESP': 'Spain',
-                    'FIN': 'Finland',
-                    'FRA': 'France',
-                    'GBR': 'United Kingdom',
-                    'GRC': 'Greece',
-                    'HND': 'Honduras',
-                    'IRL': 'Ireland',
-                    'ISL': 'Iceland',
-                    'ITA': 'Italy',
-                    'JAM': 'Jamaica',
-                    'LUX': 'Luxembourg',
-                    'MEX': 'Mexico',
-                    'NLD': 'Netherlands',
-                    'NOR': 'Norway',
-                    'NZL': 'New Zealand',
-                    'PAN': 'Panama',
-                    'PER': 'Peru',
-                    'PRT': 'Portugal',
-                    'SWE': 'Sweden',
-                    'TCA': 'Turks and Caicos',
-                    'TTO': 'Trinidad and Tobago',
-                    'URY': 'Uruguay',
-                    'VEN': 'Venezuela'
-                };
-
-                // Add all countries alphabetically (excluding USA since it's already added)
-                data.countries.sort().forEach(country => {
-                    if (country !== 'USA') {
-                        const option = document.createElement('option');
-                        option.value = country;
-                        const countryName = countryNames[country] || country;
-                        option.textContent = `${country} - ${countryName}`;
-                        embyCountrySelect.appendChild(option);
-                    }
-                });
-
-            } catch (error) {
-                console.error('Failed to populate Emby countries:', error);
-            }
+            await populateCountryDropdown('embyCountrySelect', { selectUSA: true });
         }
 
 
@@ -7824,60 +7807,10 @@
 
         // Populate clone country dropdown from database
         async function populateCloneCountries() {
-            try {
-                const response = await fetch('/api/metadata');
-                const data = await response.json();
-
-                const cloneCountrySelect = document.getElementById('cloneCountry');
-                cloneCountrySelect.innerHTML = ''; // Clear all options
-
-                // Country name mappings
-                const countryNames = {
-                    'AIA': 'Anguilla', 'ARG': 'Argentina', 'AUS': 'Australia', 'AUT': 'Austria',
-                    'BEL': 'Belgium', 'BLZ': 'Belize', 'BMU': 'Bermuda', 'BRA': 'Brazil',
-                    'BRB': 'Barbados', 'CAN': 'Canada', 'CHE': 'Switzerland', 'CHL': 'Chile',
-                    'COL': 'Colombia', 'CRI': 'Costa Rica', 'CYM': 'Cayman Islands', 'DEU': 'Germany',
-                    'DNK': 'Denmark', 'DOM': 'Dominican Republic', 'ECU': 'Ecuador', 'ESP': 'Spain',
-                    'FIN': 'Finland', 'FRA': 'France', 'GBR': 'United Kingdom', 'GRC': 'Greece',
-                    'HND': 'Honduras', 'IRL': 'Ireland', 'ISL': 'Iceland', 'ITA': 'Italy',
-                    'JAM': 'Jamaica', 'LUX': 'Luxembourg', 'MEX': 'Mexico', 'NLD': 'Netherlands',
-                    'NOR': 'Norway', 'NZL': 'New Zealand', 'PAN': 'Panama', 'PER': 'Peru',
-                    'PRT': 'Portugal', 'SWE': 'Sweden', 'TCA': 'Turks and Caicos',
-                    'TTO': 'Trinidad and Tobago', 'URY': 'Uruguay', 'VEN': 'Venezuela'
-                };
-
-                // Add USA first if it exists
-                if (data.countries.includes('USA')) {
-                    const usaOption = document.createElement('option');
-                    usaOption.value = 'USA';
-                    usaOption.textContent = 'USA - United States';
-                    usaOption.selected = true;
-                    cloneCountrySelect.appendChild(usaOption);
-
-                    // Add divider
-                    const divider = document.createElement('option');
-                    divider.disabled = true;
-                    divider.textContent = '──────────';
-                    cloneCountrySelect.appendChild(divider);
-                }
-
-                // Add all countries alphabetically (excluding USA since it's already added)
-                data.countries.sort().forEach(country => {
-                    if (country !== 'USA') {
-                        const option = document.createElement('option');
-                        option.value = country;
-                        option.textContent = countryNames[country]
-                            ? `${country} - ${countryNames[country]}`
-                            : country;
-                        cloneCountrySelect.appendChild(option);
-                    }
-                });
-            } catch (error) {
-                console.error('Failed to populate clone countries:', error);
-                // Fallback to USA only
-                const cloneCountrySelect = document.getElementById('cloneCountry');
-                cloneCountrySelect.innerHTML = '<option value="USA">USA - United States</option>';
-            }
+            // Clear all options first (no "All Countries" for clone)
+            const cloneCountrySelect = document.getElementById('cloneCountry');
+            cloneCountrySelect.innerHTML = '';
+            await populateCountryDropdown('cloneCountry', { preserveFirst: false, selectUSA: true });
         }
 
         async function openCloneLineupModal() {
