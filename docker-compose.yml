@@ -8,4 +8,9 @@ services:
     volumes:
       - ./data:/data
     environment:
-      - TZ=America/New_York
+      # Optional environment variables with default values. Override these in your .env file.
+      - TZ=${TZ:-America/New_York}
+      - CHANNELIDENTIFIARR_BACKEND_LOG_LEVEL=${CHANNELIDENTIFIARR_BACKEND_LOG_LEVEL:-INFO}
+      - CHANNELIDENTIFIARR_DATABASE_PATH=${CHANNELIDENTIFIARR_DATABASE_PATH:-/data/channelidentifiarr.db}
+      - CHANNELIDENTIFIARR_FRONTEND_PATH=${CHANNELIDENTIFIARR_FRONTEND_PATH:-frontend}
+      - CHANNELIDENTIFIARR_SETTINGS_PATH=${CHANNELIDENTIFIARR_SETTINGS_PATH:-/data/settings.json}

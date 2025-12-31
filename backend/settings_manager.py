@@ -12,6 +12,8 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
+import dotenv
+dotenv.load_dotenv()
 
 class SettingsManager:
     """
@@ -27,7 +29,7 @@ class SettingsManager:
             settings_path: Path to settings file (default: /data/settings.json)
         """
         self.settings_path = settings_path or os.environ.get(
-            'SETTINGS_PATH',
+            'CHANNELIDENTIFIARR_SETTINGS_PATH',
             '/data/settings.json'
         )
         self._ensure_settings_dir()
@@ -138,9 +140,9 @@ class SettingsManager:
             }
 
         # Database settings
-        if os.environ.get('DATABASE_PATH'):
+        if os.environ.get('CHANNELIDENTIFIARR_DATABASE_PATH'):
             settings['database'] = {
-                'path': os.environ.get('DATABASE_PATH')
+                'path': os.environ.get('CHANNELIDENTIFIARR_DATABASE_PATH')
             }
 
         return settings
