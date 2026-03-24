@@ -2739,6 +2739,63 @@ def get_emby_channels():
         logger.error(f"Error getting Emby channels: {e}")
         return jsonify({'error': str(e)}), 500
 
+def _load_dispatcharr_station_ids():
+    """Load tvc_guide_stationid from Dispatcharr channels, keyed by name and number.
+
+    Returns a dict with composite keys:
+        ('name', <lowercase name>) -> station_id
+        ('number', <channel number string>) -> station_id
+    so the caller can look up by either.  Returns empty dict if Dispatcharr
+    is not configured or unreachable.
+    """
+    try:
+        settings = settings_manager.load_settings()
+        d = settings.get('dispatcharr', {})
+        d_url = (d.get('url') or '').rstrip('/')
+        d_user = d.get('username')
+        d_pass = d.get('password')
+
+        if not all([d_url, d_user, d_pass]):
+            return {}
+
+        channels_data = []
+        channels_url = '/api/channels/channels/'
+        while channels_url:
+            data, error = dispatcharr_api_request(d_url, d_user, d_pass, 'GET', channels_url)
+            if error or not data:
+                break
+            if isinstance(data, dict) and 'results' in data:
+                channels_data.extend(data['results'])
+                next_url = data.get('next')
+                if next_url:
+                    import urllib.parse
+                    parsed = urllib.parse.urlparse(next_url)
+                    channels_url = f"{parsed.path}?{parsed.query}" if parsed.query else parsed.path
+                else:
+                    channels_url = None
+            elif isinstance(data, list):
+                channels_data.extend(data)
+                channels_url = None
+            else:
+                channels_url = None
+
+        lookup = {}
+        for ch in channels_data:
+            sid = ch.get('tvc_guide_stationid')
+            if not sid:
+                continue
+            name = (ch.get('name') or '').strip().lower()
+            number = str(ch.get('channel_number') or '').strip()
+            if name:
+                lookup[('name', name)] = str(sid)
+            if number:
+                lookup[('number', number)] = str(sid)
+        return lookup
+
+    except Exception as e:
+        logger.warning(f"Could not load Dispatcharr station IDs: {e}")
+        return {}
+
 @app.route('/api/emby/scan-missing-listings', methods=['POST'])
 def scan_emby_missing_listings():
     """Scan Emby channels for missing ListingsId and add providers with intelligent lineup selection"""
@@ -2769,9 +2826,32 @@ def scan_emby_missing_listings():
         if not missing_channels:
             return jsonify({'providers_added': 0, 'message': 'All channels have ListingsId'}), 200
 
-        # Extract station IDs from ManagementId
+        # Extract station IDs — prefer Dispatcharr's tvc_guide_stationid when
+        # available, fall back to ManagementId parsing for M3U tuner channels.
+        #
+        # ManagementId parsing only works for M3U tuners (where the last segment
+        # is the tvg-id / Gracenote station ID).  Custom tuners (e.g. Xtream)
+        # put an internal stream ID there instead, which can collide with real
+        # Gracenote station IDs and cause dozens of wrong lineups to be added.
         station_ids = set()
+
+        dispatcharr_station_ids = _load_dispatcharr_station_ids()
+        if dispatcharr_station_ids:
+            logger.info(f"Loaded {len(dispatcharr_station_ids)} station IDs from Dispatcharr")
+
         for ch in missing_channels:
+            ch_name = (ch.get('Name') or '').strip().lower()
+            ch_number = str(ch.get('ChannelNumber') or '').strip()
+
+            # Try Dispatcharr lookup first (by name, then by channel number)
+            matched_station_id = dispatcharr_station_ids.get(('name', ch_name)) \
+                or dispatcharr_station_ids.get(('number', ch_number))
+
+            if matched_station_id:
+                station_ids.add(matched_station_id)
+                continue
+
+            # Fallback: parse ManagementId (works for M3U tuner channels)
             mgmt_id = ch.get('ManagementId', '')
             if mgmt_id and '_' in mgmt_id:
                 station_id = mgmt_id.split('_')[-1]
