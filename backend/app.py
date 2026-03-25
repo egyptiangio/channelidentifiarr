@@ -2820,33 +2820,30 @@ def scan_emby_missing_listings():
 
         channels = result if isinstance(result, list) else result.get('Items', [])
 
-        # Find channels missing ListingsId
-        missing_channels = [ch for ch in channels if not ch.get('ListingsId')]
-
-        if not missing_channels:
-            return jsonify({'providers_added': 0, 'message': 'All channels have ListingsId'}), 200
-
-        # Extract station IDs from one of two mutually exclusive sources:
+        # Determine station ID source and which channels to process.
         #
-        # 1. Dispatcharr (preferred): cross-reference by channel name/number to
-        #    get tvc_guide_stationid — the real Gracenote station ID.
-        # 2. ManagementId parsing (legacy): split on '_' and take the last
-        #    segment.  Only valid for M3U tuners where that segment is tvg-id.
-        #
-        # These two paths are mutually exclusive.  When Dispatcharr is configured
-        # and returns data, ManagementId parsing is completely disabled — even for
-        # channels that don't match by name/number.  This prevents custom tuners
-        # (e.g. Xtream) whose ManagementId contains an internal stream ID from
-        # polluting the station set with phantom Gracenote IDs.
-        station_ids = set()
-
+        # Two mutually exclusive paths:
+        #   1. Dispatcharr (preferred): cross-reference by name/number to get
+        #      tvc_guide_stationid.  When available, ListingsId filtering is
+        #      skipped because custom tuners (e.g. Xtream) always have empty
+        #      ListingsId -- filtering by it is meaningless.
+        #   2. ManagementId parsing (legacy): split on '_' and take the last
+        #      segment.  Only valid for M3U tuners where that segment is tvg-id.
+        #      Uses the traditional ListingsId filter to find unprocessed channels.
         dispatcharr_station_ids = _load_dispatcharr_station_ids()
         dispatcharr_available = len(dispatcharr_station_ids) > 0
 
         if dispatcharr_available:
-            logger.info(f"Loaded {len(dispatcharr_station_ids)} Dispatcharr entries — using as sole station ID source")
+            target_channels = channels
+            logger.info(f"Loaded {len(dispatcharr_station_ids)} Dispatcharr entries, processing all {len(channels)} channels")
+        else:
+            target_channels = [ch for ch in channels if not ch.get('ListingsId')]
+            if not target_channels:
+                return jsonify({'providers_added': 0, 'message': 'All channels have ListingsId'}), 200
+            logger.info(f"No Dispatcharr config, filtering by ListingsId: {len(target_channels)} channels missing")
 
-        for ch in missing_channels:
+        station_ids = set()
+        for ch in target_channels:
             if dispatcharr_available:
                 ch_name = (ch.get('Name') or '').strip().lower()
                 ch_number = str(ch.get('ChannelNumber') or '').strip()
@@ -2860,6 +2857,8 @@ def scan_emby_missing_listings():
                     station_id = mgmt_id.split('_')[-1]
                     if station_id.isdigit() and len(station_id) >= 4:
                         station_ids.add(station_id)
+
+        logger.info(f"Resolved {len(station_ids)} unique Gracenote station IDs")
 
         if not station_ids:
             return jsonify({'error': 'No valid station IDs found'}), 400
@@ -2974,17 +2973,38 @@ def scan_emby_missing_listings():
         if not selected_lineups:
             return jsonify({'error': 'No lineups found for the specified stations'}), 404
 
+        # Fetch existing listing providers so we can skip duplicates
+        existing_lineup_ids = set()
+        existing_result, _ = emby_api_request(url, token, 'GET', '/emby/LiveTv/ListingProviders')
+        if existing_result and isinstance(existing_result, list):
+            for p in existing_result:
+                lid = p.get('ListingsId')
+                if lid:
+                    existing_lineup_ids.add(lid)
+
+        new_lineups = {k: v for k, v in selected_lineups.items() if k not in existing_lineup_ids}
+        skipped_lineups = len(selected_lineups) - len(new_lineups)
+
+        if skipped_lineups > 0:
+            logger.info(f"Skipping {skipped_lineups} lineup(s) already in Emby, adding {len(new_lineups)} new")
+
+        if not new_lineups:
+            return jsonify({
+                'providers_added': 0,
+                'providers_skipped': skipped_lineups,
+                'message': f'All {len(selected_lineups)} selected lineups already exist in Emby'
+            }), 200
+
         # Add listing providers to Emby with SSE progress
         def generate():
             providers_added = 0
             providers_failed = 0
-            total_lineups = len(selected_lineups)
+            total_lineups = len(new_lineups)
             current = 0
 
-            for lineup_id, lineup_info in selected_lineups.items():
+            for lineup_id, lineup_info in new_lineups.items():
                 current += 1
 
-                # Send progress update
                 yield f"data: {json.dumps({'progress': current, 'total': total_lineups, 'lineup': lineup_info['name'], 'lineup_id': lineup_id})}\n\n"
 
                 provider_data = {
@@ -2996,17 +3016,17 @@ def scan_emby_missing_listings():
 
                 result, error = emby_api_request(url, token, 'POST', '/emby/LiveTv/ListingProviders', provider_data)
 
-                if result is not None:  # Success includes empty dict
+                if result is not None:
                     providers_added += 1
                 else:
                     providers_failed += 1
                     logger.warning(f"Failed to add provider {lineup_id}: {error}")
 
-            # Send completion
             completion_data = {
                 'done': True,
                 'providers_added': providers_added,
                 'providers_failed': providers_failed,
+                'providers_skipped': skipped_lineups,
                 'total_stations': len(station_ids),
                 'lineups_selected': list(selected_lineups.keys())
             }
