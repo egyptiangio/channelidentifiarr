@@ -2826,37 +2826,40 @@ def scan_emby_missing_listings():
         if not missing_channels:
             return jsonify({'providers_added': 0, 'message': 'All channels have ListingsId'}), 200
 
-        # Extract station IDs — prefer Dispatcharr's tvc_guide_stationid when
-        # available, fall back to ManagementId parsing for M3U tuner channels.
+        # Extract station IDs from one of two mutually exclusive sources:
         #
-        # ManagementId parsing only works for M3U tuners (where the last segment
-        # is the tvg-id / Gracenote station ID).  Custom tuners (e.g. Xtream)
-        # put an internal stream ID there instead, which can collide with real
-        # Gracenote station IDs and cause dozens of wrong lineups to be added.
+        # 1. Dispatcharr (preferred): cross-reference by channel name/number to
+        #    get tvc_guide_stationid — the real Gracenote station ID.
+        # 2. ManagementId parsing (legacy): split on '_' and take the last
+        #    segment.  Only valid for M3U tuners where that segment is tvg-id.
+        #
+        # These two paths are mutually exclusive.  When Dispatcharr is configured
+        # and returns data, ManagementId parsing is completely disabled — even for
+        # channels that don't match by name/number.  This prevents custom tuners
+        # (e.g. Xtream) whose ManagementId contains an internal stream ID from
+        # polluting the station set with phantom Gracenote IDs.
         station_ids = set()
 
         dispatcharr_station_ids = _load_dispatcharr_station_ids()
-        if dispatcharr_station_ids:
-            logger.info(f"Loaded {len(dispatcharr_station_ids)} station IDs from Dispatcharr")
+        dispatcharr_available = len(dispatcharr_station_ids) > 0
+
+        if dispatcharr_available:
+            logger.info(f"Loaded {len(dispatcharr_station_ids)} Dispatcharr entries — using as sole station ID source")
 
         for ch in missing_channels:
-            ch_name = (ch.get('Name') or '').strip().lower()
-            ch_number = str(ch.get('ChannelNumber') or '').strip()
-
-            # Try Dispatcharr lookup first (by name, then by channel number)
-            matched_station_id = dispatcharr_station_ids.get(('name', ch_name)) \
-                or dispatcharr_station_ids.get(('number', ch_number))
-
-            if matched_station_id:
-                station_ids.add(matched_station_id)
-                continue
-
-            # Fallback: parse ManagementId (works for M3U tuner channels)
-            mgmt_id = ch.get('ManagementId', '')
-            if mgmt_id and '_' in mgmt_id:
-                station_id = mgmt_id.split('_')[-1]
-                if station_id.isdigit() and len(station_id) >= 4:
-                    station_ids.add(station_id)
+            if dispatcharr_available:
+                ch_name = (ch.get('Name') or '').strip().lower()
+                ch_number = str(ch.get('ChannelNumber') or '').strip()
+                matched = dispatcharr_station_ids.get(('name', ch_name)) \
+                    or dispatcharr_station_ids.get(('number', ch_number))
+                if matched:
+                    station_ids.add(matched)
+            else:
+                mgmt_id = ch.get('ManagementId', '')
+                if mgmt_id and '_' in mgmt_id:
+                    station_id = mgmt_id.split('_')[-1]
+                    if station_id.isdigit() and len(station_id) >= 4:
+                        station_ids.add(station_id)
 
         if not station_ids:
             return jsonify({'error': 'No valid station IDs found'}), 400
