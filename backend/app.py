@@ -80,6 +80,16 @@ def dict_from_row(row):
     """Convert SQLite Row to dictionary"""
     return dict(zip(row.keys(), row))
 
+def normalize_channel_number(num):
+    """Normalize channel number for comparison: 117.0 -> '117', 2.1 -> '2.1'"""
+    try:
+        f = float(num)
+        if f == int(f):
+            return str(int(f))
+        return str(f)
+    except (ValueError, TypeError):
+        return str(num) if num else ''
+
 def parse_channel_name(channel_name):
     """
     Parse channel name to extract country, resolution, and clean name.
@@ -1178,9 +1188,9 @@ def import_lineup(lineup_id):
             # Apply channel offset
             try:
                 original_num = float(channel_data['channel_number'])
-                channel_data['final_channel_number'] = str(original_num + channel_offset)
+                channel_data['final_channel_number'] = normalize_channel_number(original_num + channel_offset)
             except:
-                channel_data['final_channel_number'] = channel_data['channel_number']
+                channel_data['final_channel_number'] = normalize_channel_number(channel_data['channel_number'])
             channels_to_import.append(channel_data)
 
         conn.close()
@@ -1212,7 +1222,7 @@ def import_lineup(lineup_id):
         existing_by_number = {}
         existing_by_station_id = {}
         for ch in existing_channels:
-            ch_num = str(ch.get('channel_number', ''))
+            ch_num = normalize_channel_number(ch.get('channel_number', ''))
             if ch_num:
                 if ch_num not in existing_by_number:
                     existing_by_number[ch_num] = []
@@ -1933,7 +1943,7 @@ def get_dispatcharr_channels():
 
                 channel = {
                     'id': ch.get('id'),
-                    'channel_number': ch.get('channel_number', 0),
+                    'channel_number': normalize_channel_number(ch.get('channel_number', 0)),
                     'name': ch.get('name'),
                     'call_sign': ch.get('tvg_id', ''),  # TVG ID is often used as call sign
                     'gracenote_id': ch.get('tvc_guide_stationid', ''),
